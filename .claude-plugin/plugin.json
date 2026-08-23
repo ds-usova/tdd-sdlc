@@ -1,5 +1,8 @@
 {
   "name": "tdd-sdlc",
   "description": "A TDD workflow framework: design, plan, red-green-refactor implementation, rework, bug-fixing and dependency upgrades, each as a gated pipeline of skills and sub-agents.",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "author": {
+    "name": "Daria U."
+  }
 }
