@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "pwsh -NoProfile -Command \"& (Join-Path (git rev-parse --show-toplevel) '.claude/scripts/hooks/deny-repo-token-in-plugin.ps1')\""
+          }
+        ]
+      }
+    ]
+  }
+}

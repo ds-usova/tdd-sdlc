@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh:*)",
+      "Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh:*)",
+      "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh:*)",
+      "Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh:*)",
+      "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/rework/rework.sh:*)",
+      "Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/rework/rework.sh:*)",
+      "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh:*)",
+      "Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh:*)",
+      "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh:*)",
+      "Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh:*)"
+    ]
+  }
+}
