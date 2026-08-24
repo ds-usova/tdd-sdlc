@@ -155,7 +155,8 @@ stays with its log intact, `bug.md` takes its `**Closed:**` line, and nothing is
    the suite again once it returns.
 6. **`fix.sh attempts docs/<n>-<name>/`** — it rewrites `bug.md`'s `**Attempts:**` line from every file's log, so
    one file tells the next session where the log is.
-7. **Close the row this fix came from**, where `Source:` names a findings file, in that file's own form.
+7. **Close the row this fix came from**, where `Source:` names a findings file, in that file's own form. Its
+   `B` row leaves `docs/backlog.md` in the same edit ([`backlog.md`](../../templates/backlog.md)).
 8. **Archive**: move `docs/<n>-<name>/` into `docs/implemented/`, and commit the move where the conventions
    commit at all.
 9. **What the conventions run over finished work**, in their order, each entry once, each handed the archived

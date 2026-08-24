@@ -115,11 +115,13 @@ follows, and the commit is provisional: the closing full run proves the whole.
    change needs a person to look. Where the rework touched one module, the section's opening line names it
    instead of the module-first rule. **A rework files no refactoring candidates**; something worth doing later
    goes in the report, and the user decides whether it becomes a rework. A rework with nothing open still gets
-   the file.
+   the file. **Every bug block it files is appended to `docs/backlog.md`** as a `B` row taking the next id, in
+   the shape [`backlog.md`](../../templates/backlog.md) gives, with the link written to the archived path.
 4. **Close the row this rework came from.** Where `Source:` names a findings file and a row, set the row's
    `Status`: `done · <this rework's number>`, or leave it `open` with one clause naming what remains. Re-emit the
-   count line. A row set to `done` leaves `docs/backlog.md` in the same edit
-   ([`backlog.md`](../../templates/backlog.md)); one left `open` keeps its backlog row. Nothing here blocks.
+   count line. A row set to `done` leaves `docs/backlog.md` in the same edit — its `C` row is removed, never
+   struck through ([`backlog.md`](../../templates/backlog.md)); one left `open` keeps its backlog row. Nothing
+   here blocks.
 5. **Archive** once the closing gate is clean and `rework.sh status` reports every steps file ticked — a manual
    check open in `review/findings.md` never blocks: move `docs/<n>-<name>/` into `docs/implemented/`, and commit
    the move where the conventions commit at all.
