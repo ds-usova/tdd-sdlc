@@ -59,6 +59,10 @@ Both must be green **before any change** — refactoring never starts from red. 
 change nothing, and report it: an earlier stage's guardrail has been contradicted, and that is the orchestrator's
 problem, not this step's.
 
+**Where the orchestrator handed you a suite run and said no file has changed since it, that run is this phase.**
+Read it and start. Whether the work was committed says nothing here: a run whose conventions commit nothing
+leaves every step in the working tree. Told nothing, or told the tree moved, run the suite yourself.
+
 ### Phase 1 — Survey the Diff
 
 Read **every file in the diff scope** — production and test — grouped by layer, before changing anything. You are
@@ -117,11 +121,12 @@ sensible checkpoints. A refactoring that goes wrong is fully reverted, never lef
 
 ### Phase 3 — Verify
 
-1. Run the module's **full test suite** — every test passes, exactly as many as at Phase 0. A count change means a
-   test was lost or duplicated; find and fix that before anything else.
-2. Run the **architecture-enforcement test** — extractions and moves must respect the layer rules.
-3. Confirm no marker of unfinished work remains in the diff scope: no stale intent comments, no dead stub code,
+1. Run the **architecture-enforcement test** — extractions and moves must respect the layer rules.
+2. Confirm no marker of unfinished work remains in the diff scope: no stale intent comments, no dead stub code,
    no orphaned `TODO`s.
+
+**The full suite is not yours to run here.** The caller runs it once over your result. Your report says what
+you changed; the caller's run says whether it held.
 
 ## Scope Guardrails
 
@@ -146,8 +151,8 @@ End with a short, structured report the orchestrator can act on — the only cha
   duplicated policy in two classes and a mapper on the wrong type passed two of these passes;
 - refactorings applied, grouped by checklist category, with the files touched (including new files created and
   any conventions-designated shared helpers extended);
-- confirmation the full suite and the architecture-enforcement test are green, with the test count matching
-  Phase 0;
+- confirmation the architecture-enforcement test is green — the full suite is the caller's run, not a claim of
+  yours;
 - refactorings considered and skipped (marginal benefit, blocked by a test, or out of diff scope) — one line each;
 - opportunities outside the diff scope (pre-existing duplication this diff now mirrors) for the user to pick up
   separately;

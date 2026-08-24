@@ -141,18 +141,23 @@ stays with its log intact, `bug.md` takes its `**Closed:**` line, and nothing is
 
 1. **`fix.sh task docs/<n>-<name>/` exits 0.** Anything open: leave the directory in place and summarize what is
    open. The phases end there.
-2. **Full build and full suite of every affected module, green**, nothing left in `disables:` still off, and the
-   skipped count back to phase 0's — apart from a machine state the baseline recorded, restored where it can be.
-3. **The diff says what the steps claimed.** Read the diff from `**Baseline:**`, scoped to the affected modules'
+2. **The diff says what the steps claimed.** Read the diff from `**Baseline:**`, scoped to the affected modules'
    paths: every test file it touches is named in some step's `test-files:`, and each step changed only what it
-   named. A test changed under no step is a defect whatever the suite says.
-4. **Whatever else the modules' build conventions require of a finished change** — a coverage guardrail, a
+   named. A test changed under no step is a defect whatever the suite says. Remove what a minimal green left
+   behind in the same read: a stale intent comment, a dead stub branch, an unused import, a fixture duplicated
+   from a neighbouring class. **Nothing in `disables:` is still off**, and the skipped count is back to phase
+   0's — apart from a machine state the baseline recorded, restored where it can be.
+3. **A refactor round per module whose diff touches more than one production file or created one.** A diff
+   inside one existing class gets none; step 2 read it. One `tdd-refactor-phase` agent per such module, on the
+   model the module's conventions name for the refactor pass, the session's model where they name none. It gets
+   the diff from `**Baseline:**`, `bug.md` and every `fix.md` as its brief, the module's conventions by name,
+   and the last full suite run's figures with whether the tree has changed since. **It never touches a `red`
+   step's test** — say so in the prompt. **It runs no suite**; step 4 is the run over its result.
+4. **Full build and full suite of every affected module, green** — the one full run of the fix. **Skipped where
+   step 9's list holds an entry that runs the suite over this same tree**; the build conventions name it, and its
+   verdict is this one. A red run belongs to the step or refactor that edited what failed.
+5. **Whatever else the modules' build conventions require of a finished change** — a coverage guardrail, a
    formatting gate. A guardrail that fails blocks the archive.
-5. **One refactor round over the whole diff**: one `tdd-refactor-phase` agent per module's diff, on the model
-   the module's conventions name for the refactor pass — the session's model where they name none. It gets the
-   diff from `**Baseline:**`, `bug.md` and every `fix.md` as its brief, and the module's conventions by name. **It never
-   touches a `red` step's test** — say so in the prompt. Run
-   the suite again once it returns.
 6. **`fix.sh attempts docs/<n>-<name>/`** — it rewrites `bug.md`'s `**Attempts:**` line from every file's log, so
    one file tells the next session where the log is.
 7. **Close the row this fix came from**, where `Source:` names a findings file, in that file's own form. Its

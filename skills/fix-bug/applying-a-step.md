@@ -3,11 +3,11 @@
 What each kind edits, what it runs, and when it refuses. Read beside the step itself, which `fix.sh show <ID>`
 prints.
 
-| Kind        | Edit                                                        | Then run                                                           |
-|-------------|-------------------------------------------------------------|--------------------------------------------------------------------|
-| `stabilize` | carry each broken call site back to compiling, nothing more | the module's whole suite · the architecture check                 |
-| `red`       | only `test-files:`, and no production file at all           | `runs:` — **it must fail, with the symptom `reproduces:` names** |
-| `green`     | only `files:`, and no test file at all                      | `runs:` — it passes · then the module's whole suite             |
+| Kind        | Edit                                                        | Then run                                                            |
+|-------------|-------------------------------------------------------------|---------------------------------------------------------------------|
+| `stabilize` | carry each broken call site back to compiling, nothing more | the module's whole suite · the architecture check — see below       |
+| `red`       | only `test-files:`, and no production file at all           | `runs:` — **it must fail, with the symptom `reproduces:` names**    |
+| `green`     | only `files:`, and no test file at all                      | `runs:` — it passes · then the test classes of every `files:` entry |
 
 ## The stabilize step
 
@@ -19,6 +19,10 @@ named in `disables:`, and a migration that has run is not undone by reverting it
 
 **A `stabilize` that finds a file its boundary does not name widens that line and says so** — the one edit to a
 step's text its agent may make. It never widens into a behaviour change.
+
+**A `stabilize` step with an empty `files:` is proven by the classes it named**, plus the architecture check.
+The exception is shared test infrastructure: a builder, a fixture, a composed annotation, anything under the
+conventions' common test packages. A step touching one runs the whole suite.
 
 ## The red step
 
@@ -39,9 +43,10 @@ Where `reproduces:` carries a rate, run the counts `SKILL.md` gives for an inter
 
 ## The green step
 
-**It changes production code until `runs:` passes, and touches no test.** Then the module's whole suite. **The
-fix is the smallest one that makes the symptom impossible** — a guard clause that hides the bad value is not a
-fix where the bad value is the bug.
+**It changes production code until `runs:` passes, and touches no test.** Then the test classes of every file in
+`files:`, nothing wider. The whole suite runs once, over the finished fix, in `SKILL.md`'s Phase 4. **The fix is
+the smallest one that makes the symptom impossible** — a guard clause that hides the bad value is not a fix where
+the bad value is the bug.
 
 **A symptom that survives a step you believe is correct is a second cause.** Stop, do not revert, write the
 attempt saying which cause is now gone, and return.
@@ -52,8 +57,8 @@ Each of these reverts the step, writes the attempt, and returns to the level abo
 
 - a `red` step that passes before any production code is touched;
 - a `green` step that cannot pass without editing a test — the reproduction was wrong;
-- a `green` step whose suite goes red elsewhere — reported with both failures, never made green by editing the
-  other test;
+- a `green` step whose targeted run goes red elsewhere — reported with both failures, never made green by
+  editing the other test;
 - a `stabilize` step that has to change what something does — a `green` step in disguise;
 - a test asserting the old behaviour that no `red` step names.
 
