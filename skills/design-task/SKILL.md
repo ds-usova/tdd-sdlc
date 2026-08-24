@@ -1,6 +1,7 @@
 ---
 description: Settle the design of a change before any plan exists — objective, solution, diagrams, and every judgment call the change requires, recorded as answered decisions. Runs the grill-design subagent, then puts only the genuinely open questions in front of the user.
 argument-hint: [ description of the feature or task to design ]
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *)
 ---
 
 # Design Task

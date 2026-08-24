@@ -1,6 +1,7 @@
 ---
 description: Bring a module's dependencies up to date, one module by default or several on request. Reads the manifest, finds what is behind and what is vulnerable with whatever the conventions name, reads each release's migration guide, writes an upgrade file with one step per dependency, stops for approval, then applies them — one agent per module, concurrently — with the suite that is already green as the guardrail. A migration that cannot be finished is kept back and written down, never forced.
 argument-hint: [ a module, several modules, a dependency name, or the path of an existing upgrade.md ]
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh *)
 ---
 
 # Upgrade Dependencies

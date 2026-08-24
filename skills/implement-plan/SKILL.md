@@ -1,6 +1,7 @@
 ---
 description: Implement a planned task end to end. Checks every plan is ready and every module is green, lands whatever crosses between the modules, then runs one pipeline agent per plan — concurrently — and finishes the task when the last one lands. Given a single plan, runs it the same way, as a task of one.
 argument-hint: [ a task directory, or a single plan file ] [ optional section name ]
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *)
 ---
 
 # Implement Plan

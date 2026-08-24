@@ -1,6 +1,7 @@
 ---
 description: Restructure code that already exists without changing what it does. Reads the code, writes a rework file with the edits at code level, stops for approval, then applies them — one agent per module, concurrently — against the suite that is already green.
 argument-hint: [ a findings entry, a file or class, a description of what to change, or the path of an existing rework.md ]
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/rework/rework.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/rework/rework.sh *)
 ---
 
 # Rework

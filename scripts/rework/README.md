@@ -31,18 +31,18 @@ about the project can be derived from where the script is.
 Run it with bash, from anywhere inside the project:
 
 ```
-.claude/scripts/rework/rework.sh status
-.claude/scripts/rework/rework.sh show R03
-.claude/scripts/rework/rework.sh tick R02 R04
-.claude/scripts/rework/rework.sh validate
+<plugin>/scripts/rework/rework.sh status
+<plugin>/scripts/rework/rework.sh show R03
+<plugin>/scripts/rework/rework.sh tick R02 R04
+<plugin>/scripts/rework/rework.sh validate
 ```
 
-| Command          | Effect                                                                                  |
-|------------------|-------------------------------------------------------------------------------------------|
-| `status`         | Done/total, and the IDs still open.                                                     |
-| `show <ID>...`   | One step: its header and everything indented under it. Several print blank-line separated. |
-| `tick <ID>...`   | Mark the steps done. Every ID is resolved before any is written.                        |
-| `validate`       | See [What `validate` checks](#what-validate-checks).                                    |
+| Command        | Effect                                                                                     |
+|----------------|--------------------------------------------------------------------------------------------|
+| `status`       | Done/total, and the IDs still open.                                                        |
+| `show <ID>...` | One step: its header and everything indented under it. Several print blank-line separated. |
+| `tick <ID>...` | Mark the steps done. Every ID is resolved before any is written.                           |
+| `validate`     | See [What `validate` checks](#what-validate-checks).                                       |
 
 Exit codes: **0** done, **1** no such step or `validate` found problems, **2** bad usage.
 
@@ -60,18 +60,18 @@ label line is empty by design. Every other label keeps its value on its own line
 
 ### What `validate` checks
 
-| Check                                                            | Catches                                                |
-|------------------------------------------------------------------|--------------------------------------------------------|
-| Duplicate IDs, a step with no ID                                 | a step nothing can address                             |
-| A kind the format does not define                                | a typo that silently exempts the step from every rule  |
-| A labelled line the kind does not take                           | `frozen:` on a `tests` step, which does nothing        |
-| A labelled line the kind owes and does not carry                 | a `pin` with no `proves:` — a claim nobody checked     |
-| A `pin` naming neither `files:` nor `test-files:`                | a check or setting that edits nothing                  |
-| A value left empty, `TBD`, `—`, or still in `<angle brackets>`   | a step agent given no instruction                      |
-| A `files:` or `test-files:` with no bullet under it              | a boundary that names nothing                          |
-| A `survives:` with nothing after the middot                      | a scenario that never said what it was proven against  |
-| `needs:` or `disables:` naming a step nothing defines            | a reference to a step that was renumbered or dropped   |
-| An Open Question whose `- A:` is empty                           | a run about to start on a decision nobody made         |
+| Check                                                            | Catches                                               |
+|------------------------------------------------------------------|-------------------------------------------------------|
+| Duplicate IDs, a step with no ID                                 | a step nothing can address                            |
+| A kind the format does not define                                | a typo that silently exempts the step from every rule |
+| A labelled line the kind does not take                           | `frozen:` on a `tests` step, which does nothing       |
+| A labelled line the kind owes and does not carry                 | a `pin` with no `proves:` — a claim nobody checked  |
+| A `pin` naming neither `files:` nor `test-files:`                | a check or setting that edits nothing                 |
+| A value left empty, `TBD`, `—`, or still in `<angle brackets>` | a step agent given no instruction                     |
+| A `files:` or `test-files:` with no bullet under it              | a boundary that names nothing                         |
+| A `survives:` with nothing after the middot                      | a scenario that never said what it was proven against |
+| `needs:` or `disables:` naming a step nothing defines            | a reference to a step that was renumbered or dropped  |
+| An Open Question whose `- A:` is empty                           | a run about to start on a decision nobody made        |
 
 **A duplicate ID's own block is not judged.** The second `R01` is reported and its lines are skipped, since
 attributing them to an ID that already means something else would report the same step twice. Fix the ID and run
@@ -98,6 +98,16 @@ It runs on macOS, Linux and Windows. What that costs:
   `rework.sh` must be committed with mode `755`, or a Unix clone cannot run it. `bash rework.sh …` works either
   way.
 
-Whoever installs this has to allow the script in their own permission settings —
-`Bash(.claude/scripts/rework/rework.sh:*)` for a checkout — since permissions are the consumer's, not the
-plugin's.
+Whoever installs this has to allow the script in their own permission settings, since permissions are the
+consumer's and not the plugin's. A prefix rule is matched as a literal string, so a quoted path matches no rule
+written bare:
+
+| Install        | Allow rule                                       |
+|----------------|--------------------------------------------------|
+| plain checkout | `Bash(bash .claude/scripts/rework/rework.sh:*)`  |
+| plugin         | `Bash(bash <root>/scripts/rework/rework.sh:*)`   |
+| plugin, quoted | `Bash(bash "<root>/scripts/rework/rework.sh":*)` |
+
+`<root>` is the directory the plugin was installed to, written out in full. Allow the quoted spelling as well as
+the bare one, or an agent that quotes an absolute path is refused by a rule that appears to cover it. Drop the
+`bash ` prefix for a rule covering the script invoked directly.

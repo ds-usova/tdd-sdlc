@@ -1,6 +1,7 @@
 ---
 description: Fix a bug that already exists, across one module or several. Reproduces it with a test, diagnoses it, writes a fix file per module, stops for approval, then applies them — one sub-agent per module, concurrently — logging every approach that failed and why. Given an existing bug.md, resumes it without retrying what its log rules out.
 argument-hint: [ a bug report, a failing test, a stack trace, a findings row, or the path of an existing bug.md ]
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh *)
 ---
 
 # Fix Bug

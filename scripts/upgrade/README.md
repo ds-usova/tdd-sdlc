@@ -30,10 +30,10 @@ working directory).
 Run it with bash, from anywhere inside the project:
 
 ```
-.claude/scripts/upgrade/upgrade.sh status
-.claude/scripts/upgrade/upgrade.sh show U03
-.claude/scripts/upgrade/upgrade.sh tick U02 U04
-.claude/scripts/upgrade/upgrade.sh validate
+<plugin>/scripts/upgrade/upgrade.sh status
+<plugin>/scripts/upgrade/upgrade.sh show U03
+<plugin>/scripts/upgrade/upgrade.sh tick U02 U04
+<plugin>/scripts/upgrade/upgrade.sh validate
 ```
 
 | Command        | Effect                                                                                     |
@@ -60,21 +60,21 @@ label line is empty by design. Every other label keeps its value on its own line
 
 ### What `validate` checks
 
-| Check                                                          | Catches                                               |
-|----------------------------------------------------------------|-------------------------------------------------------|
-| Duplicate IDs, a step with no ID                               | a step nothing can address                            |
-| A kind the format does not define                              | a typo that silently exempts the step from every rule |
-| A labelled line the kind does not take                         | `change:` on a `bump` — a source edit nobody approved |
-| A labelled line the kind owes and does not carry               | a `migrate` with no `change:`, a step with no `guide:` |
-| A value left empty, `TBD`, `—`, or still in `<angle brackets>` | an agent given no instruction                         |
-| A `files:` or `test-files:` with no bullet under it            | a boundary that names nothing                         |
-| A `change:` with nothing after the middot                      | a guide item that never said where it lands           |
-| `needs:` naming a step nothing defines                         | a reference to a step that was renumbered or dropped  |
-| An attempt missing `why:`, `result:`, `evidence:` or `ruled-out:` | a failure the next session has to reproduce        |
-| An `evidence:` with no fenced block under it                   | a failure described instead of pasted                 |
-| An attempt filed under a step nothing defines                  | a log entry that belongs to nothing                   |
-| A fenced block that never closes                               | pasted output that swallowed the rest of the file     |
-| An Open Question whose `- A:` is empty                         | a run about to start on a decision nobody made        |
+| Check                                                             | Catches                                                 |
+|-------------------------------------------------------------------|---------------------------------------------------------|
+| Duplicate IDs, a step with no ID                                  | a step nothing can address                              |
+| A kind the format does not define                                 | a typo that silently exempts the step from every rule   |
+| A labelled line the kind does not take                            | `change:` on a `bump` — a source edit nobody approved |
+| A labelled line the kind owes and does not carry                  | a `migrate` with no `change:`, a step with no `guide:`  |
+| A value left empty, `TBD`, `—`, or still in `<angle brackets>`  | an agent given no instruction                           |
+| A `files:` or `test-files:` with no bullet under it               | a boundary that names nothing                           |
+| A `change:` with nothing after the middot                         | a guide item that never said where it lands             |
+| `needs:` naming a step nothing defines                            | a reference to a step that was renumbered or dropped    |
+| An attempt missing `why:`, `result:`, `evidence:` or `ruled-out:` | a failure the next session has to reproduce             |
+| An `evidence:` with no fenced block under it                      | a failure described instead of pasted                   |
+| An attempt filed under a step nothing defines                     | a log entry that belongs to nothing                     |
+| A fenced block that never closes                                  | pasted output that swallowed the rest of the file       |
+| An Open Question whose `- A:` is empty                            | a run about to start on a decision nobody made          |
 
 Bullets inside fenced code blocks are skipped, so an upgrade quoting the step format does not acquire phantom
 steps from the example, and evidence pasted under an attempt is never read as steps.
@@ -91,5 +91,16 @@ As `rework.sh`: **`bash`, `awk`, `sed`, `git`, `find`, `grep`**, no GNU-only spe
 through a sibling temp file. Windows needs a **Git Bash** prompt. `*.sh` and `*.awk` are pinned to LF in
 `.gitattributes` and `upgrade.sh` is committed with mode `755`.
 
-Whoever installs this has to allow the script in their own permission settings —
-`Bash(.claude/scripts/upgrade/upgrade.sh:*)` for a checkout.
+Whoever installs this has to allow the script in their own permission settings, since permissions are the
+consumer's and not the plugin's. A prefix rule is matched as a literal string, so a quoted path matches no rule
+written bare:
+
+| Install        | Allow rule                                         |
+|----------------|----------------------------------------------------|
+| plain checkout | `Bash(bash .claude/scripts/upgrade/upgrade.sh:*)`  |
+| plugin         | `Bash(bash <root>/scripts/upgrade/upgrade.sh:*)`   |
+| plugin, quoted | `Bash(bash "<root>/scripts/upgrade/upgrade.sh":*)` |
+
+`<root>` is the directory the plugin was installed to, written out in full. Allow the quoted spelling as well as
+the bare one, or an agent that quotes an absolute path is refused by a rule that appears to cover it. Drop the
+`bash ` prefix for a rule covering the script invoked directly.

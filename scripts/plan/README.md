@@ -30,10 +30,10 @@ project can be derived from where the script is.
 Run it with bash, from anywhere inside the project:
 
 ```
-.claude/scripts/plan/plan.sh status
-.claude/scripts/plan/plan.sh next
-.claude/scripts/plan/plan.sh tick GU07
-.claude/scripts/plan/plan.sh tick ST01 ST02 ST03
+<plugin>/scripts/plan/plan.sh status
+<plugin>/scripts/plan/plan.sh next
+<plugin>/scripts/plan/plan.sh tick GU07
+<plugin>/scripts/plan/plan.sh tick ST01 ST02 ST03
 ```
 
 `show` and `tick` take a whole stage's worth of IDs in one call, so neither needs a loop around it. `tick`
@@ -47,7 +47,7 @@ resolves every ID before it writes any, and a name nothing defines ticks none of
 | `tick <ID>...`      | Mark the items done. Saying so twice is not an error.                                                     |
 | `block <ID> <note>` | Leave the item open; record the note under Open Questions / Blockers.                                     |
 | `validate`          | See [What `validate` checks](#what-validate-checks).                                                      |
-| `task [<path>]`     | Every plan the task holds, its done/total, and whether all are finished. Exit 0 means nothing is open.   |
+| `task [<path>]`     | Every plan the task holds, its done/total, and whether all are finished. Exit 0 means nothing is open.    |
 
 Exit codes: **0** done, **1** no such item, `validate` found problems, or `task` found something open,
 **2** bad usage.
@@ -55,8 +55,8 @@ Exit codes: **0** done, **1** no such item, `validate` found problems, or `task`
 **The plan is named as a bare path, on any subcommand**, and it comes last:
 
 ```
-.claude/scripts/plan/plan.sh show GU07 docs/1-add-widget/plan.md
-.claude/scripts/plan/plan.sh tick GU07 GU08 docs/1-add-widget/plan.md
+<plugin>/scripts/plan/plan.sh show GU07 docs/1-add-widget/plan.md
+<plugin>/scripts/plan/plan.sh tick GU07 GU08 docs/1-add-widget/plan.md
 ```
 
 `--file <plan>` does the same thing and is accepted anywhere the bare path is. Neither is required: without one,
@@ -73,7 +73,7 @@ Every other command reads one plan. `task` reads the directory that holds them, 
 question about the whole task can be answered.
 
 ```
-.claude/scripts/plan/plan.sh task docs/18-add-widget
+<plugin>/scripts/plan/plan.sh task docs/18-add-widget
 ```
 
 ```
@@ -106,7 +106,7 @@ and the numbering rule belong to the plan format, defined by the `plan-task` ski
 | Duplicate IDs, items with no ID                                              | an item nothing can address                                  |
 | `after:` naming an ID nothing defines, dependency cycles                     | a schedule that never becomes eligible                       |
 | `after:` reaching into a group the plan lists later                          | a stage waiting on work a later stage owns                   |
-| A `given:` / `when:` / `then:` whose value is empty, `—`, `TBD` or `N/A`     | a scenario a step agent cannot implement                     |
+| A `given:` / `when:` / `then:` whose value is empty, `—`, `TBD` or `N/A`   | a scenario a step agent cannot implement                     |
 | An `update:` bullet on an **open** item naming a method found nowhere        | a plan written against remembered code                       |
 | A finding with no `Resolution:`, or an unrecognized one                      | a review that skipped the mechanical/decision classification |
 | A `mechanical` finding whose `Action:` is empty and that is not `Escalated:` | a fix the orchestrator was meant to apply and did not        |
@@ -164,8 +164,19 @@ It runs on macOS, Linux and Windows. What that costs:
 - `*.sh` and `*.awk` must be pinned to LF in `.gitattributes` — a CRLF checkout fails on the first line — and
   `plan.sh` must be committed with mode `755`, or a Unix clone cannot run it. `bash plan.sh …` works either way.
 
-Whoever installs this has to allow the script in their own permission settings — `Bash(.claude/scripts/plan/plan.sh:*)`
-for a checkout — since permissions are the consumer's, not the plugin's.
+Whoever installs this has to allow the script in their own permission settings, since permissions are the
+consumer's and not the plugin's. A prefix rule is matched as a literal string, so a quoted path matches no rule
+written bare:
+
+| Install        | Allow rule                                   |
+|----------------|----------------------------------------------|
+| plain checkout | `Bash(bash .claude/scripts/plan/plan.sh:*)`  |
+| plugin         | `Bash(bash <root>/scripts/plan/plan.sh:*)`   |
+| plugin, quoted | `Bash(bash "<root>/scripts/plan/plan.sh":*)` |
+
+`<root>` is the directory the plugin was installed to, written out in full. Allow the quoted spelling as well as
+the bare one, or an agent that quotes an absolute path is refused by a rule that appears to cover it. Drop the
+`bash ` prefix for a rule covering the script invoked directly.
 
 ## Where it stops
 

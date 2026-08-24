@@ -32,17 +32,17 @@ project can be derived from where the script is.
 Run it with bash, from anywhere inside the project:
 
 ```
-.claude/scripts/design/design.sh settled
-.claude/scripts/design/design.sh validate
-.claude/scripts/design/design.sh show D4 D7
+<plugin>/scripts/design/design.sh settled
+<plugin>/scripts/design/design.sh validate
+<plugin>/scripts/design/design.sh show D4 D7
 ```
 
-| Command          | Effect                                                                              |
-|------------------|-------------------------------------------------------------------------------------|
-| `settled`        | Exit 0 when nothing is still `must-decide`; exit 1 and list what is.                 |
-| `status`         | How many decisions rest on each basis.                                              |
-| `show <ID>...`   | One decision: its question, `Answer:` and `Basis:`. Several print blank-line separated. |
-| `validate`       | See [What `validate` checks](#what-validate-checks).                                |
+| Command        | Effect                                                                                  |
+|----------------|-----------------------------------------------------------------------------------------|
+| `settled`      | Exit 0 when nothing is still `must-decide`; exit 1 and list what is.                    |
+| `status`       | How many decisions rest on each basis.                                                  |
+| `show <ID>...` | One decision: its question, `Answer:` and `Basis:`. Several print blank-line separated. |
+| `validate`     | See [What `validate` checks](#what-validate-checks).                                    |
 
 Exit codes: **0** done, **1** no such entry, not settled, or `validate` found problems, **2** bad usage.
 
@@ -66,16 +66,16 @@ defined by the `design-task` skill this ships with; a worked example is at
 
 ### What `validate` checks
 
-| Check                                                                    | Catches                                                  |
-|--------------------------------------------------------------------------|----------------------------------------------------------|
-| The `**Affected Modules:**` line, and every required section, in order   | a design missing the context the plan reads it for       |
-| Duplicate `D` IDs, an entry outside the Decisions section                | a decision nothing can address                           |
-| A Design Findings row numbered below the row above it                    | a row inserted at the wrong line — the table reads in ascending order |
-| A missing or repeated `Answer:` / `Basis:`                               | an entry no gate can classify                            |
-| A basis that is not one of the four, or one with nothing after it        | an assumption with no evidence — a `must-decide` in disguise |
-| A `must-decide` carrying an answer, or any other basis carrying none     | an entry whose two halves disagree                       |
-| A Design Findings section with no `Grilled (<date>):` line               | a design the grill never saw                             |
-| A missing or out-of-order section, `## Acceptance Scenarios` included    | a design a plan cannot be written from                   |
+| Check                                                                  | Catches                                                                 |
+|------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| The `**Affected Modules:**` line, and every required section, in order | a design missing the context the plan reads it for                      |
+| Duplicate `D` IDs, an entry outside the Decisions section              | a decision nothing can address                                          |
+| A Design Findings row numbered below the row above it                  | a row inserted at the wrong line — the table reads in ascending order |
+| A missing or repeated `Answer:` / `Basis:`                             | an entry no gate can classify                                           |
+| A basis that is not one of the four, or one with nothing after it      | an assumption with no evidence — a `must-decide` in disguise          |
+| A `must-decide` carrying an answer, or any other basis carrying none   | an entry whose two halves disagree                                      |
+| A Design Findings section with no `Grilled (<date>):` line             | a design the grill never saw                                            |
+| A missing or out-of-order section, `## Acceptance Scenarios` included  | a design a plan cannot be written from                                  |
 
 A `must-decide` entry is **not** a problem here: a design in flight is expected to have them, and that is exactly
 what `settled` is for. `validate` asks whether the file is well-formed; `settled` asks whether it is finished.
@@ -93,8 +93,19 @@ The constraints are `plan.sh`'s, for the same reasons: **`bash`, `awk`, `sed`, `
 GNU-only spellings, strict POSIX awk (checked with `gawk --posix`), Git Bash on Windows, `*.sh` and `*.awk` pinned
 to LF in `.gitattributes`, and `design.sh` committed with mode `755`. `bash design.sh …` works either way.
 
-Whoever installs this has to allow the script in their own permission settings —
-`Bash(.claude/scripts/design/design.sh:*)` for a checkout — since permissions are the consumer's, not the plugin's.
+Whoever installs this has to allow the script in their own permission settings, since permissions are the
+consumer's and not the plugin's. A prefix rule is matched as a literal string, so a quoted path matches no rule
+written bare:
+
+| Install        | Allow rule                                       |
+|----------------|--------------------------------------------------|
+| plain checkout | `Bash(bash .claude/scripts/design/design.sh:*)`  |
+| plugin         | `Bash(bash <root>/scripts/design/design.sh:*)`   |
+| plugin, quoted | `Bash(bash "<root>/scripts/design/design.sh":*)` |
+
+`<root>` is the directory the plugin was installed to, written out in full. Allow the quoted spelling as well as
+the bare one, or an agent that quotes an absolute path is refused by a rule that appears to cover it. Drop the
+`bash ` prefix for a rule covering the script invoked directly.
 
 ## Where it stops
 

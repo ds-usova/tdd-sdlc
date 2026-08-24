@@ -39,24 +39,24 @@ directory), since once installed the script runs from a cache directory outside 
 Run it with bash, from anywhere inside the project:
 
 ```
-.claude/scripts/fix/fix.sh status
-.claude/scripts/fix/fix.sh show R01
-.claude/scripts/fix/fix.sh start G01 guarding on the persisted request id
-.claude/scripts/fix/fix.sh tick S01 R01
-.claude/scripts/fix/fix.sh validate --file docs/7-double-charge/bug.md
-.claude/scripts/fix/fix.sh task docs/7-double-charge/
-.claude/scripts/fix/fix.sh attempts docs/7-double-charge/
+<plugin>/scripts/fix/fix.sh status
+<plugin>/scripts/fix/fix.sh show R01
+<plugin>/scripts/fix/fix.sh start G01 guarding on the persisted request id
+<plugin>/scripts/fix/fix.sh tick S01 R01
+<plugin>/scripts/fix/fix.sh validate --file docs/7-double-charge/bug.md
+<plugin>/scripts/fix/fix.sh task docs/7-double-charge/
+<plugin>/scripts/fix/fix.sh attempts docs/7-double-charge/
 ```
 
-| Command             | Effect                                                                                     |
-|---------------------|--------------------------------------------------------------------------------------------|
-| `status`            | Done/total, and the IDs still open.                                                        |
-| `show <ID>...`      | One step: its header and everything indented under it. Several print blank-line separated. |
+| Command             | Effect                                                                                      |
+|---------------------|---------------------------------------------------------------------------------------------|
+| `status`            | Done/total, and the IDs still open.                                                         |
+| `show <ID>...`      | One step: its header and everything indented under it. Several print blank-line separated.  |
 | `start <ID> <text>` | Write `**In flight:**` — the step and, in a clause, the approach being tried.             |
 | `tick <ID>...`      | Mark the steps done and empty `**In flight:**`. Every ID is resolved before any is written. |
-| `validate`          | See [What `validate` checks](#what-validate-checks).                                       |
-| `task`              | Every fix file the bug directory holds, its done/total, and whether all of them are done.  |
-| `attempts`          | The attempt IDs every file of the bug holds, as one line, written into `bug.md`.           |
+| `validate`          | See [What `validate` checks](#what-validate-checks).                                        |
+| `task`              | Every fix file the bug directory holds, its done/total, and whether all of them are done.   |
+| `attempts`          | The attempt IDs every file of the bug holds, as one line, written into `bug.md`.            |
 
 Exit codes: **0** done, **1** no such step, `validate` found problems, or `task` found something open, **2** bad
 usage.
@@ -149,5 +149,16 @@ It runs on macOS, Linux and Windows. What that costs:
 - `*.sh` and `*.awk` must be pinned to LF in `.gitattributes` — a CRLF checkout fails on the first line — and
   `fix.sh` must be committed with mode `755`, or a Unix clone cannot run it. `bash fix.sh …` works either way.
 
-Whoever installs this has to allow the script in their own permission settings —
-`Bash(.claude/scripts/fix/fix.sh:*)` for a checkout — since permissions are the consumer's, not the plugin's.
+Whoever installs this has to allow the script in their own permission settings, since permissions are the
+consumer's and not the plugin's. A prefix rule is matched as a literal string, so a quoted path matches no rule
+written bare:
+
+| Install        | Allow rule                                 |
+|----------------|--------------------------------------------|
+| plain checkout | `Bash(bash .claude/scripts/fix/fix.sh:*)`  |
+| plugin         | `Bash(bash <root>/scripts/fix/fix.sh:*)`   |
+| plugin, quoted | `Bash(bash "<root>/scripts/fix/fix.sh":*)` |
+
+`<root>` is the directory the plugin was installed to, written out in full. Allow the quoted spelling as well as
+the bare one, or an agent that quotes an absolute path is refused by a rule that appears to cover it. Drop the
+`bash ` prefix for a rule covering the script invoked directly.
