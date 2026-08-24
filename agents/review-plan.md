@@ -118,6 +118,11 @@ this section.
 - **Every acceptance scenario in the design is covered by at least one step.** The design numbers them `A1`,
   `A2`; each Red Phase step names the ones it covers. An `A<n>` no step names is behaviour a person signed off
   and nothing will test. A step naming an `A<n>` the design does not carry is the reverse, and just as wrong.
+- **A scenario carries every concrete value its design entry states.** Naming the `A<n>` is not covering it:
+  a `then:` that paraphrases the entry into an outcome without its specifics has dropped them, and no test
+  written from it will assert them. Compare each scenario's `then:` with the `A<n>`, `D<n>` or `F<n>` it
+  implements, and flag a name, a state, a value, a limit or an attribute the design states and the scenario
+  does not.
 - For every request/entity field the plan touches, confirm there is a corresponding validation scenario; flag any
   field with no validation coverage.
 - Check for missing boundary values relevant to the field's type: `null`, empty, max-length, unknown-id, and similar
