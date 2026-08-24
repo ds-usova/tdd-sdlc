@@ -59,7 +59,8 @@ Nothing is written before this passes.
 
 A rework owns `docs/<n>-<name>/`: `rework.md`, and one steps file per agent where it reaches more than one
 module. What each holds is [`the-files.md`](the-files.md). `rework.sh` (`scripts/rework/` under the plugin
-root, README beside it) reads, ticks and validates them.
+root, README beside it) reads, ticks and validates them. Refused or absent on the first call, tell the user once
+as [`scripts/README.md`](../../scripts/README.md) says and edit the files by hand.
 
 Run `rework.sh validate --file <each file>` until it exits 0 before presenting anything.
 

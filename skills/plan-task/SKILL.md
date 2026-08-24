@@ -38,7 +38,8 @@ answered. Both bind the plan.
   inline. Point the user at `design-task`.
 - **`design.sh settled` exits non-zero** — stop and repeat what it printed. Those entries decide what the steps are.
   The script ships with the `design-task` skill at `scripts/design/design.sh` — under `${CLAUDE_PLUGIN_ROOT}` when
-  installed as a plugin, under `.claude/` in a plain checkout.
+  installed as a plugin, under `.claude/` in a plain checkout. Refused or absent is not non-zero: tell the user
+  once as [`scripts/README.md`](../../scripts/README.md) says, then read the design's `Basis:` lines yourself.
 
 A design gap found *while* planning — a case neither **Decisions** nor **Design Findings** covers — is amended in
 the design file: a **Design Findings** row where the repository answers it, a new `D` entry escalated to the user

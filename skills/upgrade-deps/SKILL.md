@@ -101,7 +101,8 @@ documentation site. What each says binds the step:
 
 **Each steps file is owned by exactly one agent.** `upgrade.md` is what a fresh session resumes from. What it
 holds is [`the-files.md`](the-files.md). `upgrade.sh` (`scripts/upgrade/` under the plugin root, README
-beside it) reads, ticks and validates them.
+beside it) reads, ticks and validates them. Refused or absent on the first call, tell the user once as
+[`scripts/README.md`](../../scripts/README.md) says and edit the files by hand.
 
 Run `upgrade.sh validate --file <each file>` until it exits 0 before presenting anything.
 

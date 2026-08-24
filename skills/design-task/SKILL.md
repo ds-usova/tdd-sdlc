@@ -248,6 +248,8 @@ these instructions at `scripts/design/design.sh` — under `${CLAUDE_PLUGIN_ROOT
 `.claude/` in a plain checkout.
 
 Run `validate` before invoking the grill, and both it and `settled` again before handing the design over.
+Refused or absent on the first call, tell the user once as [`scripts/README.md`](../../scripts/README.md) says
+and answer each check by reading the file.
 
 ### Design Findings
 

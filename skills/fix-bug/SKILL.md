@@ -36,7 +36,8 @@ must agree on a contract. What each carries is [`the-files.md`](the-files.md). W
 than one module, [`crossing-modules.md`](crossing-modules.md) decides which module the fix is cut in and what
 `shared/fix.md` holds. `fix.sh` (`scripts/fix/` under the plugin root, README beside it) reads, ticks and
 validates them, and
-writes the two lines that otherwise go stale — `In flight:` and `bug.md`'s `Attempts:`.
+writes the two lines that otherwise go stale — `In flight:` and `bug.md`'s `Attempts:`. Refused or absent on the
+first call, tell the user once as [`scripts/README.md`](../../scripts/README.md) says and edit the files by hand.
 
 ## Conventions
 

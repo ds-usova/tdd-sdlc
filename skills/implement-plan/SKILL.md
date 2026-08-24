@@ -50,6 +50,11 @@ rules and the version-control policy this skill needs, and each pipeline reads i
 
 Both are hard. Run them in this order.
 
+**Before either gate, the scripts.** Run `plan.sh status` on one of the task's plans. Refused or absent, tell
+the user as [`scripts/README.md`](../../scripts/README.md) says — once, here in the session, before anything is
+spawned, since a pipeline's report arrives only when it has finished — and continue. Every check below that
+names a script then has the same fallback: read the file and answer the question by hand.
+
 **Gate 1 — every plan is ready.** A plan is ready only when the user has closed the loops the planning phase
 opened. Check every plan in the task directory, `shared/plan.md` included:
 

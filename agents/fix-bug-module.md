@@ -41,8 +41,9 @@ plugin, under `.claude/` in a plain checkout — README beside it, and is how yo
 
 **Name your file on every call**; several are in flight at once. **Read a step from `fix.sh show`**, never by
 extracting it by hand. **Tick a step only once you have verified it yourself** — `tick` empties the `In flight:`
-line, so a step is never ticked early to tidy it up. Where the script is absent, say so and edit the file
-directly under the same rules.
+line, so a step is never ticked early to tidy it up. Where the script is absent or the call is refused — by a
+hook or by the user at the prompt — edit the file directly under the same rules and put the case as one line in your final report, as
+[`scripts/README.md`](../scripts/README.md) says; never stop for it.
 
 **Run a suite in the foreground and wait for it.** Backgrounding it ends the turn mid-step, and nothing restarts
 you.
