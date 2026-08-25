@@ -85,6 +85,8 @@ to reproduce, not treated as a step failure.** A test this rework broke is never
 - **Any file but yours.** `rework.md` you read and never write. Another module's `steps.md` you never open.
 - **Any module but the one your file names** — except a `shared/steps.md`, whose modules are all of them.
 - **The refactor round, `review/findings.md` and archiving** — the level above's, over the whole diff.
+- **A page a `docs:` line names.** The line records what the step invalidates; the finished-work pass rewrites
+  the page against the code.
 - **A second defect you find along the way.** Report it; never fix it.
 
 ## What To Report
