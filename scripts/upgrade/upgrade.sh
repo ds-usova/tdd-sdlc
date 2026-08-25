@@ -25,7 +25,7 @@ Usage:
   <plugin>/scripts/upgrade/upgrade.sh status   [--file <upgrade>]
   <plugin>/scripts/upgrade/upgrade.sh show     <ID>... [--file <upgrade>]
   <plugin>/scripts/upgrade/upgrade.sh tick     <ID>... [--file <upgrade>]
-  <plugin>/scripts/upgrade/upgrade.sh validate [--file <upgrade>]
+  <plugin>/scripts/upgrade/upgrade.sh validate [--file <upgrade> | <upgrade directory>]
 
 Commands:
   status    Done/total, the IDs still open, and the IDs abandoned.
@@ -39,7 +39,9 @@ Commands:
             an attempt filed under no step, and an unanswered Open Question.
 
 --file defaults to the single upgrade.md in flight under docs/. A <module>/steps.md, and an
-archived upgrade under docs/implemented/, are addressed by passing --file explicitly.
+archived upgrade under docs/implemented/, are addressed by passing --file explicitly. validate given
+the upgrade's directory validates upgrade.md and every steps file under it in one call; a step named
+with its file ("shared/steps.md · U01") is not resolved across files.
 
 Exit codes: 0 done - 1 nothing matched or validate found problems - 2 bad usage.
 EOF
@@ -84,6 +86,22 @@ $found" ;;
 
 parse() {
     awk -v mode="$1" -f "$parser" "$upgrade_file"
+}
+
+# Every file of one upgrade: upgrade.md and each <module>/steps.md or shared/steps.md beside it.
+cmd_validate_dir() {
+    local dir="$1" f found=0 failed=0
+    [ -d "$dir" ] || die "no such directory: $dir"
+
+    while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        found=$((found + 1))
+        upgrade_file="$f"
+        parse validate || failed=1
+    done < <(find "$dir" -maxdepth 2 \( -name 'upgrade.md' -o -name 'steps.md' \) -type f | sort)
+
+    [ "$found" -gt 0 ] || die "${dir} holds no upgrade.md or steps.md" 1
+    return "$failed"
 }
 
 cmd_status() {
@@ -190,6 +208,16 @@ case "$command" in
     --help|-h) usage; exit 0 ;;
     *) die "unknown command '$command' (try --help)" ;;
 esac
+
+# A directory validates the whole upgrade; a path to one file is the same as naming it with --file.
+if [ "$command" = validate ] && [ "${#args[@]}" -gt 0 ]; then
+    if [ -d "${args[0]}" ]; then
+        cmd_validate_dir "${args[0]}"
+        exit "$?"
+    fi
+    [ -f "${args[0]}" ] || die "no such file or directory: ${args[0]}"
+    upgrade_file="${args[0]}"
+fi
 
 locate_upgrade
 

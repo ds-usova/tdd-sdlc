@@ -62,7 +62,7 @@ module. What each holds is [`the-files.md`](the-files.md). `rework.sh` (`scripts
 root, README beside it) reads, ticks and validates them. Refused or absent on the first call, tell the user once
 as [`scripts/README.md`](../../scripts/README.md) says and edit the files by hand.
 
-Run `rework.sh validate --file <each file>` until it exits 0 before presenting anything.
+Run `rework.sh validate <the directory>` until it exits 0 before presenting anything.
 
 ## Phase 2 — Stop
 

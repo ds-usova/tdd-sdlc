@@ -47,7 +47,12 @@ Exit codes: **0** done, **1** no such step or `validate` found problems, **2** b
 
 `--file <upgrade>` names the file, and is accepted on every subcommand. Without one, the single `upgrade.md` in
 flight under `docs/` is used. A multi-module upgrade's `<module>/steps.md`, an archived upgrade under
-`docs/implemented/`, and one of two upgrades in flight at once all have to be named explicitly.
+`docs/implemented/`, and one of two upgrades in flight at once all have to be named explicitly. `validate` also
+takes a path positionally: a file is the same as `--file`, and the upgrade's directory validates `upgrade.md`
+and every `steps.md` under it in one call.
+
+**A step in another file is named with that file** — `needs: shared/steps.md · U01`. `validate` skips that
+form rather than resolving it, and holds every bare ID to the file it appears in.
 
 ### Step IDs
 
@@ -69,7 +74,7 @@ label line is empty by design. Every other label keeps its value on its own line
 | A value left empty, `TBD`, `—`, or still in `<angle brackets>`  | an agent given no instruction                           |
 | A `files:` or `test-files:` with no bullet under it               | a boundary that names nothing                           |
 | A `change:` with nothing after the middot                         | a guide item that never said where it lands             |
-| `needs:` naming a step nothing defines                            | a reference to a step that was renumbered or dropped    |
+| A bare `needs:` ID nothing in the file defines                    | a reference to a step that was renumbered or dropped    |
 | An attempt missing `why:`, `result:`, `evidence:` or `ruled-out:` | a failure the next session has to reproduce             |
 | An `evidence:` with no fenced block under it                      | a failure described instead of pasted                   |
 | An attempt filed under a step nothing defines                     | a log entry that belongs to nothing                     |

@@ -279,8 +279,11 @@ awaiting_evidence != "" && /[^ \t]/ { awaiting_evidence = "" }
     if (name == "change" && index(value, SEP) == 0) {
         problem(FILENAME ":" NR ": " cur "'s \"change:\" names no place - put where it lands after a " SEP)
     }
+    # A step in another steps file is named with that file - "shared/steps.md · U01" - and cannot be
+    # resolved from here, so only the bare IDs are held to this file.
     if (name == "needs") {
         rest = value
+        gsub(/[^ ,;]*\.md[^ ]* *\xc2\xb7 *[A-Za-z]+[0-9]+/, "", rest)
         while (match(rest, /U[0-9]+/)) {
             referenced[cur "\t" substr(rest, RSTART, RLENGTH)] = NR
             rest = substr(rest, RSTART + RLENGTH)

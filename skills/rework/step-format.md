@@ -83,6 +83,11 @@ class under a different name; `whenAccepted_thenRecorded` does not.
 proves, so it is asked under **Open Questions**. An answered `yes` is written into the line as
 `<before> -> <after>`, and the step is then held to what the line now says.
 
+**A step in another steps file is named with that file** — `needs: shared/steps.md · R01`, or
+`disables: `SomeTest#aMethod` — cleared by module-a/steps.md · R02`. Only `needs:` and `disables:` may cross,
+and `validate` does not resolve what it cannot see. A bare ID always means this file, and `validate` refuses one
+no step here defines. Given the rework's directory rather than one file, `validate` checks every file in it.
+
 **`frozen:` is a claim about the moment its step ran**, so a later step may restructure the same class.
 
 **A step carries `docs:` where its change is visible outside the code** — a port, a contract, a stored shape, a

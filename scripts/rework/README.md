@@ -48,7 +48,12 @@ Exit codes: **0** done, **1** no such step or `validate` found problems, **2** b
 
 `--file <rework>` names the file, and is accepted on every subcommand. Without one, the single `rework.md` in
 flight under `docs/` is used. A multi-module rework's `<module>/steps.md`, an archived rework under
-`docs/implemented/`, and one of two reworks in flight at once all have to be named explicitly.
+`docs/implemented/`, and one of two reworks in flight at once all have to be named explicitly. `validate` also
+takes a path positionally: a file is the same as `--file`, and the rework's directory validates `rework.md` and
+every `steps.md` under it in one call.
+
+**A step in another file is named with that file** — `needs: shared/steps.md · R01`. `validate` skips that
+form rather than resolving it, and holds every bare ID to the file it appears in.
 
 ### Step IDs
 
@@ -70,7 +75,7 @@ label line is empty by design. Every other label keeps its value on its own line
 | A value left empty, `TBD`, `—`, or still in `<angle brackets>` | a step agent given no instruction                     |
 | A `files:` or `test-files:` with no bullet under it              | a boundary that names nothing                         |
 | A `survives:` with nothing after the middot                      | a scenario that never said what it was proven against |
-| `needs:` or `disables:` naming a step nothing defines            | a reference to a step that was renumbered or dropped  |
+| A bare `needs:` or `disables:` ID nothing in the file defines   | a reference to a step that was renumbered or dropped  |
 | An Open Question whose `- A:` is empty                           | a run about to start on a decision nobody made        |
 
 **A duplicate ID's own block is not judged.** The second `R01` is reported and its lines are skipped, since

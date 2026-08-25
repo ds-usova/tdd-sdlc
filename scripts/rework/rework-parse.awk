@@ -176,8 +176,12 @@ cur != "" && /^[ \t]+-[ \t]+[A-Za-z-]+:/ {
     if (name == "survives" && index(value, SEP) == 0) {
         problem(FILENAME ":" NR ": " cur "'s \"survives:\" names no tier - put what it runs against after a " SEP)
     }
+    # A step in another steps file is named with that file - "shared/steps.md · R01" - and cannot be
+    # resolved from here, so only the bare IDs are held to this file. A value merely mentioning a
+    # path names no step.
     if (name == "needs" || name == "disables") {
         rest = value
+        gsub(/[^ ,;]*\.md[^ ]* *\xc2\xb7 *[A-Za-z]+[0-9]+/, "", rest)
         while (match(rest, /R[0-9]+/)) {
             referenced[cur "\t" substr(rest, RSTART, RLENGTH)] = NR
             rest = substr(rest, RSTART + RLENGTH)

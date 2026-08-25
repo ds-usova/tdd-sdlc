@@ -25,7 +25,7 @@ Usage:
   <plugin>/scripts/rework/rework.sh status   [--file <rework>]
   <plugin>/scripts/rework/rework.sh show     <ID>... [--file <rework>]
   <plugin>/scripts/rework/rework.sh tick     <ID>... [--file <rework>]
-  <plugin>/scripts/rework/rework.sh validate [--file <rework>]
+  <plugin>/scripts/rework/rework.sh validate [--file <rework> | <rework directory>]
 
 Commands:
   status    Done/total, and the IDs still open.
@@ -38,7 +38,9 @@ Commands:
             "needs:"/"disables:" pointing at a step nothing defines, and an unanswered Open Question.
 
 --file defaults to the single rework.md in flight under docs/. A <module>/steps.md, and an
-archived rework under docs/implemented/, are addressed by passing --file explicitly.
+archived rework under docs/implemented/, are addressed by passing --file explicitly. validate given
+the rework's directory validates rework.md and every steps file under it in one call; a step named
+with its file ("shared/steps.md · R01") is not resolved across files.
 
 Exit codes: 0 done - 1 nothing matched or validate found problems - 2 bad usage.
 EOF
@@ -85,6 +87,22 @@ $found" ;;
 
 parse() {
     awk -v mode="$1" -f "$parser" "$rework_file"
+}
+
+# Every file of one rework: rework.md and each <module>/steps.md or shared/steps.md beside it.
+cmd_validate_dir() {
+    local dir="$1" f found=0 failed=0
+    [ -d "$dir" ] || die "no such directory: $dir"
+
+    while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        found=$((found + 1))
+        rework_file="$f"
+        parse validate || failed=1
+    done < <(find "$dir" -maxdepth 2 \( -name 'rework.md' -o -name 'steps.md' \) -type f | sort)
+
+    [ "$found" -gt 0 ] || die "${dir} holds no rework.md or steps.md" 1
+    return "$failed"
 }
 
 cmd_status() {
@@ -194,6 +212,16 @@ case "$command" in
     --help|-h) usage; exit 0 ;;
     *) die "unknown command '$command' (try --help)" ;;
 esac
+
+# A directory validates the whole rework; a path to one file is the same as naming it with --file.
+if [ "$command" = validate ] && [ "${#args[@]}" -gt 0 ]; then
+    if [ -d "${args[0]}" ]; then
+        cmd_validate_dir "${args[0]}"
+        exit "$?"
+    fi
+    [ -f "${args[0]}" ] || die "no such file or directory: ${args[0]}"
+    rework_file="${args[0]}"
+fi
 
 locate_rework
 

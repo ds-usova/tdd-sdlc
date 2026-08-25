@@ -104,7 +104,7 @@ holds is [`the-files.md`](the-files.md). `upgrade.sh` (`scripts/upgrade/` under 
 beside it) reads, ticks and validates them. Refused or absent on the first call, tell the user once as
 [`scripts/README.md`](../../scripts/README.md) says and edit the files by hand.
 
-Run `upgrade.sh validate --file <each file>` until it exits 0 before presenting anything.
+Run `upgrade.sh validate <the directory>` until it exits 0 before presenting anything.
 
 ## Phase 2 — Stop
 
