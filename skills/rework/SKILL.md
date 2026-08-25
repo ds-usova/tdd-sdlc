@@ -106,10 +106,13 @@ follows, and the commit is provisional: the closing full run proves the whole.
 
 ## Phase 4 — Finish
 
-1. **Full build and full suite of every affected module, green**, with nothing left in any `disables:` still
-   off. Anything red or still disabled names the step that left it, and the directory is not archived. An
-   invariant from **What must stay true** that could not be kept, and a step abandoned, are reported here.
-2. **A refactor round per module** — see below. Each module's suite runs over its result.
+1. **Nothing left in any `disables:` is still off**, and every steps file's last run is green. Anything red or
+   still disabled names the step that left it, and the directory is not archived. An invariant from **What must
+   stay true** that could not be kept, and a step abandoned, are reported here.
+2. **A refactor round per module** — see below. **Then one full build and full suite of every affected module,
+   green** — the one full run of the rework. **Skipped where item 6's list holds an entry that runs the suite
+   over this same tree**; the build conventions name it, and its verdict is this one. A red run belongs to the
+   step or refactor that edited what failed.
 3. **Write `review/findings.md`** into the rework's directory, in the shape
    [`findings.md`](../../templates/findings.md) gives: **Critical**, **Bug**, and **Manual test** where the
    change needs a person to look. Where the rework touched one module, the section's opening line names it
@@ -128,15 +131,15 @@ follows, and the commit is provisional: the closing full run proves the whole.
 6. **What the conventions run over finished work.** Every affected module's conventions list what happens once a
    change is complete — a coverage guardrail, a formatting gate, a measurement, a documentation pass. Run that
    list in its order, passing each entry the archived `rework.md`. An entry listed by several modules runs once,
-   and a gate item 1 already ran over the same tree is not run again.
+   and a gate item 2 already ran over the same tree is not run again.
 
 ### The Refactor Round
 
 **One `tdd-refactor-phase` agent per affected module, over that module's diff**, on the model the module's
 conventions name for the refactor pass — the session's model where they name none. Never one pass across two
 modules: that is a diff no single set of refactoring conventions describes. Each gets its module's diff from the
-**Baseline:** commit, `rework.md` as the brief a tidier shape must not contradict, and the module's conventions
-by name.
+**Baseline:** commit, `rework.md` as the brief a tidier shape must not contradict, the module's conventions
+by name, and the last full suite run's figures for its module with whether the tree has changed since.
 
 ## Report
 
