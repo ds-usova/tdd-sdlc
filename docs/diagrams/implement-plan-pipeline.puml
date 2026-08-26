@@ -1,0 +1,45 @@
+@startuml implement-plan-pipeline
+skinparam defaultFontName Helvetica
+skinparam shadowing false
+skinparam ActivityBackgroundColor #F4F6F8
+skinparam ActivityBorderColor #888
+skinparam ArrowColor #444
+<style>
+activityDiagram {
+  .gate {
+    BackgroundColor #FFF6DD
+    LineColor #B8860B
+  }
+}
+</style>
+
+start
+:Stabilization
+stubs, migrations, contracts;
+:Gate: compiles,
+architecture test;<<gate>>
+note right
+  every gate runs the commands
+  your **build.md** names
+end note
+:Red
+unit, integration, system
+tests in parallel waves;
+:Gate: every new test
+compiles and fails;<<gate>>
+:Green
+unit + integration in waves,
+system one at a time;
+:Gate: full suite green;<<gate>>
+:Refactor
+one agent, whole diff;
+:Gate: still green,
+same test count;<<gate>>
+:Post-implementation
+build, coverage;
+note right
+  the steps your **follow-up.md**
+  gave the plan
+end note
+stop
+@enduml

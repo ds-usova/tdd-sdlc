@@ -1,0 +1,51 @@
+@startuml implement-plan-task
+skinparam defaultFontName Helvetica
+skinparam shadowing false
+skinparam ActivityBackgroundColor #F4F6F8
+skinparam ActivityBorderColor #888
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #888
+skinparam ArrowColor #444
+<style>
+activityDiagram {
+  .gate {
+    BackgroundColor #FFF6DD
+    LineColor #B8860B
+  }
+}
+</style>
+
+start
+:Gate: designs settled,
+findings actioned;<<gate>>
+:Gate: every module green,
+baseline counts kept;<<gate>>
+if (shared/plan.md?) then (yes)
+  :Seam pipeline, alone:
+  artifact, wiring, call sites;
+  :Gate: seam modules
+  compile and are green;<<gate>>
+endif
+fork
+  :pipeline for plan 1;
+  note right
+    at most as many at once
+    as your **agent.md** allows
+  end note
+fork again
+  :pipeline for plan 2;
+fork again
+  :…;
+end fork
+:Gate: no open item
+in any plan;<<gate>>
+:review/findings.md;
+:archive task directory;
+:commit;
+:run follow-up;
+note right
+  the list in your
+  **follow-up.md**, in order
+end note
+stop
+@enduml

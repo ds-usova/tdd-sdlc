@@ -93,6 +93,7 @@ Four commands. Each writes a file and stops; the next one reads it.
 </p>
 
 What the files look like: [a design](skills/design-task/example-design.md), [a plan](templates/example-plan.md).
+What happens when the plan runs — levels, gates, waves: [`docs/implement-plan.md`](docs/implement-plan.md).
 
 <hr>
 
@@ -109,7 +110,7 @@ The name is not a coincidence. Every phase of development gets a skill, and ever
 
 Every line stops for your approval before it touches code. Every line spawns one agent per module. A bug
 found on the way, a refactoring worth doing later, or a behaviour the change should also have had, becomes a
-row in `docs/backlog.md` — the input for the next `fix-bug`, `rework` or `design-task` run. How `implement-plan` gates and parallelizes: [`docs/implement-plan.md`](docs/implement-plan.md).
+row in `docs/backlog.md` — the input for the next `fix-bug`, `rework` or `design-task` run.
 
 <hr>
 
