@@ -1,6 +1,6 @@
 ---
 description: Settle the design of a change before any plan exists — objective, solution, diagrams, and every judgment call the change requires, recorded as answered decisions. Runs the grill-design subagent, then puts only the genuinely open questions in front of the user.
-argument-hint: [ description of the feature or task to design ]
+argument-hint: [ description of the feature or task to design, or a backlog id T<n> ]
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *)
 ---
 
@@ -90,6 +90,10 @@ seam.
 ### Objective
 
 What needs to be achieved, and why it matters to whoever asked. A short paragraph.
+
+**A design started from the backlog names its row.** Where the argument is a `T<n>` id, read the row in
+`docs/backlog.md` and the findings row it links; that row's *what* and *why* seed this paragraph, and its first
+line is `Closes T<n>`. `implement-plan` reads that line to close the row when the task is archived.
 
 ### Context
 

@@ -60,6 +60,9 @@ any line that makes it pass.
 </tr>
 </table>
 
+Why it is built this way — gates over reports, files over conversation, one agent per module:
+[`docs/strategy.md`](docs/strategy.md).
+
 <hr>
 
 ## Install
@@ -81,8 +84,9 @@ Four commands. Each writes a file and stops; the next one reads it.
    answer them.
 3. `/tdd-sdlc:plan-task docs/<n>-<task>/design.md` — writes one `plan.md` per module: classes, tests, ordered
    steps.
-4. `/tdd-sdlc:implement-plan docs/<n>-<task>/` — runs the gates, then one pipeline per plan. Done means the
-   suite is green and the task directory moved to `docs/implemented/`.
+4. `/tdd-sdlc:implement-plan docs/<n>-<task>/` — runs the gates, then one pipeline per plan: stabilize
+   (contracts, migrations, stubs — until it compiles), red, green, refactor. Done means the suite is green and
+   the task directory moved to `docs/implemented/`.
 
 <p align="center">
 <img src="docs/diagrams/workflow.svg" alt="init-conventions writes the conventions; design-task, plan-task and implement-plan each read them and write the next file" width="596">
@@ -103,8 +107,9 @@ The name is not a coincidence. Every phase of development gets a skill, and ever
 | Refactoring  | `/tdd-sdlc:rework`                             | restructures code without changing behaviour; stops for approval      | suite green before, kept green after each step |
 | Dependencies | `/tdd-sdlc:upgrade-deps`                       | finds outdated and vulnerable libraries, upgrades one step each       | suite green before, kept green after each step |
 
-Every line stops for your approval before it touches code. Every line spawns one agent per module.
-How `implement-plan` gates and parallelizes: [`docs/implement-plan.md`](docs/implement-plan.md).
+Every line stops for your approval before it touches code. Every line spawns one agent per module. A bug
+found on the way, a refactoring worth doing later, or a behaviour the change should also have had, becomes a
+row in `docs/backlog.md` — the input for the next `fix-bug`, `rework` or `design-task` run. How `implement-plan` gates and parallelizes: [`docs/implement-plan.md`](docs/implement-plan.md).
 
 <hr>
 

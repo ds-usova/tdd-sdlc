@@ -170,16 +170,22 @@ When every pipeline has returned:
    has to look at, which no step implemented and no test closed. Follow the conventions index to whatever the
    module says its finished work leaves open.
 
-   The shape is [`findings.md`](../../templates/findings.md). A task fills all four of its sections.
+   The shape is [`findings.md`](../../templates/findings.md). A task fills all five of its sections. A
+   **Deferred change** is behaviour the design did not ask for and the code should have — never a defect, never
+   a cleanup; it becomes its own task later, not a rework.
 
    Write it before archiving, so the whole directory moves once and the folder is there for the evidence to
    land in.
 
-   **Every bug block and every `R` row it files is appended to `docs/backlog.md`**, one pointer each, in the
-   shape [`backlog.md`](../../templates/backlog.md) gives — a `B` row per bug, a `C` row per candidate, each
-   taking the next id in its table, with the link written to the archived path, since that is where the file is
-   about to move. The findings file stays the row's owner; the backlog is how the row is found once the task
-   directory has left `docs/`.
+   **Every bug block, every `R` row and every `D` row it files is appended to `docs/backlog.md`**, one pointer
+   each, in the shape [`backlog.md`](../../templates/backlog.md) gives — a `B` row per bug, a `C` row per
+   candidate, a `T` row per deferred change, each taking the next id in its table, with the link written to the
+   archived path, since that is where the file is about to move. The findings file stays the row's owner; the
+   backlog is how the row is found once the task directory has left `docs/`.
+
+   **Close the row this task came from.** Where the design's **Objective** names a backlog `T` row, set the
+   owning findings row's `Status` to `done · task <n>`, re-emit its count line, and remove the `T` row from
+   `docs/backlog.md` in the same edit.
 3. **Archive**, on exit 0 and on nothing else: move the **whole task directory** — every `plan.md`, the
    `design.md` they link, `review/`, and anything else the task accumulated — into `docs/implemented/`. Moving the
    directory rather than the files keeps every link inside it working.

@@ -16,25 +16,33 @@ its own kind of work may fill.
 it stops there. A missing file and clean work must never look the same, which is why the file is written either
 way.
 
-Sections are these four, in this order, and a section with nothing in it is left out:
+Sections are these five, in this order, and a section with nothing in it is left out:
 
-| Section                   | Holds                                       | Shape                                        |
-|---------------------------|---------------------------------------------|----------------------------------------------|
-| **Critical**              | fix before the next task starts             | one block per defect, in the form below      |
-| **Bug**                   | real, and it can wait                       | one block per defect, in the form below      |
-| **Refactoring candidate** | nothing behaves wrong                       | table — # · Status · module · what · why     |
-| **Manual test**           | what no test can see, so a person must look | one block per check, in the form below       |
+| Section                   | Holds                                            | Shape                                    |
+|---------------------------|--------------------------------------------------|------------------------------------------|
+| **Critical**              | fix before the next task starts                  | one block per defect, in the form below  |
+| **Bug**                   | real, and it can wait                            | one block per defect, in the form below  |
+| **Refactoring candidate** | nothing behaves wrong, and nothing should change | table — # · Status · module · what · why |
+| **Deferred change**       | nothing is wrong, but the behaviour should differ | table — # · Status · module · what · why |
+| **Manual test**           | what no test can see, so a person must look      | one block per check, in the form below   |
 
-**A candidate is numbered and carries a status**, because it outlives the work that raised it. `#` is `R1`
-upward, assigned once and never reused. `Status` is `open`, or `done · <the rework that closed it>` — or
-`done · directly` where it was taken without one. The opening count line says how many are still open, so the
-first line of the file answers what is left without reading the table.
+**A candidate and a deferred change are numbered and carry a status**, because they outlive the work that raised
+them. `#` is `R1` upward for a candidate and `D1` upward for a deferred change, assigned once and never reused.
+`Status` is `open`, or `done · <the rework or task that closed it>` — or `done · directly` where it was taken
+without one. The opening count line says how many are still open, so the first line of the file answers what is
+left without reading the table.
 
 **A refactoring candidate is a defect nobody sees yet, or the author's own deferral — never something the run
 merely noticed.** An asymmetry, a naming quibble, a test that could exist, a case the current schema or
 configuration makes unreachable: none of them is a row. Before writing one, ask what breaks and who notices.
 **A file holding no candidates is the normal result**, and a run that files four has usually confused a list of
 observations with a list of work.
+
+**A deferred change is work the design did not ask for and the code should do anyway** — a validation the
+endpoint should also apply, a state the page should also show, a message a consumer should also handle. It
+changes behaviour, so a rework may not do it; it becomes a task of its own through `design-task`. The test
+between the two tables is the suite: a candidate leaves every test's assertion as it is, a deferred change adds
+or alters one. A row that is really a request the run merely thought of belongs in neither table.
 
 **A defect is reported as a case, not as a description.** Whoever picks it up reproduces it before fixing it,
 and a paragraph about a class does not tell them how:
