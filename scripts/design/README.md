@@ -1,20 +1,22 @@
 # The Design Reader
 
-`design.sh` reads a design file's decisions and answers the question every stage after it asks: is this settled, or
-does something still need deciding?
+`design.sh` reads a task's spec and answers the question every stage after it asks: is this settled, or does
+something still need deciding? Its `validate` reads all three of the task's files — the spec, the design, and the
+design log.
 
 ## Why it exists
 
-A design file exists to be *finished before the plan starts*. Its whole value is that the judgment calls — what
-happens when the database is down, what a duplicate request does, what the migration does to existing rows — are
-answered while they still cost a paragraph, instead of after twenty-five checklist items depend on them.
+A spec exists to be *finished before the plan starts*. Its whole value is that the judgment calls — what happens
+when the database is down, what a duplicate request does, what the migration does to existing rows — are answered
+while they still cost a paragraph, instead of after twenty-five checklist items depend on them.
 
 That only holds if "finished" is checkable. Left to a reading, a `must-decide` slips through, a decision arrives
-with a basis but no answer, or an assumption is written with nothing behind it — and the cost lands later, wherever
-someone invents their own answer to the same question. `settled` is the one-word verdict anything downstream can
-gate on, and `validate` is the shape check that keeps the format worth gating on.
+with a basis but no answer, a requirement has no scenario behind it, or a concern is marked clear with nothing to
+say why — and the cost lands later, wherever someone invents their own answer to the same question. `settled` is
+the one-word verdict anything downstream can gate on, and `validate` is the shape check that keeps the format
+worth gating on.
 
-It stores nothing of its own and edits nothing: the design file stays the single source of truth, and a decision is
+It stores nothing of its own and edits nothing: the files stay the single source of truth, and a decision is
 answered by whoever makes it.
 
 ## Where it lives
@@ -23,7 +25,7 @@ It ships **with the skills that use it**, at `scripts/design/` under the plugin 
 installed, `.claude/` in a plain checkout. `design-parse.awk` sits beside it and is found relative to the script, so
 the pair travels together.
 
-The **design file** is found the other way round, from `git rev-parse --show-toplevel` (falling back to the working
+The **task** is found the other way round, from `git rev-parse --show-toplevel` (falling back to the working
 directory). Once installed, this script runs from a cache directory outside any checkout, so nothing about the
 project can be derived from where the script is.
 
@@ -33,7 +35,7 @@ Run it with bash, from anywhere inside the project:
 
 ```
 <plugin>/scripts/design/design.sh settled
-<plugin>/scripts/design/design.sh validate
+<plugin>/scripts/design/design.sh validate docs/7-create-expense
 <plugin>/scripts/design/design.sh show D4 D7
 ```
 
@@ -46,43 +48,65 @@ Run it with bash, from anywhere inside the project:
 
 Exit codes: **0** done, **1** no such entry, not settled, or `validate` found problems, **2** bad usage.
 
-`--file <design>` picks the design. Without it, the single `docs/<n>-<task>/design.md` is used — a task owns a
-directory, holding `design.md` and `plan.md`. An archived design under `docs/implemented/<n>-<task>/design.md`
-has to be named explicitly.
+A task is addressed by its directory or by any one of its files — `spec.md`, `design.md`, `design-log.md` — and
+the others are found beside it; `--file` is accepted for either. Without one, the single `docs/<n>-<task>/` in
+flight is used. An archived task under `docs/implemented/` has to be named explicitly. `--spec`, `--design` and
+`--log` override one file each.
 
 ### Decision entries
 
-An entry is three lines — the question, the answer, and what the answer rests on:
+An entry in the spec is three lines — the question, the answer, and who chose:
 
 ```
-- **D4:** What does the caller see when the database is unavailable mid-write?
-- Answer: PersistenceFailedException propagates; the transaction rolls back and nothing is stored.
-- Basis: assumed — ExpenseRepositoryAdapter classifies every non-constraint DataAccessException this way.
+- **D4:** What happens when the same widget is created twice concurrently?
+  - Answer: One request wins with 200; the other returns the same 409 a sequential duplicate returns.
+  - Basis: decided (user, 2026-07-30)
 ```
 
-`D<n>` is assigned once and never renumbered. The four bases and what each obliges belong to the design format,
-defined by the `design-task` skill this ships with; a worked example is at
-`skills/design-task/example-design.md` under the plugin root.
+`D<n>` is assigned once and never renumbered. Only `decided` and `must-decide` are entries; the reasoning behind a
+decided one is a **Decision Bases** line in the log, under the same number. The four bases and what each obliges
+are defined in the `design-task` skill this ships with (`skills/design-task/SKILL.md`, **Decisions**); worked examples are at
+`skills/design-task/example-spec.md`, `example-design.md` and `example-design-log.md` under the plugin root.
 
 ### What `validate` checks
 
+The spec:
+
 | Check                                                                  | Catches                                                                 |
 |------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| The `**Affected Modules:**` line, and every required section, in order | a design missing the context the plan reads it for                      |
-| Duplicate `D` IDs, an entry outside the Decisions section              | a decision nothing can address                                          |
-| A Design Findings row numbered below the row above it                  | a row inserted at the wrong line — the table reads in ascending order |
+| Every required section, in order                                       | a spec a plan cannot be written from                                    |
+| A `Requirements` line no scenario proves, a scenario proving no `R`    | a promise with no test behind it, behaviour nobody asked for            |
+| Duplicate `D`, `R` or `A` IDs, an entry outside the Decisions section  | a decision nothing can address                                          |
 | A missing or repeated `Answer:` / `Basis:`                             | an entry no gate can classify                                           |
-| A basis that is not one of the four, or one with nothing after it      | an assumption with no evidence — a `must-decide` in disguise          |
-| A `must-decide` carrying an answer, or any other basis carrying none   | an entry whose two halves disagree                                      |
-| A Design Findings section with no `Grilled (<date>):` line             | a design the grill never saw                                            |
-| A missing or out-of-order section, `## Acceptance Scenarios` included  | a design a plan cannot be written from                                  |
+| A basis that is not `decided` or `must-decide`, or with nothing after  | an assumption in the user's section — it belongs in the log             |
+| A `must-decide` carrying an answer, or a `decided` carrying none       | an entry whose two halves disagree                                      |
+| A `Design Findings` section or an `F` row outside the log              | the old shape — the log owns those now                                  |
 
-A `must-decide` entry is **not** a problem here: a design in flight is expected to have them, and that is exactly
-what `settled` is for. `validate` asks whether the file is well-formed; `settled` asks whether it is finished.
+The design:
 
-A clean run prints the design's size — `####` sections under **Proposed Solution**, scenarios, decisions,
-findings. The counts are a mirror, not a gate: a design carrying more than one subject is split into one task per
-subject (`design-task`, **One Subject per Task**), and the counts are what show the moment to do it.
+| Check                                                                  | Catches                                                                 |
+|------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| No `design.md` beside the spec                                         | a spec with nothing that says how                                       |
+| The `**Affected Modules:**` line, and every required section, in order | a design missing the context the plan reads it for                      |
+| A source file named under **Proposed Solution**, as a token or a link  | a plan-level fact in the design — it reads the same in any language     |
+
+The log:
+
+| Check                                                                  | Catches                                                                 |
+|------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| No log beside the spec, or no `Grilled (<date>): <grill>` line         | a design the grill never saw                                            |
+| A concern the named grill owns with no row, or a row with no why       | a concern nobody can tell was examined                                  |
+| An `F` row numbered below the row above it, or with an empty cell      | a row inserted at the wrong line, or a claim with no evidence           |
+| A `decided` entry with no **Decision Bases** line, or one for no entry | a decision whose reasoning was never written down                       |
+
+A `must-decide` entry is **not** a problem here: a spec in flight is expected to have them, and that is exactly
+what `settled` is for. `validate` asks whether the files are well-formed; `settled` asks whether the spec is
+finished.
+
+A clean run prints the task's size — requirements, scenarios, decisions, `####` sections under **Proposed
+Solution**, concerns, findings. The counts are a mirror, not a gate: a task carrying more than one subject is
+split into one task per subject (`design-task`, **One Subject per Task**), and the counts are what show the moment
+to do it.
 
 Placeholder values — empty, `-`, `—`, `TBD`, `N/A` — count as unfilled, the same set `plan.sh` rejects in a
 `given:`/`when:`/`then:`.
@@ -109,9 +133,11 @@ the bare one, or an agent that quotes an absolute path is refused by a rule that
 
 ## Where it stops
 
-It parses the design's **shape**, not its meaning. It cannot tell whether an `assumed` basis is true, whether the
-evidence cited actually says what the entry claims, or whether the decision is a good one. A well-formed design
-that is wrong about the codebase validates cleanly — that is what the `grill-design` pass and the reader are for.
+It parses the files' **shape**, not their meaning. It cannot tell whether a Findings row is true, whether the
+evidence cited actually says what the row claims, whether a concern's why holds, or whether the decision is a good
+one. A well-formed spec that is wrong about the codebase validates cleanly — that is what the grill pass and the
+reader are for. The source-file check knows a fixed list of extensions; a framework class named bare is the
+grill's **Stack-neutral** row to catch.
 
-Bullets inside fenced code blocks are skipped, so a design quoting its own entry format does not acquire phantom
+Bullets inside fenced code blocks are skipped, so a file quoting its own entry format does not acquire phantom
 decisions from the example.

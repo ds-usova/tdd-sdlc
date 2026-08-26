@@ -41,7 +41,7 @@ any line that makes it pass.
 <tr>
 <td valign="top" width="50%">
 <b>Spec first, then hands-off</b><br>
-<i>The plugin writes a design and a plan. You approve. It implements to the end, running your build and tests itself at every stage — nothing is taken on an agent's word.</i>
+<i>The plugin writes a spec, a design and a plan. You approve. It implements to the end, running your build and tests itself at every stage — nothing is taken on an agent's word.</i>
 </td>
 <td valign="top" width="50%">
 <b>Parallel across modules</b><br>
@@ -76,24 +76,56 @@ Why it is built this way — gates over reports, files over conversation, one ag
 
 ## Your first feature
 
-Four commands. Each writes a file and stops; the next one reads it.
+Four commands. Each writes its files and stops; the next one reads them.
 
 1. `/tdd-sdlc:init-conventions` — once per repository. Surveys the tree, writes your conventions, asks only what
    it cannot deduce. Read the result and correct it.
-2. `/tdd-sdlc:design-task <what you want>` — writes `docs/<n>-<task>/design.md`. Stops with open questions. You
-   answer them.
-3. `/tdd-sdlc:plan-task docs/<n>-<task>/design.md` — writes one `plan.md` per module: classes, tests, ordered
+2. `/tdd-sdlc:design-task <what you want>` — writes three files under `docs/<n>-<task>/`, runs an independent
+   review agent — the grill — over them, then asks you, in one batch, only the questions the repository could not
+   answer, and records your answers.
+    - `spec.md`, the page you sign: requirements, acceptance scenarios, your decisions.
+    - `design.md`, how it is built, in any language's terms: what is stored, exposed and exchanged, with diagrams.
+    - `design-log.md`, why: every concern the grill examined with its verdict, every question the repository
+      answered, what each decision rested on.
+3. `/tdd-sdlc:plan-task docs/<n>-<task>/` — writes one `plan.md` per module: classes, tests, ordered
    steps.
-4. `/tdd-sdlc:implement-plan docs/<n>-<task>/` — runs the gates, then one pipeline per plan: stabilize
-   (contracts, migrations, stubs — until it compiles), red, green, refactor. Done means the suite is green and
-   the task directory moved to `docs/implemented/`.
+4. `/tdd-sdlc:implement-plan docs/<n>-<task>/` — checks every plan is ready and every module's suite is green,
+   then runs one pipeline per plan: stabilize (contracts, migrations, stubs — until it compiles), write the
+   failing tests, make them pass, refactor. Done means the suite is green and the task directory moved to
+   `docs/implemented/`.
 
 <p align="center">
 <img src="docs/diagrams/workflow.svg" alt="init-conventions writes the conventions; design-task, plan-task and implement-plan each read them and write the next file" width="596">
 </p>
 
-What the files look like: [a design](skills/design-task/example-design.md), [a plan](templates/example-plan.md).
+What the files look like: [a spec](skills/design-task/example-spec.md),
+[its design](skills/design-task/example-design.md), [its log](skills/design-task/example-design-log.md),
+[a plan](templates/example-plan.md).
 What happens when the plan runs — levels, gates, waves: [`docs/implement-plan.md`](docs/implement-plan.md).
+
+<hr>
+
+## Spec-driven, and then checked
+
+If you have used a spec-driven kit, the stages will look familiar: project rules, a spec with requirements and
+acceptance scenarios, open questions, a technical design, a plan. That is the shape any such workflow ends up
+with. tdd-sdlc arrived at it from the other end — by asking what an agent needs written down before it can be
+trusted with a test suite — and adds what a spec alone cannot give:
+
+| Stage                              | Here                                                                     | What is checked, not just written                                                                                                                             |
+|------------------------------------|--------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| project rules                      | `docs/conventions.md` and `<module>/docs/conventions.md`                 | deduced from your tree by `init-conventions`, not written from a template                                                                                     |
+| requirements, acceptance scenarios | `spec.md`: `R1…`, `A1…`                                                  | every requirement must be proved by a scenario; `design.sh validate` refuses one that is not                                                                  |
+| open questions                     | a `D` entry in `spec.md` marked `must-decide`                            | answered against the repository first; only what nothing answers reaches you                                                                                  |
+| clarification                      | the grill: `grill-design` for APIs and stores, `grill-frontend` for a UI | an independent agent, a fixed list of concerns, a verdict and a why for each                                                                                  |
+| technical design, research         | `design.md`, `design-log.md`                                             | the design says what is stored, exposed and exchanged, readable by any stack; the log says what each verdict and decision rested on — a file where one exists |
+| plan, tasks                        | `plan.md` per module                                                     | every step starts with a failing test, and cites the acceptance scenario (`A`) it proves                                                                      |
+
+**Evidence-backed assumptions.** A question the repository answered becomes a Findings row in `design-log.md`,
+citing the file that answers it. A question no file answers is put to you.
+
+**Scenario-to-test traceability.** Requirement (`R`) → acceptance scenario (`A`) → failing-test step in the plan →
+test class. A requirement with no failing test behind it cannot reach the plan.
 
 <hr>
 
@@ -101,14 +133,15 @@ What happens when the plan runs — levels, gates, waves: [`docs/implement-plan.
 
 The name is not a coincidence. Every phase of development gets a skill, and every skill is test-driven.
 
-| Phase        | Command                                        | What it does                                                          | Safety net                                     |
-|--------------|------------------------------------------------|-----------------------------------------------------------------------|------------------------------------------------|
-| Feature      | `design-task` → `plan-task` → `implement-plan` | spec, plan, red-green-refactor per class                              | tests fail before code, suite green after      |
+| Phase        | Command                                        | What it does                                                           | Safety net                                     |
+|--------------|------------------------------------------------|------------------------------------------------------------------------|------------------------------------------------|
+| Feature      | `design-task` → `plan-task` → `implement-plan` | spec, design, plan; red-green-refactor per class                       | tests fail before code, suite green after      |
 | Bug          | `/tdd-sdlc:fix-bug`                            | reproduces with a failing test, diagnoses, fixes; logs failed attempts | the reproducing test turns green               |
-| Refactoring  | `/tdd-sdlc:rework`                             | restructures code without changing behaviour; stops for approval      | suite green before, kept green after each step |
-| Dependencies | `/tdd-sdlc:upgrade-deps`                       | finds outdated and vulnerable libraries, upgrades one step each       | suite green before, kept green after each step |
+| Refactoring  | `/tdd-sdlc:rework`                             | restructures code without changing behaviour; stops for approval       | suite green before, kept green after each step |
+| Dependencies | `/tdd-sdlc:upgrade-deps`                       | finds outdated and vulnerable libraries, upgrades one step each        | suite green before, kept green after each step |
 
-Every line stops for your approval before it touches code. Every line spawns one agent per module. A bug
+Every line writes its files and stops for your approval before it touches code. Every line implements with one
+agent per module. A bug
 found on the way, a refactoring worth doing later, or a behaviour the change should also have had, becomes a
 row in `docs/backlog.md` — the input for the next `fix-bug`, `rework` or `design-task` run.
 
@@ -142,7 +175,9 @@ Templates and the section-by-section reference: [`templates/conventions/`](templ
 - The agents need to run your build and tests and to read your code. Grant that, and `implement-plan` runs
   unattended.
 - The plugin's scripts need allow rules. Every one is listed in [`settings.json`](settings.json) at the plugin
-  root; copy them into your `.claude/settings.json`, or choose "always allow" on the first prompt.
+  root; copy them into your `.claude/settings.json` with the path adapted to where the plugin was installed
+  (see [`scripts/design/README.md`](scripts/design/README.md), Portability), or choose "always allow" on the
+  first prompt.
 - A refused script never stops a run; the skill falls back to reading the file.
 - The plugin commits only where your conventions say so. Silent means no commits.
 

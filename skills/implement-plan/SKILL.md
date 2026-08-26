@@ -28,7 +28,7 @@ inventories drawn from the tree: read them, never recall them.
 
 ## Input Resolution
 
-A task owns a directory: `docs/<n>-<task-name>/`, holding the `design.md`, one plan per module, and — where
+A task owns a directory: `docs/<n>-<task-name>/`, holding `spec.md`, `design.md`, `design-log.md`, one plan per module, and — where
 anything crosses between them — a `shared/plan.md`. Phase 3 adds a `review/` folder to it: what the task left
 open, and the evidence that everything else was measured.
 
@@ -58,7 +58,7 @@ names a script then has the same fallback: read the file and answer the question
 **Gate 1 — every plan is ready.** A plan is ready only when the user has closed the loops the planning phase
 opened. Check every plan in the task directory, `shared/plan.md` included:
 
-- **The design file** the plan's `**Design:**` header links: `design.sh settled --file <design>` exits 0. Run it
+- **The spec** beside the design the plan's `**Design:**` header links: `design.sh settled <design>` exits 0. Run it
   once for the design the plans share, not once per plan. An unsettled decision means step agents will each
   invent their own answer to the same question, in different layers. The script ships with the `design-task`
   skill at `scripts/design/design.sh`.
@@ -183,11 +183,11 @@ When every pipeline has returned:
    archived path, since that is where the file is about to move. The findings file stays the row's owner; the
    backlog is how the row is found once the task directory has left `docs/`.
 
-   **Close the row this task came from.** Where the design's **Objective** names a backlog `T` row, set the
+   **Close the row this task came from.** Where the spec's **Objective** names a backlog `T` row, set the
    owning findings row's `Status` to `done · task <n>`, re-emit its count line, and remove the `T` row from
    `docs/backlog.md` in the same edit.
 3. **Archive**, on exit 0 and on nothing else: move the **whole task directory** — every `plan.md`, the
-   `design.md` they link, `review/`, and anything else the task accumulated — into `docs/implemented/`. Moving the
+   `design.md` they link, the `spec.md` and `design-log.md` beside it, `review/`, and anything else the task accumulated — into `docs/implemented/`. Moving the
    directory rather than the files keeps every link inside it working.
 4. **Commit** per the Version Control policy. This is where its **squash-before-archiving** setting applies.
 5. **What the conventions run over finished work.** Every affected module's conventions say what happens once a

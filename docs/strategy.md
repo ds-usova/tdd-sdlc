@@ -18,7 +18,7 @@ stopping.
 
 ## Files are the contract between steps
 
-Every step writes one file and stops — `design.md`, `plan.md`, `rework.md`, `upgrade.md`; `fix-bug` writes
+Every step writes its files and stops — `spec.md` with `design.md` and `design-log.md`, `plan.md`, `rework.md`, `upgrade.md`; `fix-bug` writes
 `bug.md`, then `fix.md`. The next step reads the file, not the conversation — it may run in the same session or
 a fresh one, and must work the same either way. An answer given in chat is written into the file before it
 counts.
@@ -38,7 +38,7 @@ That is what makes it safe to run individual steps on a cheaper model.
 
 The feature workflow — design, plan, implement — has two readers. A person approves what the change does and
 what it does when it fails — the design, with no class in it. A model executes how it is built — the plan, with
-every class, signature and test scenario. The handoff between them is the design file, settled when every
+every class, signature and test scenario. The handoff between them is the spec and its design, settled when every
 decision it lists has an answer.
 
 Rework, bug-fixing and upgrades have only the person to satisfy, so each is one skill: write the steps, stop

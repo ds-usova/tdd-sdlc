@@ -8,9 +8,10 @@ structure (plan sections, section order, step formats, RED/GREEN choreography) u
 and file formats as recorded in the module's `docs/conventions.md`
 (see `.claude/templates/conventions/`).
 
-What the feature *is* — the objective, the solution, the file names, the diagrams and the decisions behind them —
-lives in `.claude/skills/design-task/example-design.md`, the design this plan is written from. The plan links it rather than
-restating it, and starts at the step map.
+What the feature *is* — the requirements, the scenarios and the decisions — lives in
+`.claude/skills/design-task/example-spec.md`; how it is built — the solution, the data, the diagrams — in
+`example-design.md` beside it. This plan is written from both. It links them rather than restating them, and
+starts at the step map.
 
 Every item below is in one of the formats specified in [`step-formats.md`](step-formats.md); read that for the
 rules, and this for what they look like when written out.

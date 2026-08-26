@@ -1,6 +1,6 @@
 ---
-description: Translate a settled design file into a step-by-step implementation plan before starting to code. Use when starting a new complex feature, refactoring, or when the user explicitly asks for a plan.
-argument-hint: [ design file path, or a description of the feature to plan ]
+description: Translate a settled spec and design into a step-by-step implementation plan before starting to code. Use when starting a new complex feature, refactoring, or when the user explicitly asks for a plan.
+argument-hint: [ task directory, or a description of the feature to plan ]
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *)
 ---
 
@@ -26,28 +26,35 @@ as a new question.
 
 ## 1. Require a Settled Design
 
-Every plan is written from a design file — `docs/<n>-<task-name>/design.md`, produced by `design-task`. Read it in
-full before anything else. It carries the **Objective**, the **Proposed Solution**, the flow the change follows, the
-**Acceptance Scenarios** a person signed off, and the calls this plan's steps have to encode. Those calls are in
-two places: **Decisions** holds the ones the user made, and **Design Findings** holds the ones the repository
-answered. Both bind the plan.
+Every plan is written from a task `design-task` settled — `docs/<n>-<task-name>/`, holding `spec.md` and
+`design.md`. Read both in full before anything else. The spec carries the **Objective**, the **Requirements**,
+the **Acceptance Scenarios** a person signed off, and the **Decisions** the user made. The design carries
+**Affected Modules**, **Context**, the **Proposed Solution** and the flow the change follows. All of it binds the
+plan. The design is stack-neutral by rule; the class, the library and the file that hold each fact are this plan's
+to name.
+
+The `design-log.md` beside them is the record behind the two, not a third input. Open it only to chase a
+reference: a `F<n>` the spec or design cites, or the file a claim rests on when the step needs to mirror it.
+Everything binding is already in the spec and the design.
+
+Cite a decision or a finding by its clause, never by its number alone — "D2, a choice is never cleared", not "D2".
 
 **Two gates, both hard:**
 
-- **No design file for this task** — stop and say so. Do not write the plan and do not reconstruct the design
+- **No spec or design for this task** — stop and say so. Do not write the plan and do not reconstruct either
   inline. Point the user at `design-task`.
 - **`design.sh settled` exits non-zero** — stop and repeat what it printed. Those entries decide what the steps are.
   The script ships with the `design-task` skill at `scripts/design/design.sh` — under `${CLAUDE_PLUGIN_ROOT}` when
   installed as a plugin, under `.claude/` in a plain checkout. Refused or absent is not non-zero: tell the user
-  once as [`scripts/README.md`](../../scripts/README.md) says, then read the design's `Basis:` lines yourself.
+  once as [`scripts/README.md`](../../scripts/README.md) says, then read the spec's `Basis:` lines yourself.
 
-A design gap found *while* planning — a case neither **Decisions** nor **Design Findings** covers — is amended in
-the design file: a **Design Findings** row where the repository answers it, a new `D` entry escalated to the user
-where nothing does. It is never absorbed into the plan.
+A design gap found *while* planning — a case neither **Decisions** nor the log's **Findings** covers — is amended
+where it belongs: a **Findings** row in the log where the repository answers it, a new `D` entry in the spec
+escalated to the user where nothing does. It is never absorbed into the plan.
 
 ## 2. Create a Plan File per Module
 
-The design already created its task directory and `design.md` inside it. Write **one plan per module** the design's
+`design-task` already created the task directory and its three files. Write **one plan per module** the design's
 **Affected Modules** names:
 
 | Design's Affected Modules       | Where the plan goes                               |
@@ -56,8 +63,8 @@ The design already created its task directory and `design.md` inside it. Write *
 | several                         | `docs/<n>-<task-name>/<module>/plan.md`, one each |
 | several, with a shared artifact | one more: `docs/<n>-<task-name>/shared/plan.md`   |
 
-> **Naming rule:** the directory carries the name; the file does not repeat it. A task directory holds `design.md`
-> and `plan.md`, or `design.md` and `module-a/plan.md` and `module-b/plan.md`.
+> **Naming rule:** the directory carries the name; the file does not repeat it. A task directory holds `spec.md`,
+> `design.md`, `design-log.md` and `plan.md`, or the same three and `module-a/plan.md` and `module-b/plan.md`.
 
 **The design is never split; the plans always are.** A plan's unit is what gets implemented and verified — one
 module, one toolchain, one set of conventions. Each plan is implemented on its own, with its own verification
@@ -166,8 +173,9 @@ no plan has anything to wait for, and none says it does.
 cannot find. The one place a plan mentions another is a disabled test's reason, which points at the step that will
 rework it. That is a note for a reader, not a dependency.
 
-**Design** links the design file this plan translates. The objective, the behaviour, the schema and the flow live
-there and are **not** repeated here. What lives here is the structure that behaviour gets built in.
+**Design** links the design this plan translates; the spec sits beside it. The objective, the behaviour, the
+schema and the flow live there and are **not** repeated here. What lives here is the structure that behaviour gets
+built in.
 
 The link is relative and survives archiving: `design.md` from a single-module plan, `../design.md` from a per-module
 or shared one.
@@ -322,7 +330,7 @@ belongs to, and the scenario-authoring rules that bind them all, are
 
 **Scope:** this section holds questions about *executing* the plan — a blocker foreseen in a step, a tool or
 credential that may be missing, an approval a conventions file requires. Questions about what the change should
-**do** belong in the design file's **Decisions** section and are settled before this plan exists; a design question
+**do** belong in the spec's **Decisions** section and are settled before this plan exists; a design question
 appearing here means step 1's gate was skipped.
 
 Generate placeholders for the user's answers beneath each open question, nested under it, for example:

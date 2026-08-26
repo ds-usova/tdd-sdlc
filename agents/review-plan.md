@@ -14,18 +14,18 @@ description of it.
 
 ## 1. Locate the Plan and Its Modules
 
-Read the plan file at the given path in full, then the design file its **Design** header links. The objective,
-the behaviour, the flow, the **Acceptance Scenarios** and the settled **Decisions** the steps must encode are all
-in the design. The plan carries the classes that hold them: its **Components** section and its step map. A step
+Read the plan file at the given path in full, then the design its **Design** header links and the `spec.md`
+beside it. The flow and the solution are in the design; the **Requirements**, the **Acceptance Scenarios** and
+the settled **Decisions** the steps must encode are in the spec. The plan carries the classes that hold them: its **Components** section and its step map. A step
 is audited against the design, not against the plan's own restatement of it.
 
 Read `<module>/docs/conventions.md` for every module listed in **Affected Modules** (and the repo-root
 `docs/conventions.md` if present) — the boundary audit and test-scenario audit both depend on knowing the module's
 real layer mapping, naming conventions, and architecture-enforcement test.
 
-A design **Decision** with no step implementing it is a finding. A step implementing behaviour no decision settles
+A spec **Decision** with no step implementing it is a finding. A step implementing behaviour no decision settles
 is a finding too — the plan is deciding something `design-task` should have. Neither is this skill's to fix: report
-it, and let it go back to the design file.
+it, and let it go back to `design-task`.
 
 ## 2. Checklist
 
@@ -42,7 +42,7 @@ job — do not re-derive them by hand and do not report them again as findings.
 
 - Confirm every section required by the `plan-task` skill's **4. Plan Structure** (`skills/plan-task/SKILL.md`,
   beside this agents directory) is present, and in the fixed order —
-  including the `**Design:**` header line, and that it resolves to a file whose **Decisions** carry no
+  including the `**Design:**` header line, and that it resolves to a task whose `spec.md` **Decisions** carry no
   `Basis: must-decide`.
 - Confirm the **Step-by-Step Implementation Map** nests correctly: the four `### <Group>` headings — Stabilization,
   Red Phase, Green Phase, Post-Implementation Steps — appear in that fixed order, and every `#### <Section>`

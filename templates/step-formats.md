@@ -51,13 +51,13 @@ for the two to drift apart.
 
 These bind every Red Phase format below.
 
-**A scenario comes from the design, not from the planner.** The design's **Acceptance Scenarios** are the
+**A scenario comes from the spec, not from the planner.** The spec's **Acceptance Scenarios** are the
 behaviour a person signed off, numbered `A1`, `A2`. Every scenario written here traces to one, and the step names
 which: `covers scenarios: A1, A3`, on the step line. A scenario the design does not carry is either a mechanical
 case the design never needed — a boundary value, a mapping detail — or a behaviour nobody agreed to. The second
 goes back to the design as a new `D` entry, never in here as an invention.
 
-**A design scenario no step names is a gap.** Check the whole set before finishing: every `A<n>` in the design is
+**A spec scenario no step names is a gap.** Check the whole set before finishing: every `A<n>` in the spec is
 covered by at least one step in one of the task's plans.
 
 **Coverage balance rule.** Before listing scenarios, review the existing tests in the step's test class to

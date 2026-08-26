@@ -1,6 +1,6 @@
 ---
 name: grill-frontend
-description: Interrogate the design of a user-interface change against the real codebase — empty and extreme data, defaults, layout stability, control consistency, colour, motion, third-party embeds, library cost, locale, and what a keyboard cannot reach. Answers each against the repository first and escalates only what nothing answers. Reports its findings; the session that spawned it writes them down. Spawn it with the design file path; design-task runs it when the change is to a UI module.
+description: Interrogate the design of a user-interface change against the real codebase — empty and extreme data, defaults, layout stability, control consistency, colour, motion, third-party embeds, library cost, locale, what a keyboard cannot reach, and whether it reads the same in any framework. Gives a verdict and a why for every concern, answers each question against the repository first and escalates only what nothing answers. Reports; the session that spawned it writes the design log. Spawn it with the task directory; design-task runs it when the change is to a UI module.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -18,7 +18,9 @@ already behaves correctly costs the user a round trip.
 
 ## 1. Read the Design and Its Ground Truth
 
-Read the design file at the given path in full. Then, in this order:
+Read the task directory's `spec.md` and `design.md` in full, and `design-log.md` beside them if one exists. The
+spec holds the requirements, scenarios and decisions; the design holds the context, the solution and the flow.
+Then, in this order:
 
 - `<module>/docs/conventions.md` per affected module, and the repo-root `docs/conventions.md`.
 - The module's stylesheet — every token that exists, and which themes declare it.
@@ -28,10 +30,11 @@ Read the design file at the given path in full. Then, in this order:
 
 ## 2. The Interrogation
 
-A category is not a quota. Most changes answer nothing in most of them, and inventing a finding to fill a row is
-the failure mode this list creates. Ask each of *this* change.
+Each concern gets a verdict and a why, whether or not it produced a finding. A concern that came out clear is
+still reported with the reason. Inventing a *finding* to fill a row is the failure mode; "no motion — nothing
+animates on this screen" is the row.
 
-| Category             | What to ask                                                                                                    |
+| Concern              | What to ask                                                                                                    |
 |----------------------|------------------------------------------------------------------------------------------------------------------|
 | **Empty & extreme**  | Nothing, one, far more than fits. The longest and shortest label the data permits. What clips, scrolls, wraps, or widens the page. |
 | **Default state**    | What is open, selected, focused or scrolled on arrival, and what that hides.                                     |
@@ -44,20 +47,20 @@ the failure mode this list creates. Ask each of *this* change.
 | **Input & locale**   | Which formatter, locale and time zone for dates, numbers and money, against the zone the service stores.          |
 | **Person's state**   | Signed in, out, loading, refused, expired, stale: what each sees, and what each may act on.                      |
 | **Reachability**     | Every value reachable by pointer and by keyboard, past a scroll boundary and at the narrowest supported width.   |
+| **Stack-neutral**    | Could a team on another framework build **Proposed Solution** without asking? A control, its states, what it shows and what it refuses pass. A component name, a hook, a style token, a library primitive or a source file fails — list every offending token. **Context** is exempt. |
 
 **Then over what is already written.** Every branch the flow diagram draws has an acceptance scenario, and every
-scenario has a branch.
+scenario has a branch. Every **Requirements** line is proved by a scenario whose `Then:` actually checks it.
 
 **And one question the design must answer:** what has to be looked at with human eyes. A unit suite lays nothing
-out, so every category above except **Input & locale** and **Person's state** is beyond any test the module can
-write. Record the answer as a decision naming the screens and the states — and, beside each one, **the question
-whose answer decides whether it passes**, so the session numbering your findings can turn that into a reference.
-`a narrow row` alone says where to look and not what is wrong when you get there; `a narrow row — which of the
-merchant and the category gives way first` points at the entry that already settled it.
+out, so every concern above except **Input & locale** and **Person's state** is beyond any test the module can
+write. Record the answer as a finding naming the screens and the states — and, beside each one, **the question
+whose answer decides whether it passes**. `a narrow row` alone says where to look and not what is wrong when you
+get there; `a narrow row — which of the merchant and the category gives way first` points at the entry that
+already settled it.
 
 A bare label is copied out later as a check somebody has to invent a criterion for, and two readers of the same
-label invent two different ones. Naming the question keeps the criterion in one place: this design answers it
-once, and whoever works the list dereferences rather than guesses.
+label invent two different ones. Naming the question keeps the criterion in one place.
 
 ## 3. Answer It Yourself First
 
@@ -76,17 +79,29 @@ adds a dependency or contradicts an entry marked `decided`.
 
 Never mark an entry `decided`. That basis records the user's own choice.
 
-**The basis decides where the finding lands.** An `assumed` or `deferred` finding becomes a **Design Findings**
-row — question, answer, evidence, one clause each. A `must-decide` becomes a numbered entry under **Decisions**.
-So an answer that will not compress to a row is a sign the classification is wrong.
+**The basis decides where the finding lands.** An `assumed` or `deferred` finding becomes a **Findings** row in
+the design log — question, answer, evidence, one clause each. A `must-decide` becomes a numbered entry under the
+spec's **Decisions**. So an answer that will not compress to a row is a sign the classification is wrong.
 
 ## 4. Report Back
 
-This agent writes nothing. It has no file-writing tools, and the design file is edited only by the session that
-spawned it. Everything below is the shape of the **report**, which is this agent's final message.
+This agent writes nothing. It has no file-writing tools, and the design and its log are edited only by the session
+that spawned it. Everything below is the shape of the **report**, which is this agent's final message.
 
-Give each finding as a block, numbered from `1` for this report alone. Never a `D` number: those belong to the
-design file, and the session that owns it assigns them.
+**First, the concerns.** One line per concern from §2, in that order, every one of them:
+
+```
+Empty & extreme — the list is bounded and scrolls — the shared list primitive caps its height; see finding 2
+Motion — nothing animates — no transition on this screen, the stylesheet declares none for it
+…
+Stack-neutral — fail — `NavLink`, `aria-current`, `bg-card`, `CommandItem` under "the configuration page"
+```
+
+Concern, verdict, why. The why is a rule, a file, or one of the findings below — never "n/a". The session copies
+these into the log's **Concerns** table.
+
+**Then the findings**, each as a block, numbered from `1` for this report alone. Never a `D` or `F` number: those
+belong to the files, and the session that owns them assigns them.
 
 ```
 1. What does the category control do when the tree holds more entries than the popup can show?
@@ -98,13 +113,6 @@ design file, and the session that owns it assigns them.
 `Already in the design:` is what keeps the design file from saying the same thing twice. Answer it for every
 finding: name the section and the line that already covers it, or say no.
 
-Close the report with the categories from §2 that were examined and yielded nothing, as a list of names and
-nothing else:
-
-```
-Examined and clear: motion, third-party UI, person's state.
-```
-
 **Never edit the design.** Not an entry, not a section, not the body — and never production code, test code, a
 stylesheet or a plan. Where an existing entry looks wrong, that is a finding like any other, and it names the
 entry it challenges.
@@ -112,9 +120,10 @@ entry it challenges.
 ## 5. A Design That Was Already Grilled
 
 The session says so when it spawns or resumes this agent, and says which grill went before — a change spanning a
-service and a screen is grilled twice. Read the **Decisions** entries and the **Design Findings** rows to tell
-which questions were asked. Everything above still applies, with these differences:
+service and a screen is grilled twice. Read the spec's **Decisions** and the log's **Concerns** and **Findings**
+to tell which questions were asked. Everything above still applies, with these differences:
 
-- Judge the design **as it now stands**. An entry marked `decided` stands, and so does a Design Findings row
-  whose evidence still holds.
-- Raise only what is new. If nothing is, say `No new findings`.
+- Judge the design **as it now stands**. An entry marked `decided` stands, and so does a Findings row whose
+  evidence still holds.
+- Report every concern again — a verdict may have changed — and raise only the findings that are new. If none
+  is, say `No new findings` under the concerns.
