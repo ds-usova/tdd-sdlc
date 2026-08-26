@@ -62,7 +62,7 @@ An entry is three lines — the question, the answer, and what the answer rests 
 
 `D<n>` is assigned once and never renumbered. The four bases and what each obliges belong to the design format,
 defined by the `design-task` skill this ships with; a worked example is at
-`.claude/skills/design-task/example-design.md`.
+`skills/design-task/example-design.md` under the plugin root.
 
 ### What `validate` checks
 

@@ -1,0 +1,40 @@
+@startuml workflow
+skinparam defaultFontName Helvetica
+skinparam shadowing false
+skinparam ArrowColor #444
+skinparam rectangle {
+  BackgroundColor #F4F6F8
+  BorderColor #888
+}
+skinparam file {
+  BackgroundColor #FFFFFF
+  BorderColor #888
+}
+top to bottom direction
+
+rectangle "init-conventions" as IC
+rectangle "design-task" as DT
+rectangle "plan-task" as PT
+rectangle "implement-plan" as IP
+file "conventions.md\n(repo + module)" as CV
+file "design.md" as D
+file "plan.md\nper module" as P
+file "code, tests,\nfindings.md" as C
+
+note bottom of CV
+  yours to edit: every skill
+  reads these, the plugin
+  holds no project fact
+end note
+
+IC -> DT
+DT -> PT
+PT -> IP
+IC --> CV
+DT --> D
+PT --> P
+IP --> C
+CV -[hidden]> D
+D -[hidden]> P
+P -[hidden]> C
+@enduml

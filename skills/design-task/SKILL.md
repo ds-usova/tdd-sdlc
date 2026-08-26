@@ -325,9 +325,6 @@ Assign the `D` and `F` numbers here, each past the highest already in its own se
 existing entry or row becomes a *new* one citing it; neither is ever rewritten, except to correct a claim a
 finding proved false.
 
-Assign the `D` numbers here, past the highest already in the file. A finding challenging an existing entry becomes
-a *new* entry citing it; an existing entry is never rewritten, except to correct a claim a finding proved false.
-
 Then run `design.sh validate` and fix what it reports.
 
 ## 6. Put the Open Questions to the User — in One Batch

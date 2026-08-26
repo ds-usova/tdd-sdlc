@@ -15,8 +15,9 @@ every time, and never skipped because a long run was tired of it.
 
 ## When one cannot run
 
-Whoever installs the plugin allows the scripts in their own permission settings — each README's **Portability**
-section gives the rule. A call can fail to run for two reasons, told apart by what it printed:
+Each skill's `allowed-tools` frontmatter grants its own script to the skill session; a sub-agent gets no such
+grant and prompts on the first call, so whoever installs the plugin adds the rule to their own permission
+settings — each README's **Portability** section gives it. A call can fail to run for two reasons, told apart by what it printed:
 
 - **The call was refused** — by a permission hook whose allow rules do not name the script, or by the user
   declining the permission prompt by hand. Either is the operator's call, by accident or by choice, and not

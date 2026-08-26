@@ -1,0 +1,57 @@
+@startuml hero
+skinparam defaultFontName Helvetica
+skinparam shadowing false
+skinparam ArrowColor #444
+skinparam rectangle {
+  BackgroundColor #F4F6F8
+  BorderColor #888
+  RoundCorner 8
+}
+skinparam file {
+  BackgroundColor #FFFFFF
+  BorderColor #888
+}
+skinparam actor {
+  BorderColor #444
+}
+left to right direction
+
+actor "you" as U
+file "spec\n(design + plan)" as S
+rectangle "you approve" as A #FFF4CC
+
+rectangle "implement — one agent per module" as I {
+  rectangle "backend" as B {
+    rectangle "red" as BR #FADBD8
+    rectangle "green" as BG #E6F4EA
+    rectangle "refactor" as BF #E8EAF6
+    BR -->BG
+    BG -->BF
+  }
+  rectangle "frontend" as F {
+    rectangle "red" as FR #FADBD8
+    rectangle "green" as FG #E6F4EA
+    rectangle "refactor" as FF #E8EAF6
+    FR -->FG
+    FG -->FF
+  }
+  rectangle "… more modules" as M {
+    rectangle "red" as MR #FADBD8
+    rectangle "green" as MG #E6F4EA
+    rectangle "refactor" as MF #E8EAF6
+    MR -->MG
+    MG -->MF
+  }
+}
+
+file "feature\ntests first, suite green" as R #E6F4EA
+
+U --> S : describe
+S --> A
+A --> BR
+A --> FR
+A --> MR
+BF --> R
+FF --> R
+MF --> R
+@enduml
