@@ -46,9 +46,10 @@ blocker instead of introducing a new tool or pattern on your own.
    from where the module's existing unit tests live.
 4. Read one or two neighboring unit test classes as a style reference — structure, setup idiom, naming — so your
    tests read like the module's existing tests, not like a foreign body.
-5. **Existing-test updates**: the plan may include `update:` sub-bullets in two forms. A **per-method** bullet
+5. **Existing-test updates**: the plan may include `update:` sub-bullets in three forms. A **per-method** bullet
    names one existing test and one outcome (add an assertion for a new field, extend a grown case set, delete).
-   Read the named test before changing it. A **premise** bullet (`update: premise — … · …`) states a fact about
+   Read the named test before changing it. A **whole-class** bullet (`update: every test in this class — delete`)
+   removes every test the class held; count them before you do, and report the count. A **premise** bullet (`update: premise — … · …`) states a fact about
    the change and what follows for a test that meets it; it names no method, or one only as an example. Read
    **every** test in the class and decide from each body whether the premise holds there — the collaborator, the
    field or the value the premise turns on is either in the body or it is not. If, while reading, you notice a
@@ -125,4 +126,4 @@ End with a short, structured report the orchestrator can act on — the only cha
   expected passes;
 - any coverage gaps or unlisted existing-test updates you noticed but, by design, did not implement;
 - any blockers (missing conventions entry, ambiguous intent comment, scenario impossible to express at unit level)
-  — stated precisely enough for the orchestrator to record them in the plan's Open Questions / Blockers.
+  — stated precisely enough for the orchestrator to record them in the plan log's Run Log.

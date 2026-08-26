@@ -15,7 +15,9 @@ must fail in **exactly the expected places**:
   Compare against the baseline's number rather than against zero: a module whose infrastructure skips on its own
   (no container runtime, say) starts above zero and must return there, not below it;
 - **nothing left the tree that no bullet authorized** — the total is the baseline, plus what the red steps added,
-  less exactly the methods an `update: … — delete` bullet named. A total that does not reconcile is a red agent
-  that dropped a test instead of reworking it.
+  less exactly the methods an `update: … — delete` bullet named, less every method a class under
+  `update: every test in this class — delete` held at the baseline — that count is read from the baseline's
+  tree, never from the plan. A total that does not reconcile is a red agent that dropped a test instead of
+  reworking it.
 
 Green does not start until this holds for every non-blocked item.

@@ -128,4 +128,4 @@ End with a short, structured report the orchestrator can act on — the only cha
 - any gaps or suspect tests you noticed but, by design, did not act on;
 - any blockers (test-vs-intent conflict, missing conventions entry, contract gap — a missing migration or schema
   constraint — or a test unsatisfiable within the guardrails) — stated precisely enough for the orchestrator to
-  record them in the plan's Open Questions / Blockers.
+  record them in the plan log's Run Log.

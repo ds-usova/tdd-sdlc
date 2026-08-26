@@ -1,6 +1,6 @@
 <h1 align="center">tdd-sdlc</h1>
 
-<h3 align="center">Test-driven from the first design to the last dependency.</h3>
+<h3 align="center">Test-driven from the first design to the last dependency</h3>
 
 <p align="center">
 A Claude Code plugin for the whole development cycle — features, bugs, refactorings, dependency upgrades.<br>
@@ -88,7 +88,7 @@ Four commands. Each writes its files and stops; the next one reads them.
     - `design-log.md`, why: every concern the grill examined with its verdict, every question the repository
       answered, what each decision rested on.
 3. `/tdd-sdlc:plan-task docs/<n>-<task>/` — writes one `plan.md` per module: classes, tests, ordered
-   steps.
+   steps. A `plan-log.md` beside it holds what the review found and, later, what the run recorded.
 4. `/tdd-sdlc:implement-plan docs/<n>-<task>/` — checks every plan is ready and every module's suite is green,
    then runs one pipeline per plan: stabilize (contracts, migrations, stubs — until it compiles), write the
    failing tests, make them pass, refactor. Done means the suite is green and the task directory moved to
@@ -100,7 +100,7 @@ Four commands. Each writes its files and stops; the next one reads them.
 
 What the files look like: [a spec](skills/design-task/example-spec.md),
 [its design](skills/design-task/example-design.md), [its log](skills/design-task/example-design-log.md),
-[a plan](templates/example-plan.md).
+[a plan](templates/example-plan.md), [its log](templates/example-plan-log.md).
 What happens when the plan runs — levels, gates, waves: [`docs/implement-plan.md`](docs/implement-plan.md).
 
 <hr>
@@ -119,7 +119,7 @@ trusted with a test suite — and adds what a spec alone cannot give:
 | open questions                     | a `D` entry in `spec.md` marked `must-decide`                            | answered against the repository first; only what nothing answers reaches you                                                                                  |
 | clarification                      | the grill: `grill-design` for APIs and stores, `grill-frontend` for a UI | an independent agent, a fixed list of concerns, a verdict and a why for each                                                                                  |
 | technical design, research         | `design.md`, `design-log.md`                                             | the design says what is stored, exposed and exchanged, readable by any stack; the log says what each verdict and decision rested on — a file where one exists |
-| plan, tasks                        | `plan.md` per module                                                     | every step starts with a failing test, and cites the acceptance scenario (`A`) it proves                                                                      |
+| plan, tasks                        | `plan.md` per module, `plan-log.md` beside it                            | every step starts with a failing test, and cites the acceptance scenario (`A`) it proves; the plan holds only what binds, the log what was found and recorded |
 
 **Evidence-backed assumptions.** A question the repository answered becomes a Findings row in `design-log.md`,
 citing the file that answers it. A question no file answers is put to you.

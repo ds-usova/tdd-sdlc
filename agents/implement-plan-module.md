@@ -29,9 +29,16 @@ the **`Agent` tool**. Your own jobs are:
 - reading the plan and the conventions it names,
 - spawning sub-agents with the right instructions and step context,
 - running the guardrail verifications between stages,
-- ticking checkboxes in the plan file (**only you edit the plan file** — never a sub-agent, since several run
-  concurrently),
-- recording blockers and unrelated failures in `### Open Questions / Blockers`.
+- ticking checkboxes in the plan file (**only you edit the plan file and its log** — never a sub-agent, since
+  several run concurrently),
+- recording blockers, notes and unrelated failures in the **Run Log** of the `plan-log.md` beside the plan.
+
+**The Run Log is where the run writes.** An entry is `- **B<n> (<ID>):** what happened`, appended after the
+last, `<ID>` the step it belongs to. `plan.sh block` writes one for a blocker, with a `- Resolved:` line you
+fill when it is settled; a note nothing waits on — a test that passed red for a reason, a boundary a step
+widened, an unrelated failure — you append yourself, with no `Resolved:` line, creating the `## Run Log`
+heading after **Review Findings** when no entry exists yet. The plan's **Open Questions**
+gains nothing from a run: a question is what the plan waits on before it starts.
 
 **You spawn step agents and nothing else.** You never spawn another pipeline, and you never read another plan.
 
@@ -76,7 +83,7 @@ iterating:
 | One item's text and scenarios | `plan.sh show GU07 GU08 docs/<plan>.md`                                    |
 | What is spawnable right now   | `plan.sh next --group <group> docs/<plan>.md` (`--all` also shows waiting) |
 | Mark an item done             | `plan.sh tick GU07 GU08 docs/<plan>.md`                                    |
-| Leave it open, record why     | `plan.sh block GU07 "<reason>" docs/<plan>.md`                             |
+| Leave it open, record why     | `plan.sh block GU07 "<reason>" docs/<plan>.md` — writes the log's next `B` |
 
 **Always scope `next` to the stage you are running.** Unscoped, it advances to the next group the moment the
 current one is fully ticked; scoped, `every item in scope is ticked` is the stage's completion signal.
@@ -120,8 +127,8 @@ not cover, rather than improvising a scope or a retry.
 
 A plan is reviewed once, by `plan-task`; the readiness gate above you may offer the user one more before you
 start. Editing it afterwards triggers no second pass, not even when a mid-run blocker forces a change. When a
-step agent reports a plan defect, record it under `### Open Questions / Blockers` and fix the plan text in place.
-Do not spawn a review to confirm it.
+step agent reports a plan defect, record it in the **Run Log** and fix the plan text in place. Do not spawn a
+review to confirm it.
 
 ## Stage 1 — Stabilization
 
@@ -133,8 +140,8 @@ the stubs must agree with, the module's baseline figures and the conventions. Wh
 against it below.
 
 **Stabilization guardrail** — verify yourself before ticking. Tick each item the agent reports done;
-`plan.sh block` the rest with the reason it gave, and record every widened boundary it reports under
-`### Open Questions / Blockers`. The checks:
+`plan.sh block` the rest with the reason it gave, and record every widened boundary it reports in the **Run
+Log**. The checks:
 
 1. **`stabilizing.md`'s *Done means***, run yourself with the conventions' commands against the baseline figures
    you were given. Read the skip list itself, not its size: every entry must name a step in the plan.
@@ -168,8 +175,8 @@ exist after Stage 1 — so:
 - When a report comes back, carry two of its lists into the plan before ticking: every `added:` case becomes a
   scenario sub-bullet under its step, marked `(added)`, so the plan stays the record of what the suite holds;
   every `left:` entry whose reason names a plan defect — a premise that fits no test, a consequence that does not
-  follow — goes under `### Open Questions / Blockers` like any other defect a step agent reports. A `left:` entry
-  that merely says the premise did not hold there needs nothing.
+  follow — goes in the **Run Log** like any other defect a step agent reports. A `left:` entry that merely says
+  the premise did not hold there needs nothing.
 
 **Per-step guardrail**: the test classes written **compile cleanly and fail at runtime**. A red test that passes
 against a stub is as much a defect as one that doesn't compile — it means the test asserts nothing — with one
@@ -252,7 +259,7 @@ pipeline**; another module's pipeline is unaffected and keeps running. Pass it:
 as before the stage (a changed count means a test was lost or duplicated), and the architecture-enforcement test
 passes (extractions may have created or moved files). This stage changes no behavior and ticks no checkboxes — if
 the agent reports blocker-level findings (a suspected bug the tests missed, an over-specified test), record them
-under `### Open Questions / Blockers`.
+in the **Run Log**.
 
 Once the guardrail holds, commit per the Version Control policy.
 
@@ -276,8 +283,7 @@ plan, written for this task.
    architecture-enforcement test passes, and **the entire test suite is green** — not just the classes this plan
    touched. If the module conventions name a **coverage guardrail**, run it here too — this is the first point at
    which every step exists, so it is the only point where a coverage figure means anything. Coverage below the
-   minimum is a blocker: spawn a step agent for the tests that close the gap, or record why under
-   `### Open Questions / Blockers`.
+   minimum is a blocker: spawn a step agent for the tests that close the gap, or record why in the **Run Log**.
 3. Commit per the Version Control policy, then **report your plan complete**. Leave the task directory exactly
    where it is. Whether the task as a whole is finished is a fact only the level above can see, and archiving on
    the first plan to finish would move the directory out from under a run still writing to it.
@@ -293,8 +299,8 @@ environmental/flaky). In that case:
 
 - do **not** treat it as a stage failure and do **not** abandon the run — continue with the plan's own work;
 - do **not** silently fix it either — unrelated fixes don't belong to this plan's diff;
-- record it under `### Open Questions / Blockers` with enough detail to reproduce (test name, error, suspected
-  cause), and call it out in the final summary.
+- record it in the **Run Log** with enough detail to reproduce (test name, error, suspected cause), and call it
+  out in the final summary.
 
 ## Out of Scope
 

@@ -75,9 +75,11 @@ format recorded anywhere — report it as a blocker instead of introducing a new
 5. Read one or two neighboring integration tests of the same variant as a style reference — structure,
    scenario-group realization, precondition idiom, test data handling — so your tests read like the module's
    existing tests, not like a foreign body.
-6. **Existing-test updates**: the plan may include `update:` sub-bullets in two forms. A **per-method** bullet
+6. **Existing-test updates**: the plan may include `update:` sub-bullets in three forms. A **per-method** bullet
    names one existing test and one outcome (assert a new response field, extend a validation matrix a grown
-   constraint set leaves incomplete, delete). Read the named test before changing it. A **premise** bullet
+   constraint set leaves incomplete, delete). Read the named test before changing it. A **whole-class** bullet
+   (`update: every test in this class — delete`) removes every test the class held; count them before you do,
+   and report the count. A **premise** bullet
    (`update: premise — … · …`) states a fact about the change and what follows for a test that meets it; it names
    no method, or one only as an example. Read **every** test in the class and decide from each body whether the
    premise holds there — the collaborator, the field or the value the premise turns on is either in the body or it
@@ -180,4 +182,4 @@ End with a short, structured report the orchestrator can act on — the only cha
   (negative-assertion or framework early-pass) with the sanity-check reasoning;
 - any coverage gaps or unlisted existing-test updates you noticed but, by design, did not implement;
 - any blockers (missing conventions entry, schema/plan mismatch, no recorded precondition-setup pattern) — stated
-  precisely enough for the orchestrator to record them in the plan's Open Questions / Blockers.
+  precisely enough for the orchestrator to record them in the plan log's Run Log.

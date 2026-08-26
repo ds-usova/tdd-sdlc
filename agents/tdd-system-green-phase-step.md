@@ -117,5 +117,5 @@ End with a short, structured report the orchestrator can act on — the only cha
 - confirmation that the owned test classes of every fixed class were re-run and stayed green;
 - any gaps or suspect tests you noticed but, by design, did not act on;
 - any blockers (specification conflict between test levels, missing conventions entry, contract gap, test
-  unsatisfiable within the guardrails) — stated precisely enough for the orchestrator to record them in the plan's
-  Open Questions / Blockers.
+  unsatisfiable within the guardrails) — stated precisely enough for the orchestrator to record them in the plan
+  log's Run Log.

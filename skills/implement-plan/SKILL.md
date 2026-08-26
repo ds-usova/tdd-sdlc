@@ -28,9 +28,9 @@ inventories drawn from the tree: read them, never recall them.
 
 ## Input Resolution
 
-A task owns a directory: `docs/<n>-<task-name>/`, holding `spec.md`, `design.md`, `design-log.md`, one plan per module, and — where
-anything crosses between them — a `shared/plan.md`. Phase 3 adds a `review/` folder to it: what the task left
-open, and the evidence that everything else was measured.
+A task owns a directory: `docs/<n>-<task-name>/`, holding `spec.md`, `design.md`, `design-log.md`, one plan per
+module with its `plan-log.md` beside it, and — where anything crosses between them — a `shared/plan.md`. Phase 3
+adds a `review/` folder to it: what the task left open, and the evidence that everything else was measured.
 
 | Invoked with     | The task directory is                                      |
 |------------------|------------------------------------------------------------|
@@ -62,10 +62,11 @@ opened. Check every plan in the task directory, `shared/plan.md` included:
   once for the design the plans share, not once per plan. An unsettled decision means step agents will each
   invent their own answer to the same question, in different layers. The script ships with the `design-task`
   skill at `scripts/design/design.sh`.
-- **Open Questions / Blockers**: every `- Q:` has a non-empty `- A:`, and every blocker recorded by a previous
-  partial run has a resolution noted. An unanswered question means a step agent will hit exactly the ambiguity
-  the planner already flagged.
-- **Review Findings**: every `- **F<n>:**` has a non-empty `- Action:`. A deliberate "won't fix" counts — the
+- **Open Questions**, in the plan: every `- **Q<n>:**` has a non-empty `- A:`. An unanswered question means a step agent
+  will hit exactly the ambiguity the planner already flagged.
+- **Run Log**, in the `plan-log.md` beside it: every `B` entry a previous partial run left with a `- Resolved:`
+  line has that line filled. An empty one is a step still blocked, and the run would stop there again.
+- **Review Findings**, in the same log: every `- **F<n>:**` has a non-empty `- Action:`. A deliberate "won't fix" counts — the
   point is that it was decided. A `mechanical` finding carrying `Action: applied — …` satisfies the gate on its
   own, since `plan-task` wrote it when it applied the fix. A `decision` finding, and anything marked
   `- Escalated:`, needs the user's answer. A plan whose review found nothing has its "no issues found" line
@@ -75,11 +76,11 @@ opened. Check every plan in the task directory, `shared/plan.md` included:
 - **A plan edited since its review is offered a re-review, never given one.** Where a step, scenario or
   signature changed after the last **Review Findings** entry — an `Action:` applied by hand, an answer that
   reshaped a step — say so once and ask, via `AskUserQuestion`, whether to spawn `review-plan` on it before
-  going on. Declined, the gate proceeds; accepted, its findings join the plan and are actioned like the rest.
+  going on. Declined, the gate proceeds; accepted, its findings join the log and are actioned like the rest.
 
 **One unready plan stops the task, with nothing started.** List what is unresolved and ask the user. If they
-resolve it in the conversation, write their answers into the plan file, apply the resulting step changes, and
-only then proceed.
+resolve it in the conversation, write their answers into the plan or its log, apply the resulting step changes,
+and only then proceed.
 
 **This gate cannot live in a pipeline.** It promises that an unready plan changes no file. A pipeline cannot keep
 that promise once a sibling is already writing.
@@ -161,9 +162,9 @@ When every pipeline has returned:
 2. **Write `review/findings.md`** — everything the task leaves open, from every plan at once. A person reading it
    learns what they are inheriting without opening a plan.
 
-   Each plan's **Open Questions / Blockers** is the source. Lift what is **still open** — a confirmed defect no
-   scenario covered, a gap the design never named, an inconsistency the change left behind. A blocker the run
-   settled stays in its plan as that plan's history and never appears here; so does a question already answered.
+   Each plan log's **Run Log** is the source. Lift what is **still open** — a confirmed defect no scenario
+   covered, a gap the design never named, an inconsistency the change left behind. A blocker the run settled
+   stays in the log as that plan's history and never appears here; so does a question the plan already answers.
 
    **An affected module's conventions may name something else that belongs here**, and that is read rather than
    remembered: a module whose suite cannot see a whole class of defect leaves the list of what a person still
@@ -186,9 +187,10 @@ When every pipeline has returned:
    **Close the row this task came from.** Where the spec's **Objective** names a backlog `T` row, set the
    owning findings row's `Status` to `done · task <n>`, re-emit its count line, and remove the `T` row from
    `docs/backlog.md` in the same edit.
-3. **Archive**, on exit 0 and on nothing else: move the **whole task directory** — every `plan.md`, the
-   `design.md` they link, the `spec.md` and `design-log.md` beside it, `review/`, and anything else the task accumulated — into `docs/implemented/`. Moving the
-   directory rather than the files keeps every link inside it working.
+3. **Archive**, on exit 0 and on nothing else: move the **whole task directory** — every `plan.md` and its
+   `plan-log.md`, the `design.md` they link, the `spec.md` and `design-log.md` beside it, `review/`, and
+   anything else the task accumulated — into `docs/implemented/`. Moving the directory rather than the files
+   keeps every link inside it working.
 4. **Commit** per the Version Control policy. This is where its **squash-before-archiving** setting applies.
 5. **What the conventions run over finished work.** Every affected module's conventions say what happens once a
    change is complete — a measurement, a documentation pass. Follow the conventions index to wherever they say

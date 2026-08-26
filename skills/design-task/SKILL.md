@@ -340,8 +340,8 @@ Every question the change answered that needs no reader — the `assumed` and th
 - **`F1`, `F2`, … on the same terms as a `D`:** assigned once, never renumbered, never reused. The spec and the
   design cite a row the way they cite an entry, and a row that is answered or withdrawn keeps its number.
 
-The `F` sequence is the task's own. A plan's **Review Findings** numbers its own `F1` upward, in its own file,
-and the two never meet.
+The `F` sequence is the task's own. A plan log's **Review Findings** numbers its own `F1` upward, in its own
+file, and the two never meet.
 
 A question that needs a paragraph was not settled. It is a `must-decide` in the spec's **Decisions**, and the
 user answers it.

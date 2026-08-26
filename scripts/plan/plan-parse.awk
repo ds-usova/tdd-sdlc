@@ -6,6 +6,10 @@
 # and its scenario bullets stay attached. Only the header is searched for "after:", which keeps a
 # scenario mentioning another item's ID from being read as a dependency.
 #
+# Two files, in order: the plan, then the plan log beside it. Items are read from the first only and
+# review findings and run-log entries from the second only; a finding in the plan is reported, never
+# read. `-v files=1` says the log is absent, which validate reports.
+#
 # Invoked by plan.sh, which ships beside it; see the README in the same directory.
 
 function close_item() {
@@ -83,6 +87,16 @@ BEGIN {
         mode = "items"
     }
     n = 0
+    fileidx = 1
+}
+
+# The index is taken from ARGV rather than FNR == 1, which an empty file never reaches.
+FILENAME != prevfile {
+    close_item()
+    prevfile = FILENAME
+    fileidx = 0
+    for (i = 1; i < ARGC; i++) if (ARGV[i] == FILENAME) fileidx = i
+    in_fence = 0; in_update = 0; in_findings = 0; in_runlog = 0; cur_f = ""; group = ""; section = ""
 }
 
 # A plan quotes its own step format in fenced examples; those bullets are illustrations, not work.
@@ -98,6 +112,15 @@ in_fence { next }
     in_update = 0
     cur_f = ""
     in_findings = ($0 ~ /^## Review Findings/)
+    in_runlog = ($0 ~ /^## Run Log/)
+    if (fileidx == 1 && in_findings) {
+        n_stray++
+        stray[n_stray] = "'## Review Findings' at line " NR " - the plan log owns the findings"
+    }
+    if (fileidx == 1 && $0 ~ /^##+ .*Blockers/) {
+        n_stray++
+        stray[n_stray] = "a Blockers heading at line " NR " - the section is '## Open Questions'; blockers go to the plan log"
+    }
     if ($0 ~ /^### /) {
         group = substr($0, 5)
         section = ""
@@ -113,14 +136,43 @@ in_fence { next }
 }
 
 # A review finding: "- **F1:** …", followed by its Resolution and Action lines.
+fileidx == 1 && /^- \*\*F[0-9]+:\*\*/ {
+    # Under a findings heading the heading was already reported; a finding elsewhere is its own report.
+    if (!in_findings) {
+        n_stray++
+        stray[n_stray] = "finding " substr($0, 5, index($0, ":") - 5) " at line " NR " sits in the plan - the plan log owns the findings"
+    }
+    next
+}
+
 in_findings && /^- \*\*F[0-9]+:\*\*/ {
     match($0, /F[0-9]+/)
     cur_f = substr($0, RSTART, RLENGTH)
     n_f++
     f_order[n_f] = cur_f
-    f_line[cur_f] = NR
+    f_line[cur_f] = FNR
     next
 }
+
+# A run-log entry: "- **B3 (GU07):** …", numbered once and ascending, so a new one is appended
+# and never inserted above an older one. One outside the Run Log is reported, and still counted,
+# so the next number never repeats it.
+fileidx != 1 && /^- \*\*B[0-9]+/ {
+    match($0, /B[0-9]+/)
+    b = substr($0, RSTART + 1, RLENGTH - 1) + 0
+    if (!in_runlog) {
+        n_stray++
+        stray[n_stray] = "B" b " at line " FNR " sits outside '## Run Log'"
+    } else if (b <= last_b) {
+        n_stray++
+        stray[n_stray] = "B" b " at line " FNR " is not above the entry before it - append, never insert"
+    }
+    if (b > last_b) last_b = b
+    next
+}
+
+# Items live in the plan alone; a checkbox in the log is a record, not work.
+fileidx != 1 && /^- \[[ xX]\] / { next }
 
 in_findings && cur_f != "" && /^[ \t]*- Resolution:/ {
     f_res[cur_f] = value_after_colon($0)
@@ -232,6 +284,8 @@ END {
         emit_updates()
     } else if (mode == "count") {
         print n
+    } else if (mode == "nextblock") {
+        print last_b + 1
     } else {
         print "unknown mode: " mode > "/dev/stderr"
         exit 2
@@ -493,6 +547,14 @@ function emit_validate(   i, id, j, d, nd, problems) {
     }
     for (i = 1; i <= n_placeholder; i++) {
         print placeholder[i]
+        problems++
+    }
+    for (i = 1; i <= n_stray; i++) {
+        print stray[i]
+        problems++
+    }
+    # A missing log is reported by plan.sh, which knows the path it looked for; here it only counts.
+    if (files == "1") {
         problems++
     }
     for (i = 1; i <= n_f; i++) {

@@ -21,6 +21,7 @@ repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 repo_root_abs="$(cd "$repo_root" && pwd)"
 
 plan_file=""
+log_file=""
 
 usage() {
     cat <<'EOF'
@@ -29,8 +30,8 @@ Usage:
   <plugin>/scripts/plan/plan.sh next     [--group <g>] [--section <s>]... [--all] [--file <plan>]
   <plugin>/scripts/plan/plan.sh show     <ID>... [--file <plan>]
   <plugin>/scripts/plan/plan.sh tick     <ID>... [--file <plan>]
-  <plugin>/scripts/plan/plan.sh block    <ID> <note> [--file <plan>]
-  <plugin>/scripts/plan/plan.sh validate [--file <plan>]
+  <plugin>/scripts/plan/plan.sh block    <ID> <note> [--file <plan>] [--log <log>]
+  <plugin>/scripts/plan/plan.sh validate [--file <plan>] [--log <log>]
   <plugin>/scripts/plan/plan.sh task     [<task directory> | <plan>]
 
 Commands:
@@ -44,18 +45,20 @@ Commands:
             separated by a blank line.
   tick      Mark the items done. Several IDs are one batch: all are resolved before any is written,
             so a name nothing defines ticks none of them.
-  block     Leave the item open and record the reason under Open Questions / Blockers.
+  block     Leave the item open and record the reason as the next B entry of the plan log's Run Log.
   validate  Duplicate IDs, items with no ID, dependencies on IDs nothing defines, cycles, placeholder
             given/when/then values, update: bullets naming a test method that is nowhere in the tree,
-            and findings missing a Resolution: or an unapplied mechanical Action:.
+            a finding or a blockers section left in the plan, a missing plan log, and findings in it
+            missing a Resolution: or an unapplied mechanical Action:.
   task      Every plan the task holds, its done/total, and whether all of them are finished.
             Takes the task directory, or nothing when only one task is in flight. A plan works
             too, for a caller that has one and not the directory. Exit 0 means nothing is open
             anywhere in the task.
 
---file defaults to the single plan in flight under docs/. A task owns a directory holding design.md
-and one plan per module it touches: plan.md for a single-module task, <module>/plan.md for each
-module of a multi-module one. Archived plans under docs/implemented/ are addressed by passing --file
+--file defaults to the single plan in flight under docs/. A task owns a directory holding the spec,
+the design and its log, and one plan per module it touches: plan.md for a single-module task,
+<module>/plan.md for each module of a multi-module one. Each plan's plan-log.md sits beside it;
+--log names another. Archived plans under docs/implemented/ are addressed by passing --file
 explicitly.
 
 A multi-module task therefore has several plans in flight, and every command names the one it
@@ -75,13 +78,25 @@ die() {
 # spelling differs between GNU and BSD: on BSD the flag takes the backup suffix as its argument, so
 # the GNU form silently means something else. The temp file is a sibling so the move stays on one
 # filesystem.
-rewrite_plan() {
-    local tmp="${plan_file}.plan-tmp.$$"
-    if "$@" > "$tmp" && mv "$tmp" "$plan_file"; then
+rewrite_file() {
+    local target="$1"
+    shift
+    local tmp="${target}.plan-tmp.$$"
+    if "$@" > "$tmp" && mv "$tmp" "$target"; then
         return 0
     fi
     rm -f "$tmp"
-    die "could not write $plan_file"
+    die "could not write $target"
+}
+
+rewrite_plan() {
+    rewrite_file "$plan_file" "$@"
+}
+
+# The log sits beside its plan under the one name; --log overrides it. Absent, it is passed to
+# nothing: validate reports it, and block refuses.
+resolve_log() {
+    [ -n "$log_file" ] || log_file="$(dirname "$plan_file")/plan-log.md"
 }
 
 resolve_plan() {
@@ -142,13 +157,18 @@ section_filter=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --file)    plan_file="${2:-}"; shift 2 ;;
+        --log)     log_file="${2:-}"; shift 2 ;;
         --group)   group_filter="${2:-}"; shift 2 ;;
         --section) section_filter="${section_filter:+$section_filter,}${2:-}"; shift 2 ;;
         --all)     verbose=1; shift ;;
         -h|--help) usage; exit 0 ;;
         # A bare plan path is accepted wherever --file is, on every subcommand. Without this the
-        # ID-taking ones read it as an ID and fail with "no item docs/x.md in docs/x.md".
+        # ID-taking ones read it as an ID and fail with "no item docs/x.md in docs/x.md". block's
+        # note is exempt: a reason may well contain a slash or end in ".md".
         *.md|*/*)
+            if [ "$command" = "block" ] && [ "${#args[@]}" -lt 2 ]; then
+                args+=("$1"); shift; continue
+            fi
             [ -z "$plan_file" ] || die "plan file given twice: $plan_file and $1"
             plan_file="$1"; shift ;;
         *) args+=("$1"); shift ;;
@@ -169,10 +189,18 @@ case "$command" in
 
     validate)
         resolve_plan
+        resolve_log
         problems=0
 
-        # The parser's own checks first: everything answerable from the plan's text alone.
-        if ! awk -f "$parser" -v mode=validate -v summary=0 "$plan_file"; then
+        # The parser's own checks first: everything answerable from the two files' text alone. The
+        # log is passed only where it exists; the parser reports its absence.
+        files=("$plan_file")
+        [ -f "$log_file" ] && files+=("$log_file")
+        if ! awk -f "$parser" -v mode=validate -v summary=0 -v files="${#files[@]}" "${files[@]}"; then
+            problems=1
+        fi
+        if [ ! -f "$log_file" ]; then
+            echo "no plan log at ${log_file#"$repo_root/"} - the review findings and the run log live there"
             problems=1
         fi
 
@@ -183,7 +211,7 @@ case "$command" in
         # searching a tree that contains it would confirm every name against the very text under test.
         while IFS="$(printf '\t')" read -r id method; do
             [ -n "${method:-}" ] || continue
-            if ! grep -rqI --exclude='plan.md' \
+            if ! grep -rqI --exclude='plan.md' --exclude='plan-log.md' \
                     --exclude-dir=build --exclude-dir=.git --exclude-dir=.gradle \
                     --exclude-dir=node_modules --exclude-dir=target --exclude-dir=out \
                     -F -e "$method(" "$repo_root" 2>/dev/null; then
@@ -240,23 +268,30 @@ case "$command" in
         note="${args[1]:-}"
         [ -n "$id" ] && [ -n "$note" ] || die "block needs an item ID and a note"
         resolve_plan
+        resolve_log
         range="$(item_range "$id")" || die "no item $id in ${plan_file#"$repo_root/"}" 1
         [ -n "$range" ] || die "no item $id in ${plan_file#"$repo_root/"}" 1
+        [ -f "$log_file" ] || die "no plan log at ${log_file#"$repo_root/"} - plan-task writes it beside the plan"
 
-        # Appended at the end of the Open Questions / Blockers section, so the record sits with the
-        # questions the plan already owes an answer to rather than at the bottom of the file.
-        blockers_start="$(grep -n '^## Open Questions / Blockers' "$plan_file" | head -1 | cut -d: -f1)"
-        [ -n "$blockers_start" ] || die "$plan_file has no '## Open Questions / Blockers' section"
-        next_section="$(awk -v s="$blockers_start" 'NR > s && /^## / { print NR; exit }' "$plan_file")"
-        [ -n "$next_section" ] || next_section="$(( $(wc -l < "$plan_file") + 1 ))"
-        insert_at="$(awk -v s="$blockers_start" -v e="$next_section" \
-            'NR > s && NR < e && NF { last = NR } END { print (last ? last : s) }' "$plan_file")"
+        # Appended as the next B entry at the end of the log's Run Log, which is created when absent.
+        # The number comes from the parser, so the entry lands above nothing that came before it.
+        b="$(awk -f "$parser" -v mode=nextblock "$plan_file" "$log_file")"
+        runlog_start="$(grep -n '^## Run Log' "$log_file" | head -1 | cut -d: -f1)"
+        if [ -z "$runlog_start" ]; then
+            rewrite_file "$log_file" awk '{ print } END { print ""; print "## Run Log"; print "" }' "$log_file"
+            runlog_start="$(grep -n '^## Run Log' "$log_file" | head -1 | cut -d: -f1)"
+        fi
+        next_section="$(awk -v s="$runlog_start" 'NR > s && /^## / { print NR; exit }' "$log_file")"
+        [ -n "$next_section" ] || next_section="$(( $(wc -l < "$log_file") + 1 ))"
+        insert_at="$(awk -v s="$runlog_start" -v e="$next_section" \
+            'NR > s && NR < e && NF { last = NR } END { print (last ? last : s) }' "$log_file")"
 
         # The note travels in the environment, not through -v, which would expand escape sequences
         # in whatever the caller wrote.
-        entry="- **${id} blocked:** ${note}" \
-            rewrite_plan awk -v n="$insert_at" '{ print } NR == n { print ENVIRON["entry"] }' "$plan_file"
-        echo "$id left open; recorded under Open Questions / Blockers"
+        entry="- **B${b} (${id}):** ${note}" \
+            rewrite_file "$log_file" awk -v n="$insert_at" \
+                '{ print } NR == n { print ""; print ENVIRON["entry"]; print "  - Resolved:" }' "$log_file"
+        echo "$id left open; recorded as B${b} in ${log_file#"$repo_root/"}"
         ;;
 
     task)

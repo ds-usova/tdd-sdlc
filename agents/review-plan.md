@@ -16,8 +16,9 @@ description of it.
 
 Read the plan file at the given path in full, then the design its **Design** header links and the `spec.md`
 beside it. The flow and the solution are in the design; the **Requirements**, the **Acceptance Scenarios** and
-the settled **Decisions** the steps must encode are in the spec. The plan carries the classes that hold them: its **Components** section and its step map. A step
-is audited against the design, not against the plan's own restatement of it.
+the settled **Decisions** the steps must encode are in the spec. The plan carries the classes that hold them: its
+**Components** section and its step map. A step is audited against the design, not against the plan's own
+restatement of it. The `plan-log.md` beside the plan is read on a re-review only, for what the last pass settled.
 
 Read `<module>/docs/conventions.md` for every module listed in **Affected Modules** (and the repo-root
 `docs/conventions.md` if present) — the boundary audit and test-scenario audit both depend on knowing the module's
@@ -40,8 +41,9 @@ Duplicate IDs, items with no ID, `after:` naming an ID nothing defines, dependen
 given/when/then values, and `update:` bullets naming a test method that exists nowhere in the repository are its
 job — do not re-derive them by hand and do not report them again as findings.
 
-- Confirm every section required by the `plan-task` skill's **4. Plan Structure** (`skills/plan-task/SKILL.md`,
-  beside this agents directory) is present, and in the fixed order —
+- Confirm every section of the plan file required by the `plan-task` skill's **4. Plan Structure**
+  (`skills/plan-task/SKILL.md`, beside this agents directory) is present, and in the fixed order — the log it
+  describes is a separate file, checked only for existing beside the plan —
   including the `**Design:**` header line, and that it resolves to a task whose `spec.md` **Decisions** carry no
   `Basis: must-decide`.
 - Confirm the **Step-by-Step Implementation Map** nests correctly: the four `### <Group>` headings — Stabilization,
@@ -115,14 +117,21 @@ would reject if the code existed today.
 Read the actual production code and schema the plan describes changing — not just the plan's prose — before judging
 this section.
 
-- **Every acceptance scenario in the design is covered by at least one step.** The design numbers them `A1`,
+- **Every acceptance scenario in the spec is covered by at least one step.** The spec numbers them `A1`,
   `A2`; each Red Phase step names the ones it covers. An `A<n>` no step names is behaviour a person signed off
-  and nothing will test. A step naming an `A<n>` the design does not carry is the reverse, and just as wrong.
-- **A scenario carries every concrete value its design entry states.** Naming the `A<n>` is not covering it:
+  and nothing will test. A step naming an `A<n>` the spec does not carry is the reverse, and just as wrong.
+- **A scenario carries every concrete value its spec entry states.** Naming the `A<n>` is not covering it:
   a `then:` that paraphrases the entry into an outcome without its specifics has dropped them, and no test
-  written from it will assert them. Compare each scenario's `then:` with the `A<n>`, `D<n>` or `F<n>` it
-  implements, and flag a name, a state, a value, a limit or an attribute the design states and the scenario
-  does not.
+  written from it will assert them. Compare each scenario's `then:` with the `A<n>` or `D<n>` in the spec, or
+  the `F<n>` in the design log, it implements, and flag a name, a state, a value, a limit or an attribute the
+  entry states and the scenario does not.
+- **Prose under a group is a coverage note or a finding.** A paragraph under a `###` group that says what a
+  branch does or why is behaviour written outside the spec; flag it, `decision`, with the `D` or the design
+  **Findings** row it should become. An item under any group carrying its own reasoning is flagged
+  `mechanical`: cut it to what the item creates or changes.
+- **A Components table repeats nothing the design states.** A row listing a record's fields the design's
+  **what is stored, exposed and exchanged** already gives, or a table of what is gone and what replaced it that
+  the Stabilization items already say, is `mechanical`: name the record, drop the row.
 - For every request/entity field the plan touches, confirm there is a corresponding validation scenario; flag any
   field with no validation coverage.
 - Check for missing boundary values relevant to the field's type: `null`, empty, max-length, unknown-id, and similar
@@ -197,7 +206,7 @@ matter of taste is a `decision`.
 
 - add or remove a checklist item, or change a step's target class or test class;
 - change a contract artifact — an API schema, a proto file, a migration;
-- contradict an answer already recorded under **Open Questions / Blockers**.
+- contradict an answer already recorded under **Open Questions**.
 
 Those reshape the plan rather than correct it, and reshaping is the user's call.
 
@@ -210,7 +219,7 @@ ran.
 ## 4. Re-Reviews
 
 Nothing triggers a re-review by itself; a session spawns this agent again when the user asks for one after a
-material edit. The session says so when it spawns or resumes this agent, and the plan's **Review Findings**
+material edit. The session says so when it spawns or resumes this agent, and the plan log's **Review Findings**
 section shows what the last pass settled. On a re-review:
 
 - Judge the plan **as it now stands**. A finding already answered with a decision stands as decided; do not

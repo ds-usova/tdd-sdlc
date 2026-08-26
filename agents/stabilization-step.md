@@ -77,4 +77,4 @@ End with a short, structured report the orchestrator can act on — the only cha
 - the checks' verdicts: compile, architecture test, suite total and skipped against the baseline;
 - every widened boundary — the file, and the item it belongs to;
 - every blocker: a missing conventions entry, an item whose text contradicts the tree, a stub whose intent no red
-  scenario settles — stated precisely enough to be recorded in the plan's Open Questions / Blockers.
+  scenario settles — stated precisely enough to be recorded in the plan log's Run Log.

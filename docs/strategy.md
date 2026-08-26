@@ -18,7 +18,8 @@ stopping.
 
 ## Files are the contract between steps
 
-Every step writes its files and stops — `spec.md` with `design.md` and `design-log.md`, `plan.md`, `rework.md`, `upgrade.md`; `fix-bug` writes
+Every step writes its files and stops — `spec.md` with `design.md` and `design-log.md`, `plan.md` with
+`plan-log.md`, `rework.md`, `upgrade.md`; `fix-bug` writes
 `bug.md`, then `fix.md`. The next step reads the file, not the conversation — it may run in the same session or
 a fresh one, and must work the same either way. An answer given in chat is written into the file before it
 counts.

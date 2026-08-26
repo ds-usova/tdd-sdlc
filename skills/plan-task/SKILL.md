@@ -55,7 +55,7 @@ escalated to the user where nothing does. It is never absorbed into the plan.
 ## 2. Create a Plan File per Module
 
 `design-task` already created the task directory and its three files. Write **one plan per module** the design's
-**Affected Modules** names:
+**Affected Modules** names, and a **plan log** beside each:
 
 | Design's Affected Modules       | Where the plan goes                               |
 |---------------------------------|---------------------------------------------------|
@@ -64,14 +64,28 @@ escalated to the user where nothing does. It is never absorbed into the plan.
 | several, with a shared artifact | one more: `docs/<n>-<task-name>/shared/plan.md`   |
 
 > **Naming rule:** the directory carries the name; the file does not repeat it. A task directory holds `spec.md`,
-> `design.md`, `design-log.md` and `plan.md`, or the same three and `module-a/plan.md` and `module-b/plan.md`.
+> `design.md`, `design-log.md`, `plan.md` and `plan-log.md`, or the same three and `module-a/plan.md`,
+> `module-a/plan-log.md`, `module-b/plan.md`, `module-b/plan-log.md`.
+
+**Two files per plan, split by who reads them:**
+
+| File          | Holds                                                                    | Read by                                   |
+|---------------|--------------------------------------------------------------------------|-------------------------------------------|
+| `plan.md`     | the components, the step map, the open questions — everything that binds | every step agent, `plan.sh next`/`show`   |
+| `plan-log.md` | **Review Findings** and the **Run Log** — what was raised, what happened | the readiness gate, a re-review, a reader |
+
+The plan is what a step agent is handed and what `plan.sh` schedules from; nothing in it is history. The log is
+the record — a finding stays there after its fix is in the plan, and a blocker stays there after the run settled
+it. Create both when the plan is written: the log opens with a `## Review Findings` heading and nothing under it
+until step 5 fills it. `plan.sh validate` refuses a plan with no log beside it, a finding in the plan, or a
+blockers section in the plan.
 
 **The design is never split; the plans always are.** A plan's unit is what gets implemented and verified — one
 module, one toolchain, one set of conventions. Each plan is implemented on its own, with its own verification
 between waves.
 
-**A plan is self-contained.** Its own step IDs, its own dependency graph, its own Open Questions. IDs restart in each
-file, so the same ID can exist in two plans and means nothing without its path.
+**A plan is self-contained.** Its own step IDs, its own dependency graph, its own Open Questions, its own log. IDs
+restart in each file, so the same ID can exist in two plans and means nothing without its path.
 
 **Affected Modules** in the header names the one module that plan implements.
 
@@ -139,8 +153,8 @@ rule if it has one, its naming conventions, its file locations, and — the one 
 **A module whose conventions carry no test-type mapping cannot be planned.** Say so and ask for it, rather than
 reading a test type off a package name.
 
-If a module has no conventions file at all: use generic defaults, and add an entry under **Open Questions /
-Blockers** in the generated plan asking the user to run `init-conventions`, or to fill in the templates at
+If a module has no conventions file at all: use generic defaults, and add an entry under **Open Questions** in
+the generated plan asking the user to run `init-conventions`, or to fill in the templates at
 `templates/conventions/` under the plugin root by hand. Never fail silently and never guess module conventions.
 
 ## 4. Plan Structure
@@ -204,8 +218,11 @@ predates the bundled stdlib, fall back to
   filter chain, an exception handler — is left to the table.
 
 The wiring is drawn, never written. Which class calls, implements, or wraps which never appears as a sentence or a
-table row. Beneath the diagram, a table carries only what a box cannot: a port signature, a record's fields, an
-invariant, an exception-to-status mapping.
+table row. Beneath the diagram, a table carries only what a box cannot and the design does not: a port
+signature, an invariant a class enforces, an exception-to-status mapping. A record's fields are the design's
+**what is stored, exposed and exchanged**, and a table repeating them per class is a second copy that drifts;
+name the record, and let the stub item say what it holds. A table of what is gone and what replaced it is the
+Stabilization items' content, not a summary of them.
 
 **This is the plan's own content, not a copy of anything.** The design named responsibilities; naming the classes
 that hold them is this section's work, and the step map below targets exactly the classes drawn here.
@@ -229,6 +246,15 @@ fixed order — use only the groups the task actually needs:
 
 Within each group, its sections appear as `#### <Section>` headings, in the fixed order listed below for that group
 — use only the sections that apply.
+
+**Under a group, items and nothing else.** The one prose a group admits is a coverage note — one line saying
+which spec scenario an existing test already holds, so a reader does not go looking for its step
+(`A5 is held by the existing regression tests in SettingsPage.test.tsx`). A paragraph saying what a branch does,
+which case is folded into which, or why — is behaviour, and behaviour is the spec's and the design's. Where the
+design lacks it, it goes back there as a `D` or a **Findings** row; where the design has it, the step's
+scenarios already carry it. An item says **what** is created or changed, in the terms the Components section
+names; the reasoning behind it is the design log's **Decision Bases**, cited by clause where a step needs it,
+never restated under the item.
 
 **Every checklist item carries an ID**, written immediately after the checkbox and separated from the rest by ` · `.
 The ID names the item everywhere else it comes up — `after:` dependencies, blocker records, sub-agent prompts, and
@@ -260,9 +286,9 @@ test by test which bodies meet it. The forms are in `step-formats.md`'s **Existi
 
 `plan.sh validate` checks the result: duplicate IDs, items with no ID, `after:` naming an ID nothing defines,
 dependency cycles, a `given:`/`when:`/`then:` left as a placeholder, an `update:` bullet naming a test method that
-exists nowhere in the repository, and — once the review has run — a finding missing its `Resolution:`, or a
-`mechanical` one whose `Action:` was never written. Run it before handing the plan over, and again after applying
-findings. The script ships with these instructions at `scripts/plan/plan.sh` — under `${CLAUDE_PLUGIN_ROOT}` when
+exists nowhere in the repository, a missing log or a finding left in the plan, and — once the review has run — a
+finding in the log missing its `Resolution:`, or a `mechanical` one whose `Action:` was never written. Run it
+before handing the plan over, and again after applying findings. The script ships with these instructions at `scripts/plan/plan.sh` — under `${CLAUDE_PLUGIN_ROOT}` when
 installed as a plugin, under `.claude/` in a plain checkout.
 
 #### Stabilization
@@ -315,8 +341,7 @@ plan can produce, in the order they list it. Follow the conventions index to whe
 prescribes none of them beyond the rule that they run last.
 
 Where the conventions put an artifact under the user's approval, that approval is a question under
-[Open Questions / Blockers](#open-questions--blockers) like any other, and only an answered yes becomes an item
-here.
+[Open Questions](#open-questions) like any other, and only an answered yes becomes an item here.
 
 ### Step Formats — reference
 
@@ -326,12 +351,14 @@ belongs to, and the scenario-authoring rules that bind them all, are
 `plan.sh validate` checks what it can of the result.
 [`templates/example-plan.md`](../../templates/example-plan.md) is a complete worked plan in those formats.
 
-### Open Questions / Blockers
+### Open Questions
 
 **Scope:** this section holds questions about *executing* the plan — a blocker foreseen in a step, a tool or
 credential that may be missing, an approval a conventions file requires. Questions about what the change should
 **do** belong in the spec's **Decisions** section and are settled before this plan exists; a design question
-appearing here means step 1's gate was skipped.
+appearing here means step 1's gate was skipped. What happens *while* the plan runs — a step blocked, a test that
+passed red for a reason, a boundary widened — is the log's **Run Log**, never this section: a question is
+something the run waits on, and a record is not.
 
 Generate placeholders for the user's answers beneath each open question, nested under it, for example:
 
@@ -352,10 +379,23 @@ conventions file says a post-implementation artifact is written only with the us
 as a numbered question — what would be written, and what holds the same fact if it is not — and a `yes` becomes the
 item in **Post-Implementation Steps** that authorizes it.
 
-### Review Findings
+### The Plan Log
 
-Populated by the `review-plan` subagent invoked in the next step — leave this section as a placeholder while writing
-the rest of the plan. Each finding uses this exact format:
+`plan-log.md` beside the plan, titled `# Plan Log: <task name>`, with two sections in this order:
+
+| Section             | Holds                                                                           | Written by                        |
+|---------------------|---------------------------------------------------------------------------------|-----------------------------------|
+| **Review Findings** | `F<n>` entries, one per finding the reviewer raised, with what became of each   | this skill, steps 5–7             |
+| **Run Log**         | `B<n>` entries, one per thing the run recorded — a blocker, a note, a deviation | `implement-plan`, `plan.sh block` |
+
+The **Run Log** heading is not written here; `plan.sh block` creates it at the first entry. An entry is
+`- **B<n> (<ID>):** what happened`, `<ID>` the step it belongs to, numbered once and appended; a blocker carries
+a `- Resolved:` line beneath it, filled when it is settled, and a note that nothing waits on carries none.
+
+#### Review Findings
+
+Populated by the `review-plan` subagent invoked in the next step — the log holds the heading and nothing under it
+while the rest of the plan is written. Each finding uses this exact format:
 
 ```
 - **F1:** [what's wrong or missing, with file/class/scenario reference]
@@ -378,7 +418,7 @@ orchestrator acts on it in step 6. It is deliberately not the planner's call: a 
 own plan is how a real objection gets reclassified into something that can be quietly applied.
 
 If the review has nothing to report, this section still contains a single "No issues found" statement (or
-equivalent) — its presence must be consistent across every plan, clean or not.
+equivalent) — its presence must be consistent across every log, clean or not.
 
 ## 5. Invoke the Review Subagent
 
@@ -389,8 +429,8 @@ plan is exactly that); without such a section, the default model.
 Never review the plan in this context instead — the reviewer must verify the plan's claims against the repository
 unbiased by the reasoning that produced them, and this session holds that reasoning.
 
-**The reviewer writes nothing.** It reports, and this session writes its findings into the plan's **Review
-Findings** section, replacing the placeholder. Assign the `F` numbers here, past the highest already in the section
+**The reviewer writes nothing.** It reports, and this session writes its findings into the log's **Review
+Findings** section. Assign the `F` numbers here, past the highest already in the section
 — this session is the only one that knows them all. Carry each finding's `Resolution:` across unchanged: regrading
 the reviewer's verdict is what step 6 forbids, and it is no more allowed while transcribing it.
 
@@ -426,7 +466,9 @@ How to apply them:
   time they produce an incoherent step. Group the findings by the item each one touches and rewrite that item once,
   satisfying all of them together.
 - **Compress the finding as you apply it.** In the same edit, cut it to one sentence — keeping the `- **F<n>:**` /
-  `- Resolution:` / `- Action:` shape, so `plan.sh validate` and the readiness gate are unaffected:
+  `- Resolution:` / `- Action:` shape, so `plan.sh validate` and the readiness gate are unaffected. A `decision`
+  finding resolved against the repository keeps one clause of evidence in its `Action:`, not the trail: the
+  file it rests on, named, is the evidence; the reasoning that read it is not:
 
   ```
   - **F1:** RU01's scenarios omitted the unknown `parentId` and the duplicate name under one parent.
@@ -453,10 +495,10 @@ How to apply them:
 - **Ask what is still open, in one batch, via `AskUserQuestion`** — every unanswered Open Question, every `decision`
   finding, and anything escalated, each with the options that are actually defensible and a recommendation first. Do
   not print them and wait for the file to come back edited.
-- **Write each answer into the plan file verbatim**, as the `- A:` under its question or the `- Action:` under its
-  finding, and correct anything elsewhere in the plan that the answer invalidates in the same edit. The
-  conversation is not the record; the file is, and the readiness gate reads the file. An answer that prescribes
-  content is quoted, not summarized — the implementing step is given those words.
+- **Write each answer into the files verbatim**, as the `- A:` under its question in the plan or the `- Action:`
+  under its finding in the log, and correct anything elsewhere in the plan that the answer invalidates in the
+  same edit. The conversation is not the record; the files are, and the readiness gate reads them. An answer that
+  prescribes content is quoted, not summarized — the implementing step is given those words.
 - **A question the user leaves unanswered stays in the file, unanswered.** Do not guess one to fill the gate, and do
   not ask again in a second round.
 - **Stop here. Do not implement anything.** Do not write code, create files, or run commands.

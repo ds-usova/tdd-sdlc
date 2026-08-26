@@ -67,17 +67,22 @@ non-redundant test suite, not a mechanical one-test-per-plan-bullet mapping. If 
 scenario adequately, omit it from the plan.
 
 **Existing-test updates rule.** The same review cuts the other way: when the change alters behaviour an existing
-test already covers, the step carries an `update:` sub-bullet saying so. It takes one of two forms, and the form
-is chosen by whether the change is derivable from a premise:
+test already covers, the step carries an `update:` sub-bullet saying so. It takes one of three forms, chosen by
+whether the whole class goes and, if not, whether the change is derivable from a premise:
 
 ```
 - update: `existingTestMethod()` — [one outcome, written from the method's body: assert the new `status` field; delete]
+- update: every test in this class — delete
 - update: premise — [what the change did to what this class's tests touch] · [what follows for a test that meets it]
 ```
 
 - **Per method** — one method, one outcome, read off that method's body. For a change no premise derives: a
-  test to delete, an assertion a new field needs, a case a grown enum adds. `— delete` is always per method: the
-  red exit check counts what left the tree against these bullets.
+  test to delete, an assertion a new field needs, a case a grown enum adds. A `— delete` names the method, so
+  the red exit check can count what left the tree against the bullets.
+- **Whole class** — `every test in this class — delete`, for a class rewritten from nothing: every method the
+  test class held at the baseline goes, and the scenarios listed are what replaces them. One bullet, not one per
+  method; the red exit check takes the count from the class as the baseline held it. A class keeping even one
+  test is per-method.
 - **Per class (premise)** — a fact about the change, and what it implies for a test that meets it: `two ports
   merged into one ExpenseRepository; spendingQueryRepository untouched · a test verifying either merged port
   verifies the one mock`. Whichever tests meet the premise is decided by the step agent, from each test's body —
@@ -86,7 +91,8 @@ is chosen by whether the change is derivable from a premise:
   methods it does not all hold for. Name a method under a premise bullet only as an example.
 
 The step sub-agent writes exactly the scenarios listed and applies every `update:` bullet — a per-method one as
-written, a premise one to each test in its class whose body meets the premise, and to no other. It never widens
+written, a whole-class delete to every method the class holds, a premise one to each test in its class whose
+body meets the premise, and to no other. It never widens
 a premise to make a test fit; a test the sentence seems to reach but the body does not is left alone and named in
 the report. An update missing here is a plan defect, caught by the sub-agent's report or the plan review — not
 the sub-agent's call to fix.
@@ -113,9 +119,10 @@ else entirely; those fail at a stage guardrail, where the cause is furthest from
 
 **Assert the invariant, not the mechanism.** Where a scenario's outcome depends on how a dependency routes a call
 internally, state what must hold whichever route it takes, never which route is taken — and never a disjunction
-over every possible outcome, which asserts nothing. A scenario resting on a design decision whose `Basis:` is
-`deferred` is the signal: the step agent observes the real behaviour before writing the assertion. The module's
-testing conventions own this rule; it is repeated here because it is written into scenarios, not into code.
+over every possible outcome, which asserts nothing. A scenario resting on a finding the design log answered by
+reading the dependency rather than running it is the signal: the step agent observes the real behaviour before
+writing the assertion. The module's testing conventions own this rule; it is repeated here because it is written
+into scenarios, not into code.
 
 ## TDD Unit Red Phase Step Format
 

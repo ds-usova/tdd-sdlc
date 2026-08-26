@@ -5,7 +5,7 @@ says, and marking a step done or blocked.
 
 ## Why it exists
 
-A plan runs to a thousand lines and thirty-odd checklist items, and during a run two operations happen constantly:
+A plan runs to several hundred lines and thirty-odd checklist items, and during a run two operations happen constantly:
 tick a box, and read one step. Both used to be text surgery. Ticking meant matching a bullet that often wraps
 across lines, so it broke whenever an item's wording changed — which it does, whenever a decision mid-run edits
 the plan. Reading one step meant reading the whole file, or grepping for line numbers and guessing where the step
@@ -45,7 +45,7 @@ resolves every ID before it writes any, and a name nothing defines ticks none of
 | `next [--all]`      | Items that can start now, longest remaining chain first. `--all` also lists what is waiting, and on what. |
 | `show <ID>...`      | One item: its header and everything indented under it. Several print in order, blank-line separated.      |
 | `tick <ID>...`      | Mark the items done. Saying so twice is not an error.                                                     |
-| `block <ID> <note>` | Leave the item open; record the note under Open Questions / Blockers.                                     |
+| `block <ID> <note>` | Leave the item open; record the note as the next `B` entry of the plan log's **Run Log**.                 |
 | `validate`          | See [What `validate` checks](#what-validate-checks).                                                      |
 | `task [<path>]`     | Every plan the task holds, its done/total, and whether all are finished. Exit 0 means nothing is open.    |
 
@@ -60,9 +60,13 @@ Exit codes: **0** done, **1** no such item, `validate` found problems, or `task`
 ```
 
 `--file <plan>` does the same thing and is accepted anywhere the bare path is. Neither is required: without one,
-the single plan in flight under `docs/` is used — a task owns a directory holding `design.md` and one plan per
-module, `plan.md` for a single-module task and `<module>/plan.md` for each module of a multi-module one. An
-archived plan under `docs/implemented/` has to be named explicitly.
+the single plan in flight under `docs/` is used — a task owns a directory holding the spec, the design and its
+log, and one plan per module, `plan.md` for a single-module task and `<module>/plan.md` for each module of a
+multi-module one. An archived plan under `docs/implemented/` has to be named explicitly.
+
+**Every plan has a `plan-log.md` beside it**, holding its **Review Findings** and its **Run Log**; `--log` names
+another. `validate` reads both, and `block` writes to the log. The plan stays what a step agent reads; the log is
+what happened to it.
 
 A multi-module task therefore has several plans in flight, and every command names the one it addresses. IDs
 restart per plan, so `GU07` can exist in two of them and is only meaningful with its plan's path.
@@ -99,20 +103,31 @@ anything should be concluded from.
 An item is `- [ ] <ID> · <text>`, the ID being a letter prefix and a number — `ST01`, `RU07`, `GI02`. The prefixes
 and the numbering rule belong to the plan format, defined by the `plan-task` skill this ships with.
 
+A run-log entry is `- **B<n> (<ID>):** <what happened>`, numbered from 1 in the order it was written and never
+renumbered; `block` writes one with an empty `- Resolved:` line beneath it, and whoever settles the blocker fills
+that line. An entry recording a fact nobody has to act on — a test that passed red for a reason, a boundary a
+step widened — carries no `Resolved:` line; whoever writes one creates the `## Run Log` heading after
+**Review Findings** where it is absent, as `block` does. `block`'s note may contain anything, a slash or `.md`
+included; the plan path, when given, comes after it.
+
 ### What `validate` checks
 
-| Check                                                                        | Catches                                                      |
-|------------------------------------------------------------------------------|--------------------------------------------------------------|
-| Duplicate IDs, items with no ID                                              | an item nothing can address                                  |
-| `after:` naming an ID nothing defines, dependency cycles                     | a schedule that never becomes eligible                       |
-| `after:` reaching into a group the plan lists later                          | a stage waiting on work a later stage owns                   |
-| A `given:` / `when:` / `then:` whose value is empty, `—`, `TBD` or `N/A`   | a scenario a step agent cannot implement                     |
-| An `update:` bullet on an **open** item naming a method found nowhere        | a plan written against remembered code                       |
-| A finding with no `Resolution:`, or an unrecognized one                      | a review that skipped the mechanical/decision classification |
-| A `mechanical` finding whose `Action:` is empty and that is not `Escalated:` | a fix the orchestrator was meant to apply and did not        |
+| Check                                                                         | Catches                                                      |
+|-------------------------------------------------------------------------------|--------------------------------------------------------------|
+| Duplicate IDs, items with no ID                                               | an item nothing can address                                  |
+| `after:` naming an ID nothing defines, dependency cycles                      | a schedule that never becomes eligible                       |
+| `after:` reaching into a group the plan lists later                           | a stage waiting on work a later stage owns                   |
+| A `given:` / `when:` / `then:` whose value is empty, `—`, `TBD` or `N/A`      | a scenario a step agent cannot implement                     |
+| An `update:` bullet on an **open** item naming a method found nowhere         | a plan written against remembered code                       |
+| No `plan-log.md` beside the plan                                              | a plan nothing reviewed and no run can record against        |
+| A `Review Findings` section, an `F` entry or a `Blockers` heading in the plan | the old shape — the log owns those now                       |
+| A `B` entry outside the log's `Run Log`                                       | a record `block` cannot number after                         |
+| A finding with no `Resolution:`, or an unrecognized one                       | a review that skipped the mechanical/decision classification |
+| A `mechanical` finding whose `Action:` is empty and that is not `Escalated:`  | a fix the orchestrator was meant to apply and did not        |
+| A `B` entry numbered below the entry above it                                 | a record inserted where it did not happen                    |
 
 The `update:` check greps the tree once per method named, excluding `build/`, `.git/`, `.gradle/`,
-`node_modules/`, `target/`, `out/` — and **every `*-plan-*.md`**, this plan above all: the plan names the method
+`node_modules/`, `target/`, `out/` — and every `plan.md` and `plan-log.md`, this plan above all: the plan names the method
 itself, so a search including it would confirm each name against the text under test. A method a plan creates and
 then updates in the same run is the one false positive; say `update:` only of a test that exists, which is what
 the format means by it.
@@ -180,10 +195,11 @@ the bare one, or an agent that quotes an absolute path is refused by a rule that
 
 ## Where it stops
 
-It parses the plan's **shape**, not its meaning: an item is a checkbox with an ID, a dependency is an ID after
+It parses the files' **shape**, not their meaning: an item is a checkbox with an ID, a dependency is an ID after
 `after:`. It cannot tell whether an edge is *right* — only whether the ID it names exists. The same holds for the
-checks added to `validate`: a filled-in `then:` may still be wrong, and a method that exists may still be the
-wrong one to update.
+checks added to `validate`: a filled-in `then:` may still be wrong, a method that exists may still be the
+wrong one to update, and a `Resolved:` line may be filled with nothing true. Whether an open blocker stops a run
+is the `implement-plan` readiness gate's question, not this script's.
 
 Bullets inside fenced code blocks are skipped, so a plan quoting its own step format does not acquire phantom
 items from the example.

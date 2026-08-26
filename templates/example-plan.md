@@ -11,7 +11,8 @@ and file formats as recorded in the module's `docs/conventions.md`
 What the feature *is* — the requirements, the scenarios and the decisions — lives in
 `.claude/skills/design-task/example-spec.md`; how it is built — the solution, the data, the diagrams — in
 `example-design.md` beside it. This plan is written from both. It links them rather than restating them, and
-starts at the step map.
+starts at the step map. What the review found and what the run recorded is
+[`example-plan-log.md`](example-plan-log.md), the `plan-log.md` that sits beside every plan.
 
 Every item below is in one of the formats specified in [`step-formats.md`](step-formats.md); read that for the
 rules, and this for what they look like when written out.
@@ -285,15 +286,8 @@ public Settings loadSettings(long userId) {
 
 - [ ] P01 · Update `.http` files to reflect the new request shape
 
-## Open Questions / Blockers
+## Open Questions
 
 - **Q1:** `module-a`'s integration tests need a containerized database; the CI runner has no container runtime
   configured, so `RI01` cannot run there until it does. Run it locally, or configure the runner first?
   - A:
-
-## Review Findings
-
-- **F1:** `RI02`'s error-mapping scenarios cover 404 and 409, but `WidgetControllerTest` must also assert the 503
-  the design maps `PersistenceFailedException` to — no scenario covers it at any layer.
-  - Resolution: mechanical
-  - Action: applied — added the scenario to `RI02`.
