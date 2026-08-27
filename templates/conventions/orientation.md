@@ -13,7 +13,7 @@ Versions live in the files that pin them and are not repeated here.
 - Caching: `<e.g. Redis; or "none">`
 - External services consumed: `<what this module calls in production and over what protocol; or "none">`
 - APIs exposed: `<what other systems call, and over what protocol; or "none">`
-- Contract-first codegen: `<what is generated from which schema, and what the generator owns — e.g. request/response
+- Contract-first codegen (source generated from an API schema such as OpenAPI, protobuf or GraphQL): `<what is generated from which schema, and what the generator owns — e.g. request/response
   models are generated, controllers are hand-written against generated interfaces; or "none — all hand-written">`
 
 ## Documentation References
@@ -26,6 +26,6 @@ conventions win.
 - Domain: `<path — one page per entity and value object, and the invariants it holds; or "none">`
 - Contracts: `<path — one page per boundary with a system outside the module; or "none">`
 - Configuration: `<path — the environment variables a deployment supplies, and what breaks without them>`
-- Decision records: `<path, and where cross-module ones live if the repository splits them; or "none">`
-- Runbooks / operational docs: `<path; or "none">`
+- Decision records (ADRs — one short page per technical decision, why it was taken and what it replaced): `<path, and where cross-module ones live if the repository splits them; or "none">`
+- Operational docs (how to run, deploy, monitor and recover the module — often called runbooks): `<path; or "none">`
 - Other: `<a domain glossary, an external system's docs, a local compose file; or "none">`

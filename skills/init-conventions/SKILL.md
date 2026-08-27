@@ -35,7 +35,9 @@ Rules for the survey:
 
 - **Cite from the tree.** Every line written in step 3 traces to a file, a config entry, or a repeated idiom.
 - **Two examples make a convention.** One class doing something is that class; the same shape in several is a rule.
-- **Never guess.** What the tree does not answer is written as `TBD — <what to confirm>` and collected for step 4.
+- **Never guess.** What the tree does not answer is written as `TBD — <what to confirm>: <option A> / <option B> /
+  …` and collected for step 4. A TBD names the options it is choosing between, so it reads the same as a question
+  to the user and as a line in the file.
 - **Name the setting, not its value.** A version or a timeout is referred to by the file that pins it.
 - **One survey agent per module** when the repository has several, run in parallel, each reporting findings rather
   than writing files. A single-module repository is surveyed in this session. No conventions file exists yet to
@@ -108,21 +110,28 @@ what someone would do.
 Create only the directories a tier actually needs, and never overwrite an existing conventions file — an existing
 file is surveyed and extended in place, with what it already settles left alone.
 
-## 4. Put the Gaps to the User — in One Batch
+## 4. Put the Gaps to the User — Every One, Before Hand-Over
 
-Collect every `TBD` and ask them in a single `AskUserQuestion` round, each with the options the repository makes
-defensible and a recommendation first. Retry each against the tree once before it reaches the user: a gap the code
-answers is filled with its evidence and never asked.
+Collect every `TBD` and retry each against the tree once: a gap the code answers is filled with its evidence and
+never asked. **Every TBD that survives is put to the user**, each with the options the repository makes defensible
+and a recommendation first.
+
+`AskUserQuestion` takes four questions per call, so this is as many calls as the count needs — four per round,
+grouped by file, until each TBD has been asked exactly once. "One batch" means before hand-over, not one tool
+call. Selecting a few "most consequential" TBDs and leaving the rest in the files is a defect: the user knows the
+answers, and a question costs a minute where a TBD discovered later costs a turn.
 
 Write the answers into the files. The chat answer is not the record.
 
-Anything still unanswered stays in the file as `TBD — <what to confirm>`, visible rather than guessed.
+Only a TBD the user declined to answer stays in the file, as `TBD — <what to confirm>: <options>`, visible rather
+than guessed.
 
 ## 5. Hand Over
 
 - List the files created and the files extended.
 - **Report what was deduced and from what** — one clause of evidence per non-obvious rule, so the user can catch a
   wrong reading before the rest of the framework inherits it.
-- List every remaining `TBD`.
+- List every remaining `TBD` as a numbered list — file, what to confirm, the options — never as prose. Each one was
+  asked in step 4; a TBD that was not asked is a step-4 defect, not a hand-over item.
 - **Stop.** Do not change code, reformat existing sources to match a rule just written, or run build commands
   beyond what the survey needed.

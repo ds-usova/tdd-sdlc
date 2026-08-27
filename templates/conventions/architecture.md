@@ -38,7 +38,7 @@ its wire ExpenseResponse; or "no boundary-specific naming rules">`
 
 ## File Locations
 
-Exact paths, or the intended path with `TBD — confirm path` where it does not exist yet.
+Exact paths, or the intended path with `TBD — confirm path: <candidate A> / <candidate B>` where it does not exist yet.
 
 - API schema file: `<e.g. src/main/resources/schemas/api.yaml; or "none">`
 - Migration folder + naming scheme: `<e.g. src/main/resources/db/migration/V<NNN>__<name>.sql; or "none">`
@@ -52,7 +52,7 @@ The check that keeps the layers from depending on each other in the wrong direct
 
 - Dependency rule: `<which layer may depend on which — e.g. domain depends on nothing; application depends on
   domain only; adapters depend on application ports>`
-- Tool: `<e.g. ArchUnit, dependency-cruiser, import-linter, deptrac; or "none yet — the rule is reviewed by hand">`
+- Tool (a test or lint that fails the build on a forbidden import direction): `<e.g. ArchUnit, dependency-cruiser, import-linter, deptrac; or "none yet — the rule is reviewed by hand">`
 - Test class / config file: `<e.g. com.example.architecture.CleanArchitectureTest, .dependency-cruiser.js>`
 
 ## Diagram Format

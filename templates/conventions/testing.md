@@ -29,10 +29,10 @@ package name, and that guess is wrong exactly where the module differs from the 
 ## Test Tooling
 
 - Test framework: `<e.g. JUnit 5, pytest, Jest>`
-- Container-based dependencies: `<e.g. Testcontainers running Postgres; or "none">`
+- Container-based dependencies (real databases/brokers started in Docker for a test run): `<e.g. Testcontainers running Postgres; or "none">`
 - HTTP stubbing for outbound calls: `<e.g. WireMock, nock, responses; or "none">`
 - API-level test client: `<e.g. RestAssured, httpx test client, supertest>`
-- Inbound-adapter slice testing: `<the framework mechanism for booting one inbound adapter with its ports mocked —
+- Inbound-adapter slice testing (booting only the web/messaging layer, not the whole app): `<the framework mechanism for booting one inbound adapter with its ports mocked —
   e.g. @WebMvcTest with MockMvc and @MockitoBean>`
 - Firing non-HTTP entry points in system tests: `<how a test makes the framework fire a scheduled or message-driven
   entry point as in production; or "none — the module has no non-HTTP entry points">`

@@ -28,9 +28,10 @@ any task only this module has.>`
 ## Dependencies
 
 - Manifest: `<the file that declares versions — e.g. gradle.properties + build.gradle, package.json>`
-- Lock file: `<the file and the command that regenerates it — e.g. package-lock.json via npm install; or "none">`
+- Lock file (pins the resolved versions of every transitive dependency): `<the file and the command that regenerates it — e.g. package-lock.json via npm install; or "none">`
 - Outdated versions: `<the command that lists them — e.g. npm outdated, ./gradlew dependencyUpdates; or "none — read the manifest against the registry">`
-- Vulnerabilities: `<the scanner and how it runs — e.g. npm audit, ./gradlew dependencyCheckAnalyze; or "none">`
+- Vulnerabilities (CVE scanner for dependencies): `<the scanner and how it runs — e.g. npm audit, pip-audit,
+  ./gradlew dependencyCheckAnalyze (OWASP dependency-check); or "none — no scanner configured">`
 - Routine upgrades: `<which versions move without a decision — e.g. "patch and minor; a major is its own task"; or "any">`
 - Pinned on purpose: `<versions held back and why, one line each — e.g. kafka-clients 3.9.0, Debezium 3.1.1 needs it; or "none">`
 - Custom flow: `<a script or documented order that upgrades this module's dependencies; or "none">`
