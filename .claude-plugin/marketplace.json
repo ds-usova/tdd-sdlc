@@ -1,0 +1,14 @@
+{
+  "name": "tdd-sdlc",
+  "owner": { "name": "Daria U." },
+  "plugins": [
+    {
+      "name": "tdd-sdlc",
+      "source": "./",
+      "ref": "tdd-sdlc--v0.1.0",
+      "description": "Design, plan, red-green-refactor, rework, bug-fix and upgrade pipelines as gated skills and sub-agents.",
+      "category": "development",
+      "tags": ["tdd", "workflow", "planning", "sub-agents"]
+    }
+  ]
+}
