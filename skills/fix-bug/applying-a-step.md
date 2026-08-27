@@ -17,8 +17,9 @@ a changed signature, the disabled test — is `stabilizing.md` in the `templates
 one statement of it for every workflow that stabilizes. What is a fix step's own: every test it disables is
 named in `disables:`, and a migration that has run is not undone by reverting its file — say so in the report.
 
-**A `stabilize` that finds a file its boundary does not name widens that line and says so** — the one edit to a
-step's text its agent may make. It never widens into a behaviour change.
+**A `stabilize` that finds a file its boundary does not name widens that line and says so in the log's Run
+Log** — the one edit to a step's text its agent may make, and every widening gets its `B` note. It never widens
+into a behaviour change.
 
 **A `stabilize` step with an empty `files:` is proven by the classes it named**, plus the architecture check.
 The exception is shared test infrastructure: a builder, a fixture, a composed annotation, anything under the
@@ -32,13 +33,14 @@ sharpen it only where its failure does not match `reproduces:`. Otherwise it wri
 
 Three ways it can look finished and be worthless:
 
-- **It passes.** It does not reach the bug. Write the attempt; the diagnosis is what needs work.
+- **It passes.** It does not reach the bug. Write the attempt in the log; the diagnosis is what needs work.
 - **It fails on something else** — a missing fixture, an unconfigured property. Compare the output against
   `reproduces:` and fix the test until they match.
 - **It fails for the right reason but only here** — a stack trace, a wall-clock time, an unordered collection.
   Assert the symptom the user reported.
 
-**Record the failure output verbatim.** It is the step's proof and what the `green` step is measured against.
+**Record the failure output verbatim, in the report.** It is the step's proof and what the `green` step is
+measured against.
 Where `reproduces:` carries a rate, run the counts `SKILL.md` gives for an intermittent bug.
 
 ## The green step
@@ -49,11 +51,12 @@ the smallest one that makes the symptom impossible** — a guard clause that hid
 the bad value is the bug.
 
 **A symptom that survives a step you believe is correct is a second cause.** Stop, do not revert, write the
-attempt saying which cause is now gone, and return.
+attempt in the log's Attempts saying which cause is now gone, `fix.sh block` the step, and return.
 
 ## Where a step refuses
 
-Each of these reverts the step, writes the attempt, and returns to the level above:
+Each of these reverts the step, writes the attempt in the log's Attempts, records the return as a `B` entry in
+its Run Log through `fix.sh block`, and returns to the level above:
 
 - a `red` step that passes before any production code is touched;
 - a `green` step that cannot pass without editing a test — the reproduction was wrong;
@@ -63,4 +66,4 @@ Each of these reverts the step, writes the attempt, and returns to the level abo
 - a test asserting the old behaviour that no `red` step names.
 
 **A step that failed twice and landed on the third approach is a normal step with two attempts logged.** The
-third failure is where it stops and returns.
+third failure is where it stops, is blocked in the Run Log, and returns.

@@ -7,9 +7,10 @@ user wants it reopened, the `**Closed:**` line goes and the run continues from h
 
 ## Read before acting
 
-`bug.md`, every `fix.md` beside it, and every `## Attempts` entry. **Nothing in a `ruled-out:` line is tried
-again.** The value of the log is that this session starts where the last one stopped, with new hypotheses rather
-than the old ones.
+`bug.md`, every `fix.md` beside it, and the log beside each — every entry of its `## Attempts` and its
+`## Run Log`. **Nothing in a `ruled-out:` line is tried again**, and a `B` entry whose `Resolved:` is empty is a
+blocker still standing. The value of the logs is that this session starts where the last one stopped, with new
+hypotheses rather than the old ones.
 
 The original `**Baseline:**` stands. Three things on disk are the run working, not a reason to stop:
 
@@ -23,12 +24,13 @@ Uncommitted work anywhere else, and anything red no step accounts for, stops the
 
 ## Where to pick up
 
-| The log says                                             | Do                                                                                                                                            |
-|----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| the diagnosis holds and steps are open                   | revert what is uncommitted under the first unticked step (`fix.sh status` names it), continue at Phase 3 from that step                       |
-| a step failed three times, or a `green` left the symptom | the diagnosis is what needs work: go back to Phase 1 for a new hypothesis, log its probes as new attempts, amend the files, stop for approval |
-| the chain of causes was disproved                        | ask whether to pick it up with a new diagnosis or abandon it                                                                                  |
-| an Open Question is unanswered                           | ask it now, write the answer in, then continue                                                                                                |
+| The logs say                                             | Do                                                                                                                                                            |
+|----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| the diagnosis holds and steps are open                   | revert what is uncommitted under the first unticked step (`fix.sh status` names it), continue at Phase 3 from that step                                       |
+| a step failed three times, or a `green` left the symptom | the diagnosis is what needs work: go back to Phase 1 for a new hypothesis, log its probes as new attempts in `bug-log.md`, amend the files, stop for approval |
+| a `B` entry's `Resolved:` is empty                       | settle it — fill the line — before the step it names is picked up again                                                                                       |
+| the chain of causes was disproved                        | ask whether to pick it up with a new diagnosis or abandon it                                                                                                  |
+| an Open Question is unanswered                           | ask it now, write the answer in, then continue                                                                                                                |
 
-**The revert belongs to this skill, never to an agent**, and happens before any agent is spawned. Attempt numbers
-continue from where each file's log stopped; nothing is renumbered.
+**The revert belongs to this skill, never to an agent**, and happens before any agent is spawned. Attempt and
+`B` numbers continue from where each log stopped; nothing is renumbered.

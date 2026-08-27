@@ -8,8 +8,9 @@ user wants it reopened, the `**Closed:**` line goes and the run continues from h
 
 ## Read before acting
 
-The main file, every steps file beside it, and — where the file has them — every `## Attempts` entry and every
-`## Kept back` row. **Nothing an attempt's `ruled-out:` line or a kept-back row settles is tried again.**
+The main file, every steps file beside it, and each file's `<file-stem>-log.md` — every `## Attempts` entry
+where the log keeps one, and every `B` entry in its `## Run Log`. **Nothing an attempt's `ruled-out:` line or a
+`kept back` entry settles is tried again. A `B` entry whose `Resolved:` is filled is a decision already made.**
 
 The original `**Baseline:**` stands. On disk, these are the run working, not a reason to stop:
 
@@ -23,12 +24,12 @@ Uncommitted work anywhere else, and anything red no step accounts for, stops the
 
 ## Where to pick up
 
-| The files say                              | Do                                                                                                                                             |
-|--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| steps are open and nothing is blocked      | revert what is uncommitted under the first unticked step (the script's `status` names it), continue at the apply phase from that step          |
-| a step failed three times, or is abandoned | the plan is what needs work: amend the files, log what was tried, stop for approval as the skill's own stop phase says                          |
-| an Open Question is unanswered             | ask it now, write the answer in, then continue                                                                                                 |
-| every step is ticked                       | continue at the finish phase — its closing gates ran nowhere yet                                                                                |
+| The files say                              | Do                                                                                                                                    |
+|--------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| steps are open and nothing is blocked      | revert what is uncommitted under the first unticked step (the script's `status` names it), continue at the apply phase from that step |
+| a step failed three times, or is abandoned | the plan is what needs work: amend the files, log what was tried, stop for approval as the skill's own stop phase says                |
+| an Open Question is unanswered             | ask it now, write the answer in, then continue                                                                                        |
+| every step is ticked                       | continue at the finish phase — its closing gates ran nowhere yet                                                                      |
 
-**The revert belongs to the skill, never to an agent**, and happens before any agent is spawned. Attempt numbers
-continue from where each file's log stopped; nothing is renumbered.
+**The revert belongs to the skill, never to an agent**, and happens before any agent is spawned. Attempt and `B`
+numbers continue from where each log stopped; nothing is renumbered.

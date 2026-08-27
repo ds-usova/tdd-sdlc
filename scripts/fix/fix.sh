@@ -3,9 +3,10 @@
 # Reads and updates a bug fix's checklist by step ID, so that ticking a box or pulling out one step
 # is an addressed operation rather than a text match against a wrapped bullet.
 #
-# The fix file stays the single source of truth: nothing here stores state beside it. There is no
-# scheduling command - a fix runs its stabilize steps, then its red ones, then its green ones, and
-# that order is the skill's rather than something to compute.
+# The fix file stays the single source of truth for the steps; the log beside it holds what happened
+# to them. Nothing here stores state anywhere else. There is no scheduling command - a fix runs its
+# stabilize steps, then its red ones, then its green ones, and that order is the skill's rather than
+# something to compute.
 #
 # See the README next to this script.
 
@@ -22,46 +23,56 @@ repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 repo_root_abs="$(cd "$repo_root" && pwd)"
 
 fix_file=""
+log_file=""
 
 usage() {
     cat <<'EOF'
 Usage:
-  <plugin>/scripts/fix/fix.sh status   [--file <fix>]
+  <plugin>/scripts/fix/fix.sh status   [--file <fix>] [--log <log>]
   <plugin>/scripts/fix/fix.sh show     <ID>... [--file <fix>]
-  <plugin>/scripts/fix/fix.sh start    <ID> <what is being tried...> [--file <fix>]
-  <plugin>/scripts/fix/fix.sh tick     <ID>... [--file <fix>]
-  <plugin>/scripts/fix/fix.sh validate [--file <fix> | <bug directory>]
-  <plugin>/scripts/fix/fix.sh task     [<fix directory> | <fix>]
+  <plugin>/scripts/fix/fix.sh start    <ID> <what is being tried...> [--file <fix>] [--log <log>]
+  <plugin>/scripts/fix/fix.sh tick     <ID>... [--file <fix>] [--log <log>]
+  <plugin>/scripts/fix/fix.sh block    <ID> <note> [--file <fix>] [--log <log>]
+  <plugin>/scripts/fix/fix.sh validate [--file <fix> | <bug directory>] [--log <log>]
+  <plugin>/scripts/fix/fix.sh task     [<bug directory> | <fix>]
   <plugin>/scripts/fix/fix.sh attempts [<bug directory> | <fix>]
 
 Commands:
-  status    Done/total, and the IDs still open.
+  status    Done/total, the IDs still open, and the IDs abandoned.
   show      One step: its header and everything indented under it. Several IDs print in order,
             separated by a blank line.
-  start     Write the "**In flight:**" header line: the step's ID and, in a clause, what is being
-            tried. Run it when a step starts and whenever the approach changes.
-  tick      Mark the steps done and empty the "**In flight:**" line. Several IDs are one batch: all
-            are resolved before any is written, so a name nothing defines ticks none of them.
+  start     Write the log's "**In flight:**" header line: the step's ID and, in a clause, what is
+            being tried. Run it when a step starts and whenever the approach changes.
+  tick      Mark the steps done and empty the log's "**In flight:**" line. Several IDs are one
+            batch: all are resolved before any is written, so a name nothing defines ticks none.
+  block     Leave the step open and record the reason as the next B entry of the log's Run Log.
   validate  Duplicate or missing IDs, an unrecognized kind, an ID whose prefix contradicts it, a
             line the kind does not take, a line the kind owes and does not carry, a placeholder
             value, "needs:"/"disables:"/"fixes:" pointing at a step nothing defines, a reproduction
-            no green step fixes, an attempt missing its reasoning, its result, its evidence or what
-            it rules out, and an unanswered Open Question. Given a bug directory rather than a file,
-            it validates bug.md and every fix.md the directory holds, in one call.
-  task      Every fix file the bug holds, its done/total, and whether all of them are finished.
-  attempts  The attempt IDs every file of the bug holds, as one line - "bug.md · A1-A3,
-            module-a/fix.md · A1, module-b/fix.md · -" - and, where bug.md carries an
-            "**Attempts:**" header line, that line rewritten to say so.
+            no green step fixes, an unanswered Open Question, a missing log, an Attempts or Run Log
+            section left in the fix file, an attempt missing its reasoning, its result, its
+            evidence or what it rules out, and a B entry outside the Run Log, out of order, or
+            naming a step nothing defines. Given
+            a bug directory rather than a file, it validates bug.md, every fix.md the directory
+            holds and the log beside each, in one call.
+  task      Every fix file the bug holds, its done/total, and whether all of them are finished. An
+            abandoned step counts as closed.
+  attempts  The attempt IDs every log of the bug holds, as one line - "bug-log.md · A1-A3,
+            module-a/fix-log.md · A1, module-b/fix-log.md · —".
 
 --file names a file on every subcommand. validate, task and attempts also take a path positionally:
 validate accepts a bug directory and validates everything in it, task and attempts accept a bug
 directory or any fix inside one. Without either, the single fix.md in flight under docs/ is used. A
 bug owns a directory holding bug.md and one fix per module it touches: fix.md for a single-module
-bug, <module>/fix.md for each of several. An archived one under docs/implemented/ is addressed explicitly, and so is a
-bug.md, which validate reads for its Attempts section.
+bug, <module>/fix.md for each of several. An archived one under docs/implemented/ is addressed
+explicitly, and so is a bug.md.
+
+Every file has a log beside it under its own stem - bug-log.md beside bug.md, fix-log.md beside each
+fix.md - holding its Attempts, its Run Log and, for a fix, the In flight line; --log names another.
+Absent, validate reports it and start, tick and block refuse.
 
 Exit codes: 0 done - 1 nothing matched, validate found problems, or task found something open -
-2 bad usage.
+2 bad usage, a log missing where a command writes it included.
 EOF
 }
 
@@ -75,8 +86,10 @@ die() {
 # the GNU form silently means something else. The temp file is a sibling so the move stays on one
 # filesystem.
 rewrite_file() {
-    local tmp="${fix_file}.fix-tmp.$$"
-    if "$@" > "$tmp" && mv "$tmp" "$fix_file"; then
+    local target="$1"
+    shift
+    local tmp="${target}.fix-tmp.$$"
+    if "$@" > "$tmp" && mv "$tmp" "$target"; then
         return 0
     fi
     rm -f "$tmp"
@@ -110,14 +123,29 @@ $found" ;;
     esac
 }
 
+# The log sits beside its file under the file's own stem - fix-log.md beside fix.md, bug-log.md
+# beside bug.md; --log overrides it. Absent, it is passed to nothing: validate reports it, and the
+# commands that write it refuse.
+resolve_log() {
+    [ -n "$log_file" ] && return
+    local base
+    base="$(basename "$fix_file" .md)"
+    log_file="$(dirname "$fix_file")/${base}-log.md"
+}
+
+# Steps are read from the file, attempts and run-log entries from the log beside it. The log is
+# passed only where it exists; the parser is told how many files it got.
 parse() {
-    awk -v mode="$1" -f "$parser" "$fix_file"
+    resolve_log
+    local files=("$fix_file")
+    [ -f "$log_file" ] && files+=("$log_file")
+    awk -v mode="$1" -v files="${#files[@]}" -f "$parser" "${files[@]}"
 }
 
 # A truncated read must not answer as a whole one. Only validate reports it and carries on, since
 # reporting it is the whole of what validate does.
 assert_read_whole() {
-    parse fence || die "$fix_file was read as far as an unclosed fenced block - nothing below it counted" 1
+    parse fence || die "read as far as an unclosed fenced block - nothing below it counted" 1
 }
 
 # A checklist is not a fix, and the kinds do not tell them apart: a rework's steps have kinds of
@@ -139,25 +167,38 @@ warn_unless_fix() {
     esac
 }
 
+assert_log_exists() {
+    resolve_log
+    [ -f "$log_file" ] || die "no fix log at ${log_file#"$repo_root_abs/"} - fix-bug writes it beside the file"
+}
+
+# "fix log" beside a fix.md, "bug log" beside a bug.md.
+log_noun() {
+    case "$(basename "$fix_file")" in
+        bug.md) echo "bug log" ;;
+        *) echo "fix log" ;;
+    esac
+}
+
 cmd_status() {
-    local total=0 done_count=0 open=""
+    local total=0 done_count=0 open="" abandoned=""
     while IFS=$'\t' read -r id state _ _ _; do
         [ -n "$id" ] || continue
         total=$((total + 1))
-        if [ "$state" = "x" ]; then
-            done_count=$((done_count + 1))
-        else
-            open="${open:+$open }$id"
-        fi
+        case "$state" in
+            x) done_count=$((done_count + 1)) ;;
+            a) abandoned="${abandoned:+$abandoned }$id" ;;
+            *) open="${open:+$open }$id" ;;
+        esac
     done < <(parse list)
 
     [ "$total" -gt 0 ] || die "$fix_file defines no steps" 1
     warn_unless_fix
 
     printf '%s\n  %d/%d\n' "$fix_file" "$done_count" "$total"
-    if [ -n "$open" ]; then
-        printf '  open: %s\n' "$open"
-    else
+    [ -z "$open" ] || printf '  open: %s\n' "$open"
+    [ -z "$abandoned" ] || printf '  abandoned: %s\n' "$abandoned"
+    if [ -z "$open" ] && [ -z "$abandoned" ]; then
         printf '  every step is ticked\n'
     fi
 }
@@ -188,27 +229,36 @@ cmd_show() {
 cmd_tick() {
     [ "$#" -gt 0 ] || die "tick needs at least one ID"
     assert_is_fix
+    assert_log_exists
 
-    # Every ID is resolved before any line is written, so a typo ticks nothing.
-    local lines="" id start matched
+    # Every ID is resolved before any line is written, so a typo ticks nothing. A step already ticked
+    # is reported and left alone rather than counted as done again.
+    local lines="" ticked="" id start state matched
     for id in "$@"; do
         matched=""
-        while IFS=$'\t' read -r rid _ _ rstart _; do
+        while IFS=$'\t' read -r rid rstate _ rstart _; do
             if [ "$rid" = "$id" ]; then
                 start="$rstart"
+                state="$rstate"
                 matched=1
                 break
             fi
         done < <(parse list)
 
         [ -n "$matched" ] || die "no such step: $id" 1
+        if [ "$state" = x ]; then
+            echo "already ticked: $id"
+            continue
+        fi
         lines="${lines:+$lines,}$start"
+        ticked="${ticked:+$ticked }$id"
     done
+    [ -n "$lines" ] || return 0
 
     # Anchored to the checkbox at the head of the line. An unanchored substitution rewrites the first
     # "[ ]" anywhere on it, which on an already-ticked step is somewhere in its prose - a silent edit
     # to a step's text that nothing else would ever report.
-    rewrite_file awk -v targets="$lines" '
+    rewrite_file "$fix_file" awk -v targets="$lines" '
         BEGIN { n = split(targets, t, ","); for (i = 1; i <= n; i++) mark[t[i]] = 1 }
         NR in mark { sub(/^-[ \t]+\[ \]/, "- [x]") }
         { print }
@@ -218,23 +268,25 @@ cmd_tick() {
     # step lands, which is the one moment a resumed run would misread it.
     set_in_flight ""
 
-    echo "ticked: $*"
+    echo "ticked: $ticked"
 }
 
-# The "**In flight:**" header line names the step being applied and the approach being tried. Only
-# the value changes; a file with no such line is one this format did not write, and gets none added.
+# The log's "**In flight:**" header line names the step being applied and the approach being tried.
+# Only the value changes; a log with no such line is one this format did not write, and gets none
+# added.
 set_in_flight() {
     local value="$1"
-    grep -q '^\*\*In flight:\*\*' "$fix_file" || return 1
-    rewrite_file awk -v value="$value" '
+    grep -q '^\*\*In flight:\*\*' "$log_file" || return 1
+    rewrite_file "$log_file" awk -v value="$value" '
         /^\*\*In flight:\*\*/ { print "**In flight:**" (value == "" ? "" : " " value); next }
         { print }
-    ' "$fix_file" || die "could not write $fix_file"
+    ' "$log_file" || die "could not write $log_file"
 }
 
 cmd_start() {
     [ "$#" -ge 1 ] || die "start needs a step ID and what is being tried"
     assert_is_fix
+    assert_log_exists
 
     local id="$1" matched="" rid
     shift
@@ -246,8 +298,45 @@ cmd_start() {
     local text="$*"
     [ -n "$text" ] || die "start needs what is being tried, in a clause, after the ID"
 
-    set_in_flight "$id"$' \xc2\xb7 '"$text" || die "$fix_file carries no \"**In flight:**\" line" 1
+    set_in_flight "$id"$' \xc2\xb7 '"$text" || die "$log_file carries no \"**In flight:**\" line" 1
     echo "in flight: $id"$' \xc2\xb7 '"$text"
+}
+
+cmd_block() {
+    local id="${1:-}" note="${2:-}"
+    [ -n "$id" ] && [ -n "$note" ] || die "block needs a step ID and a note"
+    [ "$#" -le 2 ] || die "block takes one ID and one note - quote the note"
+    assert_is_fix
+    assert_log_exists
+
+    local matched="" rid
+    while IFS=$'\t' read -r rid _ _ _ _; do
+        [ "$rid" = "$id" ] && matched=1 && break
+    done < <(parse list)
+    [ -n "$matched" ] || die "no such step: $id" 1
+
+    # Appended as the next B entry at the end of the log's Run Log, which is created when absent.
+    # The number comes from the parser, so the entry lands above nothing that came before it.
+    local b runlog_start next_section insert_at
+    b="$(parse nextblock)"
+    runlog_start="$(grep -n '^## Run Log' "$log_file" | head -1 | cut -d: -f1)"
+    if [ -z "$runlog_start" ]; then
+        rewrite_file "$log_file" awk '{ print } END { print ""; print "## Run Log" }' "$log_file" \
+            || die "could not write $log_file"
+        runlog_start="$(grep -n '^## Run Log' "$log_file" | head -1 | cut -d: -f1)"
+    fi
+    next_section="$(awk -v s="$runlog_start" 'NR > s && /^## / { print NR; exit }' "$log_file")"
+    [ -n "$next_section" ] || next_section="$(( $(wc -l < "$log_file") + 1 ))"
+    insert_at="$(awk -v s="$runlog_start" -v e="$next_section" \
+        'NR > s && NR < e && NF { last = NR } END { print (last ? last : s) }' "$log_file")"
+
+    # The note travels in the environment, not through -v, which would expand escape sequences
+    # in whatever the caller wrote.
+    entry="- **B${b} (${id}):** ${note}" \
+        rewrite_file "$log_file" awk -v n="$insert_at" \
+            '{ print } NR == n { print ""; print ENVIRON["entry"]; print "  - Resolved:" }' "$log_file" \
+        || die "could not write $log_file"
+    echo "$id left open; recorded as B${b} in ${log_file#"$repo_root_abs/"}"
 }
 
 # "A1-A3" where the IDs run 1..n without a gap, the list otherwise, "-" for none.
@@ -268,6 +357,12 @@ attempt_range() {
     fi
 }
 
+# The bug.md and every fix.md a bug directory holds; the logs beside them are reached through
+# resolve_log, never enumerated as files of their own.
+spec_files_of() {
+    find "$1" -maxdepth 2 \( -name 'bug.md' -o -name 'fix.md' \) -type f | sort
+}
+
 cmd_attempts() {
     local given="${1:-}" bug_dir
     if [ -n "$given" ] && [ -d "$given" ]; then
@@ -283,30 +378,22 @@ cmd_attempts() {
     while IFS= read -r f; do
         [ -n "$f" ] || continue
         files+=("$f")
-    done < <(find "$bug_dir" -maxdepth 2 \( -name 'bug.md' -o -name 'fix.md' \) -type f | sort)
+    done < <(spec_files_of "$bug_dir")
     [ "${#files[@]}" -gt 0 ] || die "${bug_dir#"$repo_root_abs/"} holds no bug.md or fix.md" 1
 
     local summary="" ids part
     for f in "${files[@]}"; do
         fix_file="$f"
+        log_file=""
+        resolve_log
         ids=()
         while IFS= read -r part; do
             [ -n "$part" ] && ids+=("$part")
         done < <(parse attempts)
-        summary="${summary:+$summary, }${f#"$bug_dir/"}"$' \xc2\xb7 '"$(attempt_range ${ids[@]+"${ids[@]}"})"
+        summary="${summary:+$summary, }${log_file#"$bug_dir/"}"$' \xc2\xb7 '"$(attempt_range ${ids[@]+"${ids[@]}"})"
     done
 
     echo "$summary"
-
-    local bug_md="$bug_dir/bug.md"
-    if [ -f "$bug_md" ] && grep -q '^\*\*Attempts:\*\*' "$bug_md"; then
-        fix_file="$bug_md"
-        rewrite_file awk -v value="$summary" '
-            /^\*\*Attempts:\*\*/ { print "**Attempts:** " value; next }
-            { print }
-        ' "$bug_md" || die "could not write $bug_md"
-        echo "written to ${bug_md#"$repo_root_abs/"}"
-    fi
 }
 
 # A bug owns one directory directly under docs/, and its fix files sit either in it or one level
@@ -328,18 +415,33 @@ bug_dir_of() {
     die "$1 is not inside a bug directory under docs/"
 }
 
+# One file and the log beside it. The parser's own checks first; the log's absence is reported here,
+# where the path it was looked for under is known.
+validate_one() {
+    local failed=0
+    resolve_log
+    parse validate || failed=1
+    if [ ! -f "$log_file" ]; then
+        echo "no $(log_noun) at ${log_file#"$repo_root_abs/"} - the attempts and the run log live there"
+        failed=1
+    fi
+    return "$failed"
+}
+
 # A bug's files are validated together, so the gate before the first source edit is one call however
-# many modules the bug reaches. bug.md is included: it is where the diagnosis attempts live.
+# many modules the bug reaches. bug.md is included: its log is where the diagnosis attempts live.
 cmd_validate_dir() {
     local dir="$1" f found=0 failed=0
     [ -d "$dir" ] || die "no such directory: $dir"
+    [ -z "$log_file" ] || die "--log names one log; a directory validates each file with its own"
 
     while IFS= read -r f; do
         [ -n "$f" ] || continue
         found=$((found + 1))
         fix_file="$f"
-        parse validate || failed=1
-    done < <(find "$dir" -maxdepth 2 \( -name 'fix.md' -o -name 'bug.md' \) -type f | sort)
+        log_file=""
+        validate_one || failed=1
+    done < <(spec_files_of "$dir")
 
     [ "$found" -gt 0 ] || die "${dir} holds no bug.md or fix.md" 1
     return "$failed"
@@ -384,19 +486,27 @@ cmd_task() {
 
     echo "${bug_dir#"$repo_root_abs/"}"
 
-    local open_total=0 total_n done_n state id st
+    # An abandoned step is closed: the level above struck it and said why on its header, and the
+    # run has nothing left to do with it.
+    local open_total=0 total_n done_n abandoned_n state id st
     for f in "${fixes[@]}"; do
         fix_file="$f"
+        log_file=""
         total_n=0
         done_n=0
+        abandoned_n=0
         while IFS=$'\t' read -r id st _ _ _; do
             [ -n "$id" ] || continue
             total_n=$((total_n + 1))
-            [ "$st" = "x" ] && done_n=$((done_n + 1))
+            case "$st" in
+                x) done_n=$((done_n + 1)) ;;
+                a) abandoned_n=$((abandoned_n + 1)) ;;
+            esac
         done < <(parse list)
 
-        if [ "$total_n" -gt 0 ] && [ "$done_n" -eq "$total_n" ]; then
+        if [ "$total_n" -gt 0 ] && [ $((done_n + abandoned_n)) -eq "$total_n" ]; then
             state="complete"
+            [ "$abandoned_n" -eq 0 ] || state="complete, $abandoned_n abandoned"
         else
             state="open"
             open_total=$((open_total + 1))
@@ -423,6 +533,12 @@ while [ "$#" -gt 0 ]; do
             fix_file="$2"
             shift 2
             ;;
+        --log)
+            [ "$#" -ge 2 ] || die "--log needs a path"
+            [ ! -d "$2" ] || die "--log takes one file"
+            log_file="$2"
+            shift 2
+            ;;
         --help|-h)
             usage
             exit 0
@@ -442,7 +558,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 case "$command" in
-    status|show|start|tick|validate|task|attempts) ;;
+    status|show|start|tick|block|validate|task|attempts) ;;
     --help|-h) usage; exit 0 ;;
     *) die "unknown command '$command' (try --help)" ;;
 esac
@@ -469,7 +585,7 @@ case "$command" in
             fix_file="${args[0]}"
         fi
         ;;
-    show|start|tick)
+    show|start|tick|block)
         # An empty array expands to one empty string, which would reach the command as an ID nothing
         # defines and be reported as a missing step rather than as the usage error it is.
         [ "${#args[@]}" -gt 0 ] || die "$command needs at least one ID"
@@ -478,10 +594,14 @@ esac
 
 # A path given positionally names the file on every command, as it does on validate and task. Without
 # this, "status docs/7-x/module-a/fix.md" would answer for whichever fix.md the default resolution
-# found, which on a multi-module bug is the wrong one and says nothing about it.
+# found, which on a multi-module bug is the wrong one and says nothing about it. block's note is
+# exempt: a reason may well name a file. Anything past the note is kept, so an unquoted note is
+# refused rather than cut down to its first word.
 rest=()
 for arg in ${args[@]+"${args[@]}"}; do
-    if [ -f "$arg" ]; then
+    if [ "$command" = "block" ] && [ "${#rest[@]}" -lt 2 ]; then
+        rest+=("$arg")
+    elif [ -f "$arg" ]; then
         fix_file="$arg"
     else
         rest+=("$arg")
@@ -496,5 +616,6 @@ case "$command" in
     show)     warn_unless_fix; assert_read_whole; cmd_show "${args[@]}" ;;
     start)    assert_read_whole; cmd_start "${args[@]}" ;;
     tick)     assert_read_whole; cmd_tick "${args[@]}" ;;
-    validate) warn_unless_fix; parse validate ;;
+    block)    assert_read_whole; cmd_block "${args[@]}" ;;
+    validate) warn_unless_fix; validate_one ;;
 esac

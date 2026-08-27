@@ -22,12 +22,11 @@ Where no page states it either, nothing was promised: close `bug.md` with `**Clo
 **Written where the bug spans something two modules must agree on** — a schema they build from, or a shape a
 protocol carries. It holds `stabilize` steps only: the schema or contract page stating the shape, each module's
 wiring to it, every call site carried back to compiling, and whatever it had to disable. Its header names every
-module on the seam:
+module on the seam, and its log is `shared/fix-log.md`, as for any other fix file:
 
 ```
 **Affected Modules:** `module-a`, `module-b`
 **Bug:** [<the bug>](../bug.md)
-**In flight:** <as in any other fix file>
 ```
 
 **The contract is shared; the behaviour behind it is not.** The handler a schema declares is fixed in its own

@@ -13,11 +13,31 @@
 # Invoked by plan.sh, which ships beside it; see the README in the same directory.
 
 function close_item() {
-    if (cur != "") {
-        end[cur] = NR - 1
-        cur = ""
-    }
+    cur = ""
     in_header = 0
+}
+
+function trim(s) {
+    sub(/^[ \t]+/, "", s)
+    sub(/[ \t]+$/, "", s)
+    return s
+}
+
+# An unclosed fence hides every line under it in the file it opened in. validate reports it; every
+# other command asks mode=fence first, or it would answer confidently for a file read by half.
+function close_fence() {
+    if (fenced) {
+        n_stray++
+        stray[n_stray] = fence_file ":" fence_line ": a fenced block opened here never closes"
+        unclosed = 1
+        # validate prints it with the other problems; every other command asks mode=fence first,
+        # so it is the one place a second copy would not be a duplicate.
+        if (mode == "fence") {
+            print fence_file ":" fence_line ": a fenced block opened here never closes" > "/dev/stderr"
+        }
+    }
+    fenced = 0
+    fence_len = 0
 }
 
 # Every ID the text carries, comma-joined, in the order they appear.
@@ -93,33 +113,84 @@ BEGIN {
 # The index is taken from ARGV rather than FNR == 1, which an empty file never reaches.
 FILENAME != prevfile {
     close_item()
+    close_fence()
     prevfile = FILENAME
     fileidx = 0
     for (i = 1; i < ARGC; i++) if (ARGV[i] == FILENAME) fileidx = i
-    in_fence = 0; in_update = 0; in_findings = 0; in_runlog = 0; cur_f = ""; group = ""; section = ""
+    in_update = 0; in_findings = 0; in_runlog = 0; cur_f = ""; group = ""; section = ""
+    base = FILENAME
+    sub(/.*\//, "", base)
 }
+
+# A checkout with CRLF endings otherwise leaves a carriage return on the end of every line: a fence
+# never closes, an empty label never reads as empty, and the file is parsed as half of itself. Git
+# Bash's awk strips it already; the awks this has to run on elsewhere do not.
+{ sub(/\r$/, "") }
 
 # A plan quotes its own step format in fenced examples; those bullets are illustrations, not work.
-/^[ \t]*```/ {
-    in_fence = !in_fence
+#
+# The marker's length decides what closes it, as in Markdown itself. A document quoting this format
+# nests one example inside another, and pasted output routinely carries a fence of its own - both are
+# unreadable to a parser that closes on the first three backticks it sees.
+/^[ \t]*```/ || /^[ \t]*~~~/ {
+    fence = $0
+    indented = ($0 ~ /^[ \t]/)
+    sub(/^[ \t]+/, "", fence)
+    char = substr(fence, 1, 1)
+    # A regex literal in an expression is a match against $0, so each one has to sit in match()'s own
+    # argument position rather than be chosen between beforehand.
+    if (char == "`") {
+        match(fence, /^`+/)
+    } else {
+        match(fence, /^~+/)
+    }
+    if (fenced) {
+        # Closed only by the same character, at exactly the opening length, carrying no info string.
+        # A longer run is content: a row of tildes underlining a line is how compilers point at a
+        # column, and it appears in pasted output constantly.
+        if (char == fence_char && RLENGTH == fence_len && trim(substr(fence, RLENGTH + 1)) == "") {
+            fenced = 0
+            fence_len = 0
+        }
+    } else {
+        fenced = 1
+        fence_len = RLENGTH
+        fence_char = char
+        fence_line = FNR
+        fence_file = FILENAME
+        fence_in_item = (cur != "" && indented)
+    }
+    # A block belongs to the item above it only where it is indented under it. An unindented one is
+    # the document's, and "show" would otherwise hand a step agent somebody else's example.
+    if (fence_in_item) {
+        end[cur] = NR
+    }
     next
 }
-
-in_fence { next }
+fenced {
+    if (fence_in_item) {
+        end[cur] = NR
+    }
+    next
+}
 
 /^#+ / {
     close_item()
     in_update = 0
     cur_f = ""
-    in_findings = ($0 ~ /^## Review Findings/)
-    in_runlog = ($0 ~ /^## Run Log/)
+    in_findings = ($0 ~ /^## Review Findings$/)
+    in_runlog = ($0 ~ /^## Run Log$/)
     if (fileidx == 1 && in_findings) {
         n_stray++
-        stray[n_stray] = "'## Review Findings' at line " NR " - the plan log owns the findings"
+        stray[n_stray] = FILENAME ":" FNR ": '## Review Findings' sits in the " base " - the log beside it owns the findings"
+    }
+    if (fileidx == 1 && in_runlog) {
+        n_stray++
+        stray[n_stray] = FILENAME ":" FNR ": '## Run Log' sits in the " base " - the log beside it owns the run log"
     }
     if (fileidx == 1 && $0 ~ /^##+ .*Blockers/) {
         n_stray++
-        stray[n_stray] = "a Blockers heading at line " NR " - the section is '## Open Questions'; blockers go to the plan log"
+        stray[n_stray] = FILENAME ":" FNR ": a Blockers heading sits in the " base " - the section is '## Open Questions'; blockers go to the log beside it"
     }
     if ($0 ~ /^### /) {
         group = substr($0, 5)
@@ -140,8 +211,16 @@ fileidx == 1 && /^- \*\*F[0-9]+:\*\*/ {
     # Under a findings heading the heading was already reported; a finding elsewhere is its own report.
     if (!in_findings) {
         n_stray++
-        stray[n_stray] = "finding " substr($0, 5, index($0, ":") - 5) " at line " NR " sits in the plan - the plan log owns the findings"
+        stray[n_stray] = FILENAME ":" FNR ": " substr($0, 5, index($0, ":") - 5) " sits in the " base " - the log beside it owns the findings"
     }
+    next
+}
+
+# A run-log entry in the plan is the old shape, whatever heading it sits under.
+fileidx == 1 && /^- \*\*B[0-9]+/ {
+    match($0, /B[0-9]+/)
+    n_stray++
+    stray[n_stray] = FILENAME ":" FNR ": " substr($0, RSTART, RLENGTH) " sits in the " base " - the log beside it owns the run log"
     next
 }
 
@@ -160,14 +239,24 @@ in_findings && /^- \*\*F[0-9]+:\*\*/ {
 fileidx != 1 && /^- \*\*B[0-9]+/ {
     match($0, /B[0-9]+/)
     b = substr($0, RSTART + 1, RLENGTH - 1) + 0
+    n_b++
     if (!in_runlog) {
         n_stray++
-        stray[n_stray] = "B" b " at line " FNR " sits outside '## Run Log'"
+        stray[n_stray] = FILENAME ":" FNR ": B" b " sits outside '## Run Log'"
     } else if (b <= last_b) {
         n_stray++
-        stray[n_stray] = "B" b " at line " FNR " is not above the entry before it - append, never insert"
+        stray[n_stray] = FILENAME ":" FNR ": B" b " is not above the entry before it - append, never insert"
     }
     if (b > last_b) last_b = b
+    # The item it names is checked at END, once the plan's items are all known.
+    if (match($0, /\(([A-Za-z]+[0-9]+)\)/)) {
+        n_bref++
+        bref_id[n_bref] = substr($0, RSTART + 1, RLENGTH - 2)
+        bref_where[n_bref] = FILENAME ":" FNR ": B" b
+    } else {
+        n_stray++
+        stray[n_stray] = FILENAME ":" FNR ": B" b " names no item - write it as **B" b " (<item ID>):**"
+    }
     next
 }
 
@@ -213,6 +302,7 @@ in_findings && cur_f != "" && /^[ \t]*- Escalated:/ {
     group_of[cur] = group
     section_of[cur] = section
     start[cur] = NR
+    end[cur] = NR
     header[cur] = title
     in_header = 1
     next
@@ -223,6 +313,7 @@ in_header && /^[ \t]+[^ \t-]/ {
     line = $0
     sub(/^[ \t]+/, "", line)
     header[cur] = header[cur] " " line
+    end[cur] = NR
     next
 }
 
@@ -230,6 +321,7 @@ in_header && /^[ \t]+[^ \t-]/ {
 cur != "" && /^[ \t]*-?[ \t]*(given|when|then):/ {
     in_header = 0
     in_update = 0
+    end[cur] = NR
     scenario_line = $0
     sub(/^[ \t]*-?[ \t]*/, "", scenario_line)
     scenario_label = substr(scenario_line, 1, index(scenario_line, ":") - 1)
@@ -244,24 +336,33 @@ cur != "" && /^[ \t]*-?[ \t]*(given|when|then):/ {
 cur != "" && /^[ \t]*-[ \t]*update:/ {
     in_header = 0
     in_update = 1
+    end[cur] = NR
     scan_methods($0)
     next
 }
 
 in_update && /^[ \t]+[^ \t-]/ {
+    end[cur] = NR
     scan_methods($0)
     next
 }
 
+# The item's last line is the last non-blank line it consumed, never the line before the next
+# item: a file without a trailing newline still ends its last item where it ends.
 {
     in_update = 0
-    if (in_header) {
-        in_header = 0
+    in_header = 0
+    if (cur != "" && NF) {
+        end[cur] = NR
     }
 }
 
 END {
     close_item()
+    close_fence()
+    if (mode == "fence") {
+        exit (unclosed ? 1 : 0)
+    }
     for (i = 1; i <= n; i++) {
         id = order[i]
         if (end[id] == "" || end[id] < start[id]) {
@@ -283,7 +384,7 @@ END {
     } else if (mode == "updates") {
         emit_updates()
     } else if (mode == "count") {
-        print n
+        print n "\t" n_b + 0
     } else if (mode == "nextblock") {
         print last_b + 1
     } else {
@@ -552,6 +653,12 @@ function emit_validate(   i, id, j, d, nd, problems) {
     for (i = 1; i <= n_stray; i++) {
         print stray[i]
         problems++
+    }
+    for (i = 1; i <= n_bref; i++) {
+        if (!(bref_id[i] in seen)) {
+            print bref_where[i] " names " bref_id[i] ", which no item defines"
+            problems++
+        }
     }
     # A missing log is reported by plan.sh, which knows the path it looked for; here it only counts.
     if (files == "1") {

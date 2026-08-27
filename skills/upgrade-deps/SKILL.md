@@ -30,8 +30,8 @@ baseline and green after every step is the whole guardrail**; an upgrade writes 
 
 The argument is a module — one, by default. Several modules are several arguments. A dependency name narrows the
 survey to it. **A path to an existing `upgrade.md` resumes it** under
-[`resuming.md`](../../templates/resuming.md), which replaces Phase 0 and Phase 1: it re-reads nothing its
-`## Kept back` and `## Attempts` already settle.
+[`resuming.md`](../../templates/resuming.md), which replaces Phase 0 and Phase 1: it re-reads nothing the
+logs' `## Attempts` and `## Run Log` already settle.
 
 Read the repository-wide conventions and `<module>/docs/conventions.md` for every module named. Beyond the build
 and test commands, the parallelism and the commit policy, they answer four questions this skill has no default
@@ -97,12 +97,17 @@ documentation site. What each says binds the step:
 |--------------------------------------|--------------------------------------------------------------------------------------------|
 | one module                           | `upgrade.md`, steps included                                                               |
 | several                              | `upgrade.md` without steps, and `<module>/steps.md` for each                               |
-| several, through one version catalog | one more: `shared/steps.md`, holding the catalog's bumps, applied before any module's file  |
+| several, through one version catalog | one more: `shared/steps.md`, holding the catalog's bumps, applied before any module's file |
 
-**Each steps file is owned by exactly one agent.** `upgrade.md` is what a fresh session resumes from. What it
-holds is [`the-files.md`](the-files.md). `upgrade.sh` (`scripts/upgrade/` under the plugin root, README
-beside it) reads, ticks and validates them. Refused or absent on the first call, tell the user once as
-[`scripts/README.md`](../../scripts/README.md) says and edit the files by hand.
+**Every steps file gets a log beside it**, `upgrade-log.md` or `steps-log.md`, written here as its title and an
+empty `## Attempts` — `## Run Log` is created at the first entry, never empty; it is where the run records what
+happened, and the steps file is never written past ticks, `abandoned — <why>`, `**Closed:**`, the survey's
+`Status` and `## Open Questions` once approved.
+
+**Each steps file and its log are owned by exactly one agent.** `upgrade.md` is what a fresh session resumes
+from. What each file holds is [`the-files.md`](the-files.md). `upgrade.sh` (`scripts/upgrade/` under the
+plugin root, README beside it) reads, ticks, blocks and validates them. Refused or absent on the first call,
+tell the user once as [`scripts/README.md`](../../scripts/README.md) says and edit the files by hand.
 
 Run `upgrade.sh validate <the directory>` until it exits 0 before presenting anything.
 
@@ -119,6 +124,10 @@ step. A major the conventions call "its own story" is listed and not offered.
 Open Questions beyond that are rare: a guide that offers two migration paths, a vulnerability whose fix is only
 in a major. Ask them in the same batch and write each answer in as `- A:`.
 
+**An upgrade turned down here** — every dependency deferred, or the user declining the run — gets
+the header line `**Closed:** <why>` in `upgrade.md`; nothing is written to the log. It is left where it is
+and reported as closed. Nothing is archived and no agent is spawned.
+
 ## Phase 3 — Apply
 
 **`upgrade.sh validate` exits 0 on every steps file before the first build file is touched**, again after any
@@ -131,23 +140,27 @@ answer written in Phase 2.
    [`templates/sub-agents.md`](../../templates/sub-agents.md) says. Each gets its file path, its module, its
    phase-0 figures, `upgrade.md`, and the conventions by name. Cap the count and pick the model by what the
    conventions say about parallelism and sub-agent models.
-3. **What happens inside an agent is its own** — its steps, its attempts, its kept-back entries, its ticks.
-   Never edit a file an agent owns while it runs.
+3. **What happens inside an agent is its own** — its steps, its ticks, its log's attempts and run-log
+   entries. Never edit a file an agent owns while it runs.
 
 **A step reaches an agent as `upgrade.sh show <ID> --file <steps>`**, never as a prompt retelling it.
 
 **A migration that cannot be finished is kept back, not forced.** A guide can ask for a class that carries a
 bug of its own, a setting the module's framework does not yet honour, an API the module's other dependencies
 still bind. After three failed attempts on one change, the agent stops on it: the version stays at the target
-where the module compiles and is green on the old API — the guide's change written into `## Kept back` with
-what was tried and what would unblock it. Where the module is not green on the old API either, the version goes
-back to where it was, the step is `abandoned — <why>`, and the survey row says `Status: blocked`. Every attempt
-on the way is an entry in `## Attempts`, in the shape [`attempts.md`](../../templates/attempts.md) gives.
+where the module compiles and is green on the old API — the guide's change written into the log's `## Run Log`
+as a `kept back` entry with what was tried and what would unblock it. Where the module is not green on the old
+API either, the version goes back to where it was, the step is `abandoned — <why>`, a `B` entry in the log says
+what was reverted, and the survey row says `Status: blocked`. Every attempt on the way is an entry in the log's
+`## Attempts`, in the shape [`attempts.md`](../../templates/attempts.md) gives.
 
 **An agent that returns blocked changes the plan, not the rules**: it returns for a step whose kind is wrong, a
 change the guide asks for that lands in another module, a test asserting the old behaviour that nobody foresaw,
-or a refusal from [`applying-a-step.md`](applying-a-step.md). Amend the files, stop for approval again as in
-Phase 2, re-spawn that module's agent; it starts at its first unticked step.
+or a refusal from [`applying-a-step.md`](applying-a-step.md). Its question is a `Q` in its steps file's
+`## Open Questions`; the return itself is a `B` entry in its log's `## Run Log`, and whoever settles it fills
+that entry's `Resolved:`. Amend the files — each amendment a step widened, a kind re-classified, a `change:`
+added gets a `B` note of its own — stop for approval again as in Phase 2, re-spawn that module's agent; it
+starts at its first unticked step.
 
 ### What Is Never Done
 
@@ -165,17 +178,18 @@ Phase 2, re-spawn that module's agent; it starts at its first unticked step.
    modules: every version line it moves is a step's, and every source file it touches is named in a `migrate`
    step's `files:`. A version moved under no step is a defect whatever the suite says.
 3. **Re-run the survey** with the same tools as Phase 1. Every row selected in Phase 2 now reads `done`,
-   `kept back` or `blocked`; the vulnerability list is empty of what the steps claimed to fix. Write the result
-   into `## Survey`.
+   `kept back` or `blocked`, read off the ticks, the `abandoned` headers and the logs' `kept back` entries; the
+   vulnerability list is empty of what the steps claimed to fix. Write the result into `## Survey` — the one
+   outcome written back into `upgrade.md` rather than the log, because the survey is what a reader opens.
 4. **Whatever the modules' build conventions require of a finished change** — a coverage guardrail, a formatting
    gate. A guardrail that fails blocks the archive.
 5. **Write `review/findings.md`** in the shape [`findings.md`](../../templates/findings.md) gives — a
-   deprecation the guide announced that this run did not act on, a kept-back change and what would unblock it, a
-   manual check where a bump changes runtime behaviour no test reaches. An upgrade with nothing open still gets
-   the file.
-6. **Archive** once `upgrade.sh status` reports no open step in any steps file: move `docs/<n>-<name>/` into
-   `docs/implemented/`, and commit the move where the conventions commit at all. A file with an `abandoned`
-   step or a `kept back` entry still archives; what it left is in
+   deprecation the guide announced that this run did not act on, every `kept back` entry lifted from the logs'
+   Run Log with what would unblock it, a manual check where a bump changes runtime behaviour no test reaches. An
+   upgrade with nothing open still gets the file.
+6. **Archive** once `upgrade.sh status` reports no open step in any steps file: move `docs/<n>-<name>/`, logs
+   included, into `docs/implemented/`, and commit the move where the conventions commit at all. A steps file
+   with an `abandoned` step or a log with a `kept back` entry still archives; what it left is in
    `review/findings.md` and the closing report.
 7. **What the conventions run over finished work**, in their order, each entry once, each handed the archived
    `upgrade.md`.

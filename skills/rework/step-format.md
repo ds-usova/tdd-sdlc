@@ -8,10 +8,14 @@ assigned once, never renumbered.
 
 **`rework.sh validate` checks the result** — a duplicate ID, an unrecognized kind, a line the kind does not
 take, a line the kind owes, a placeholder value, a `files:` with no bullet under it, a `survives:` naming no
-tier, a `needs:` or `disables:` naming a step nothing defines, and an Open Question with no answer. Run it on
-every steps file before handing the rework over, and again after writing any answer. The script ships with the
-skill at `scripts/rework/rework.sh` — under `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin, under `.claude/`
-in a plain checkout.
+tier, a `needs:` or `disables:` naming a step nothing defines, an Open Question with no answer, a fenced block
+that never closes, a missing log, a Run Log or an Attempts section, or a `B` or `A` entry, in the steps file, and a `B` entry in the log outside
+its Run Log, numbered below the one before it, or naming no step the steps file defines. Run it on every steps file before handing the rework over, and
+again after writing any answer. The script ships with the skill at `scripts/rework/rework.sh` — under
+`${CLAUDE_PLUGIN_ROOT}` when installed as a plugin, under `.claude/` in a plain checkout.
+
+A step given up on keeps its row and its open box, with `abandoned — <why>` at the end of its header;
+`status` counts it closed and lists it apart from the open ones.
 
 ```
 - [ ] R01 · extract · <what moves, and where to>
@@ -81,7 +85,8 @@ class under a different name; `whenAccepted_thenRecorded` does not.
 
 **A scenario keeps what it was proven against.** Swapping the real thing for a mock changes what the test
 proves, so it is asked under **Open Questions**. An answered `yes` is written into the line as
-`<before> -> <after>`, and the step is then held to what the line now says.
+`<before> -> <after>`, with a `B` entry in the log's Run Log recording the change, and the step is then held to
+what the line now says.
 
 **A step in another steps file is named with that file** — `needs: shared/steps.md · R01`, or
 `disables: `SomeTest#aMethod` — cleared by module-a/steps.md · R02`. Only `needs:` and `disables:` may cross,

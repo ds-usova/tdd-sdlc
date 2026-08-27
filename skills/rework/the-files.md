@@ -13,8 +13,15 @@ directory carries the number and the name; no file repeats them.
 | several                            | `rework.md` without steps, and `<module>/steps.md` for each  |
 | several, across a shared signature | one more: `shared/steps.md`, holding `stabilize` steps only  |
 
-**Each steps file is owned by exactly one agent**, so two agents never write one file. **`rework.md` is the
-artifact a fresh session resumes from** — see [`resuming.md`](../../templates/resuming.md).
+**Every file that holds steps has a log beside it** under the file's stem — `rework-log.md`,
+`<module>/steps-log.md`, `shared/steps-log.md`. The steps file is what an agent reads and ticks; the log is what
+happened to it. **Each steps file and its log are owned by exactly one agent**, so two agents never write one
+file. **`rework.md` is the artifact a fresh session resumes from**, its log read with it — see
+[`resuming.md`](../../templates/resuming.md).
+
+**`**Closed:** <why>`** in `rework.md`'s header means the rework was decided against before its steps were
+applied. It is the header line alone; nothing is written to the log. It is left where it is, never archived,
+and not resumed.
 
 ## `rework.md`
 
@@ -70,11 +77,27 @@ Whatever moves between the two is labelled with the step IDs that move it.>
   - A:
 ```
 
+`Q` numbers are per file: a steps file's questions start at `Q1` however many `rework.md` asked.
+
 ## Each `steps.md`
 
 A `<module>/steps.md` carries `**Affected Module:**` and `**Rework:** [<the rework>](../rework.md)` above its
-`## Steps`; `shared/steps.md` names every module on the seam. **`## What changes` stays in `rework.md`** and
-covers every steps file.
+`## Steps`, and `## Open Questions` where a run has something to ask; `shared/steps.md` names every module on
+the seam. **`## What changes` stays in `rework.md`** and covers every steps file.
+
+## Each log
+
+`<file-stem>-log.md` beside its steps file, titled `# Rework Log: <what changes>` after the rework's title, and
+holding one section:
+
+| Section     | Holds                                                                           | Written by                         |
+|-------------|---------------------------------------------------------------------------------|------------------------------------|
+| **Run Log** | `B<n>` entries, one per thing the run recorded — a blocker, a note, a deviation | `rework-module`, `rework.sh block` |
+
+Phase 1 writes the title alone; `rework.sh block` creates the **Run Log** heading at the first entry. An entry
+is `- **B<n> (<ID>):** what happened`, `<ID>` the step it belongs to, numbered once per log and appended; a
+blocker carries a `- Resolved:` line beneath it, filled when it is settled, and a note nothing waits on carries
+none. A rework keeps no **Attempts** and no **Review Findings**.
 
 ## What changes
 
@@ -90,4 +113,6 @@ rest is evidence.
   assertion, a public port.
 
 **Write the tables from the checklist, never the checklist from the tables.** They are written once at Phase 1;
-a step re-classified in Phase 2 edits both. Ticks live in the checklist only.
+a step re-classified in Phase 2 edits both. Ticks live in the checklist only. **Nothing in a steps file is
+history**: what a run wrote into it is a tick, `abandoned — <why>` on a header, a corrected `survives:`, a
+widened `files:`, and an Open Question — each of the last three with a `B` entry in the log saying so.

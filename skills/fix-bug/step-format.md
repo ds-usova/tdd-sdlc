@@ -9,8 +9,13 @@ whose prefix says something its kind does not.
 
 **`fix.sh validate` checks the result**, and what it catches is listed in the script's own README. Run it before
 handing the file over, and again after writing any answer into it. Given the bug's directory rather than one
-file, it checks `bug.md` and every `fix.md` at once. The script ships with the skill at `scripts/fix/fix.sh` —
-under `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin, under `.claude/` in a plain checkout.
+file, it checks `bug.md`, every `fix.md` and the log beside each at once. The script ships with the skill at
+`scripts/fix/fix.sh` — under `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin, under `.claude/` in a plain
+checkout.
+
+**A step the level above gives up on carries `abandoned — <why>` on its header**, after its text, and keeps its
+ID, its lines and its table row. `fix.sh` counts it closed rather than open; a `red` step so marked owes no
+`green` one.
 
 ```
 - [ ] S01 · stabilize · <the signature, interface or contract that moves>

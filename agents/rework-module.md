@@ -9,7 +9,8 @@ Apply one steps file, start to finish, in ID order.
 
 ## What You Are Given
 
-- **the steps file path** — the only file you read steps from, tick, or edit;
+- **the steps file path** — the only file you read steps from, tick, or edit — and its log beside it,
+  `<file-stem>-log.md`, the only file you record into;
 - **the module it belongs to**, or every module on the seam where your file is `shared/steps.md`;
 - **your module's baseline figures** — the suite's total and skipped counts and the commit, measured before
   anything changed — and what `shared/steps.md` already disabled in your module, which sits on top of them;
@@ -28,14 +29,16 @@ reached.
 `rework.sh` ships with the skill at `scripts/rework/rework.sh` — under `${CLAUDE_PLUGIN_ROOT}` when installed
 as a plugin, under `.claude/` in a plain checkout — README beside it, and is how you read and write the file:
 
-| Need                 | Command                                  |
-|----------------------|------------------------------------------|
-| Where the run stands | `rework.sh status --file <steps>`        |
-| One step's text      | `rework.sh show R01 R02 --file <steps>`  |
-| Mark a step done     | `rework.sh tick R01 --file <steps>`      |
-| Check the grammar    | `rework.sh validate --file <steps>`      |
+| Need                      | Command                                                                 |
+|---------------------------|-------------------------------------------------------------------------|
+| Where the run stands      | `rework.sh status --file <steps>`                                       |
+| One step's text           | `rework.sh show R01 R02 --file <steps>`                                 |
+| Mark a step done          | `rework.sh tick R01 --file <steps>`                                     |
+| Leave it open, record why | `rework.sh block R01 "<reason>" --file <steps>` — the log's next `B`    |
+| Check the grammar         | `rework.sh validate --file <steps>` — reads the log too                 |
 
-**Name your file on every call**; several are in flight at once. **Read a step from `rework.sh show`**, never by
+**Name your file on every call**; several are in flight at once. The log is found beside it; `--log` names
+another. **Read a step from `rework.sh show`**, never by
 extracting it by hand. **Tick a step only once you have verified it yourself.** Where the script is absent or the
 call is refused — by a hook or by the user at the prompt — edit the file directly under the same rules and put the case as one line in your
 final report, as [`scripts/README.md`](../scripts/README.md) says; never stop for it.
@@ -43,7 +46,8 @@ final report, as [`scripts/README.md`](../scripts/README.md) says; never stop fo
 **Run a suite in the foreground and wait for it.** Backgrounding it ends the turn mid-step, and nothing restarts
 you.
 
-**A resumed run starts at the first unticked step**, from its own beginning.
+**A resumed run starts at the first unticked step**, from its own beginning, having read the log's Run Log
+first: a `B` entry with its `Resolved:` filled is a decision already made, and an abandoned step is skipped.
 
 ## The Sequence
 
@@ -57,20 +61,35 @@ concurrent commit, and report a refusal they do not cover rather than retrying.
 
 **After the last step**: the module's whole suite is green, and nothing in any `disables:` is still off.
 
-## What You Write Into Your File
+## What You Write Into Your Files
 
-These and nothing else. No other agent may open this file.
+These and nothing else. No other agent may open your steps file or its log.
+
+Into the steps file:
 
 - **A tick**, through `rework.sh tick`.
 - **A corrected `survives:` line**, where `applying-a-step.md` says the scenario now runs elsewhere.
 - **One widened boundary line of a `stabilize` or `pin` step**, where `applying-a-step.md` allows it. Nothing
   else about a step is yours: not its kind, not its claim, never a step added or removed.
+- **`abandoned — <why>` on a step's header**, only where the level above has decided to give the step up.
 - **A numbered question under `## Open Questions`, only when you return blocked**, saying what you need decided.
+  `Q` numbers are your file's own, starting at `Q1`.
+
+Into the log's **Run Log**, as `- **B<n> (<ID>):** what happened`, appended after the last entry:
+
+- **A blocked return**, through `rework.sh block`, which adds the `- Resolved:` line the level above fills.
+- **A widened `files:` line**, naming the path added; **a corrected `survives:` line**, before and after.
+- **A step abandoned**, and why.
+- **A mutation that did not bite** — the target that stayed green.
+- **A defect found and not fixed**, with enough to reproduce it.
+
+The last four carry no `Resolved:` line; nothing waits on them.
 
 ## Where You Stop And Return
 
 Return when the file is finished or genuinely blocked — never while waiting. Blocked is a result: write the
-question into your file, revert the step it concerns, then return and say what you need.
+question into your steps file, `rework.sh block` the step, revert the step it concerns, then return and say what
+you need.
 
 - **Every refusal in `applying-a-step.md`.**
 - **A step red for a reason its `needs:` does not explain**, after one honest retry.
@@ -82,7 +101,8 @@ to reproduce, not treated as a step failure.** A test this rework broke is never
 
 ## Out of Scope
 
-- **Any file but yours.** `rework.md` you read and never write. Another module's `steps.md` you never open.
+- **Any file but yours.** `rework.md` you read and never write. Another module's `steps.md` and its log you
+  never open.
 - **Any module but the one your file names** — except a `shared/steps.md`, whose modules are all of them.
 - **The refactor round, `review/findings.md` and archiving** — the level above's, over the whole diff.
 - **A page a `docs:` line names.** The line records what the step invalidates; the finished-work pass rewrites
@@ -93,8 +113,9 @@ to reproduce, not treated as a step failure.** A test this rework broke is never
 
 Short. The level above assembles the closing report from it:
 
-- **Every step by ID**, ticked or not, and the files it touched.
+- **Every step by ID**, ticked, abandoned or open, and the files it touched.
 - **Every mutation** — what was broken, and what caught it or failed to.
 - **Every hunk an `inline` or `tests` step made to a test file.**
 - **The suite's final total and skipped counts**, against the baseline you were given.
+- **Every `B` entry you wrote**, by number.
 - **What is blocked, and the decision you need.**

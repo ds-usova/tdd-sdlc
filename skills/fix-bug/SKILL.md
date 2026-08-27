@@ -26,18 +26,20 @@ feature.
 | `green`     | production code, until that test passes and the suite stays green                                        |
 
 **Every fix ends with a `red` step that failed and a `green` step that made it pass.** Their grammar is
-[`step-format.md`](step-format.md). **Every approach that failed on the way is written into `## Attempts`**,
-with the output it produced — [`attempts.md`](../../templates/attempts.md).
+[`step-format.md`](step-format.md). **Every approach that failed on the way is written into the log's
+`## Attempts`**, with the output it produced — [`attempts.md`](../../templates/attempts.md).
 
 ## The Files
 
 The fix owns `docs/<n>-<name>/`: one `bug.md`, one `fix.md` per module, and `shared/fix.md` where two modules
-must agree on a contract. What each carries is [`the-files.md`](the-files.md). Where the diagnosis reaches more
-than one module, [`crossing-modules.md`](crossing-modules.md) decides which module the fix is cut in and what
+must agree on a contract — and beside each, its log: `bug-log.md`, `fix-log.md`, `shared/fix-log.md`. The file
+is what binds; the log is what happened to it — its **Attempts**, its **Run Log** and, for a fix, the `In
+flight:` line. What each carries is [`the-files.md`](the-files.md). Where the diagnosis reaches more than one
+module, [`crossing-modules.md`](crossing-modules.md) decides which module the fix is cut in and what
 `shared/fix.md` holds. `fix.sh` (`scripts/fix/` under the plugin root, README beside it) reads, ticks and
-validates them, and
-writes the two lines that otherwise go stale — `In flight:` and `bug.md`'s `Attempts:`. Refused or absent on the
-first call, tell the user once as [`scripts/README.md`](../../scripts/README.md) says and edit the files by hand.
+validates the files, and writes the log: `start` and `tick` keep `In flight:`, `block` appends to the Run Log.
+Refused or absent on the first call, tell the user once as [`scripts/README.md`](../../scripts/README.md) says
+and edit the files by hand.
 
 ## Conventions
 
@@ -82,15 +84,16 @@ for this commit is read, not repeated.
 
 ## Phase 1 — Diagnose, and Write the Files
 
-**Write `bug.md` as soon as the symptom and the reproduction are known**, so the attempts have somewhere to land
-as they happen. Then work out why the bug happens: `## Why it happens` is a chain from the symptom to the line
-that is wrong, every link proved. A probe — a log line, a counter, a query by hand, a seam a test can drive — is
-how a link is proved. **A probe that failed is an attempt**, phase `diagnosis`. A probe the fix needs again
-becomes a `stabilize` step. Every probe's edits are reverted before the files are presented — the disabled
-reproduction test is the one edit that stays, uncommitted. An effect an edit does not undo — a migration run, an
-offset consumed — is named in the diagnosis and put back by hand where possible.
+**Write `bug.md` and `bug-log.md` as soon as the symptom and the reproduction are known**, so the attempts have
+somewhere to land as they happen. Then work out why the bug happens: `## Why it happens` is a chain from the
+symptom to the line that is wrong, every link proved. A probe — a log line, a counter, a query by hand, a seam a
+test can drive — is how a link is proved. **A probe that failed is an attempt**, phase `diagnosis`, in the log's
+`## Attempts`. A probe the fix needs again becomes a `stabilize` step. Every probe's edits are reverted before
+the files are presented — the disabled reproduction test is the one edit that stays, uncommitted. An effect an
+edit does not undo — a migration run, an offset consumed — is named in the diagnosis, put back by hand where
+possible, and recorded as a `B` entry in the log's Run Log.
 
-Then write every `fix.md`, and run `fix.sh validate <the directory>` until it exits 0.
+Then write every `fix.md` with its `fix-log.md`, and run `fix.sh validate <the directory>` until it exits 0.
 
 ## Phase 2 — Stop
 
@@ -100,8 +103,8 @@ Present the files and stop. Nothing touches a source file until the user asks fo
 where the fix settles a decision worth an ADR under the Follow-Up conventions. Ask them in one batch via
 `AskUserQuestion` and write each answer in as `- A:`.
 
-**A fix turned down here** gets `**Closed:** <why>` in `bug.md`'s header, is left where it is, and is reported as
-closed. The disabled reproduction test is reverted.
+**A fix turned down here** gets `**Closed:** <why>` in `bug.md`'s header — who decided and on what, in that one
+line — is left where it is, and is reported as closed. The disabled reproduction test is reverted.
 
 ## Phase 3 — Apply
 
@@ -110,30 +113,35 @@ closed. The disabled reproduction test is reverted.
 1. **`shared/fix.md` first, alone**, where there is one, by its own `fix-bug-module` agent given every module on
    the seam. Nothing else starts until it lands.
 2. **One `fix-bug-module` agent per `fix.md`, concurrently**, spawned and waited for as
-   [`templates/sub-agents.md`](../../templates/sub-agents.md) says. Each gets its file path, `bug.md`, its
-   module's phase-0 figures, the conventions its module names, and what the shared fix disabled in that module.
+   [`templates/sub-agents.md`](../../templates/sub-agents.md) says. Each gets its file path and its log's,
+   `bug.md`, its module's phase-0 figures, the conventions its module names, and what the shared fix disabled in
+   that module.
    Cap the number running at once, and pick the model, by what the conventions say about parallelism and
    sub-agent models.
-3. **What happens inside an agent is its own** — its steps, its guardrails, its attempt log, its ticks. Never
-   edit a file an agent owns while it runs. Report per module as each returns.
+3. **What happens inside an agent is its own** — its steps, its guardrails, its log, its ticks. Never edit a file
+   or a log an agent owns while it runs. Report per module as each returns.
 
 **An agent that returns blocked changes the plan, not the rules.** It returns for one of: three failed attempts
 on a step, a symptom that survives a correct `green` step, a cause in another module, a step whose kind is wrong,
 a test asserting the old behaviour that nobody foresaw, or a refusal from [`applying-a-step.md`](applying-a-step.md).
-Wait for the module's agent to return, amend `bug.md` and the fix files — a new `red`/`green` pair moves whole,
-a struck step keeps its table row with `abandoned — <why>`, an ID is never reused — re-run `fix.sh validate`, and
-**stop for approval again as in Phase 2**. Then re-spawn that module's agent; it starts at its first unticked
-step.
+The return itself is a `B` entry in that fix's log — the agent wrote it, or `fix.sh block` does — and the
+question it needs answered is a `Q` under the fix file's `## Open Questions`. Wait for the module's agent to
+return, amend `bug.md` and the fix files — a new `red`/`green` pair moves whole, a struck step keeps its row and
+its checklist bullet with `abandoned — <why>` on the header, an ID is never reused — say what was amended as a
+`B` note in the log, re-run `fix.sh validate`, and **stop for approval again as in Phase 2**. Then re-spawn that
+module's agent; it starts at its first unticked step. An abandoned step is closed: `fix.sh task` counts it so.
 
 **A fix the user calls off** is reverted step by step, newest first, in the skill and never in an agent, until
 every module's suite is back at its baseline figures. A revert that conflicts stops and reports. The directory
-stays with its log intact, `bug.md` takes its `**Closed:**` line, and nothing is archived.
+stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decision lives there alone —
+`bug-log.md`'s Run Log takes a `B` entry for every effect the revert did not undo, and nothing is archived.
 
 ### What Is Never Done
 
 - A test is never deleted or weakened to make a step green. A `stabilize` step may disable one, and a `red` step
   clears it.
-- A second defect found along the way is reported, never fixed.
+- A second defect found along the way is recorded as a `B` entry in `bug-log.md`'s Run Log and reported, never
+  fixed.
 - Nothing outside the steps is improved because it was nearby.
 - An approach that failed is never dropped in silence.
 
@@ -158,8 +166,7 @@ stays with its log intact, `bug.md` takes its `**Closed:**` line, and nothing is
    verdict is this one. A red run belongs to the step or refactor that edited what failed.
 5. **Whatever else the modules' build conventions require of a finished change** — a coverage guardrail, a
    formatting gate. A guardrail that fails blocks the archive.
-6. **`fix.sh attempts docs/<n>-<name>/`** — it rewrites `bug.md`'s `**Attempts:**` line from every file's log, so
-   one file tells the next session where the log is.
+6. **`fix.sh attempts docs/<n>-<name>/`** — one line naming every attempt in every log, for the report.
 7. **Close the row this fix came from**, where `Source:` names a findings file, in that file's own form. Its
    `B` row leaves `docs/backlog.md` in the same edit ([`backlog.md`](../../templates/backlog.md)).
 8. **Archive**: move `docs/<n>-<name>/` into `docs/implemented/`, and commit the move where the conventions

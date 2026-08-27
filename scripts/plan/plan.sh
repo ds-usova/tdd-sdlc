@@ -129,6 +129,16 @@ item_range() {
     awk -f "$parser" -v mode=range -v want="$1" "$plan_file"
 }
 
+# A truncated read must not answer as a whole one. Only validate reports it and carries on, since
+# reporting it is the whole of what validate does.
+assert_read_whole() {
+    resolve_log
+    local files=("$plan_file")
+    [ -f "$log_file" ] && files+=("$log_file")
+    awk -f "$parser" -v mode=fence "${files[@]}" \
+        || die "${plan_file#"$repo_root/"} read as far as an unclosed fenced block - nothing below it counted" 1
+}
+
 # A task owns one directory directly under docs/, and its plans sit either in it or one level deeper.
 # Walking up to that level is exact, where looking for a sibling design.md is not: a task may be
 # planned before its design is written, and an archived task keeps the same shape one level lower.
@@ -148,6 +158,9 @@ task_dir_of() {
 
 command="${1:-}"
 [ -n "$command" ] || { usage; exit 2; }
+case "$command" in
+    --help|-h) usage; exit 0 ;;
+esac
 shift
 
 args=()
@@ -157,7 +170,9 @@ section_filter=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --file)    plan_file="${2:-}"; shift 2 ;;
-        --log)     log_file="${2:-}"; shift 2 ;;
+        --log)
+            [ ! -d "${2:-}" ] || die "--log takes one file"
+            log_file="${2:-}"; shift 2 ;;
         --group)   group_filter="${2:-}"; shift 2 ;;
         --section) section_filter="${section_filter:+$section_filter,}${2:-}"; shift 2 ;;
         --all)     verbose=1; shift ;;
@@ -178,11 +193,13 @@ done
 case "$command" in
     status)
         resolve_plan
+        assert_read_whole
         awk -f "$parser" -v mode=status "$plan_file"
         ;;
 
     next)
         resolve_plan
+        assert_read_whole
         awk -f "$parser" -v mode=next -v verbose="$verbose" \
             -v group_filter="$group_filter" -v section_filter="$section_filter" "$plan_file"
         ;;
@@ -221,7 +238,8 @@ case "$command" in
         done < <(awk -f "$parser" -v mode=updates "$plan_file")
 
         if [ "$problems" -eq 0 ]; then
-            echo "$(awk -f "$parser" -v mode=count "$plan_file") items, no problems"
+            IFS="$(printf '\t')" read -r n_items n_b < <(awk -f "$parser" -v mode=count "${files[@]}")
+            echo "${plan_file#"$repo_root/"}: $n_items items, $n_b run-log entries, no problems"
         fi
         exit "$problems"
         ;;
@@ -229,6 +247,7 @@ case "$command" in
     show)
         [ "${#args[@]}" -gt 0 ] || die "show needs at least one item ID"
         resolve_plan
+        assert_read_whole
         first=1
         for id in "${args[@]}"; do
             range="$(item_range "$id")" || die "no item $id in ${plan_file#"$repo_root/"}" 1
@@ -242,6 +261,7 @@ case "$command" in
     tick)
         [ "${#args[@]}" -gt 0 ] || die "tick needs at least one item ID"
         resolve_plan
+        assert_read_whole
         # Every ID is resolved before any is written, so a typo in the third leaves the first two
         # alone instead of half-applying a stage's batch.
         lines=()
@@ -255,7 +275,7 @@ case "$command" in
         for i in "${!args[@]}"; do
             line="${lines[$i]}"
             if sed -n "${line}p" "$plan_file" | grep -q '^- \[[xX]\]'; then
-                echo "${args[$i]} was already ticked"
+                echo "already ticked: ${args[$i]}"
                 continue
             fi
             rewrite_plan awk -v n="$line" 'NR == n { sub(/^- \[ \]/, "- [x]") } { print }' "$plan_file"
@@ -267,18 +287,20 @@ case "$command" in
         id="${args[0]:-}"
         note="${args[1]:-}"
         [ -n "$id" ] && [ -n "$note" ] || die "block needs an item ID and a note"
+        [ "${#args[@]}" -le 2 ] || die "block takes one ID and one note - quote the note"
         resolve_plan
         resolve_log
+        assert_read_whole
         range="$(item_range "$id")" || die "no item $id in ${plan_file#"$repo_root/"}" 1
         [ -n "$range" ] || die "no item $id in ${plan_file#"$repo_root/"}" 1
-        [ -f "$log_file" ] || die "no plan log at ${log_file#"$repo_root/"} - plan-task writes it beside the plan"
+        [ -f "$log_file" ] || die "no plan log at ${log_file#"$repo_root/"} - plan-task writes it beside the file"
 
         # Appended as the next B entry at the end of the log's Run Log, which is created when absent.
         # The number comes from the parser, so the entry lands above nothing that came before it.
         b="$(awk -f "$parser" -v mode=nextblock "$plan_file" "$log_file")"
         runlog_start="$(grep -n '^## Run Log' "$log_file" | head -1 | cut -d: -f1)"
         if [ -z "$runlog_start" ]; then
-            rewrite_file "$log_file" awk '{ print } END { print ""; print "## Run Log"; print "" }' "$log_file"
+            rewrite_file "$log_file" awk '{ print } END { print ""; print "## Run Log" }' "$log_file"
             runlog_start="$(grep -n '^## Run Log' "$log_file" | head -1 | cut -d: -f1)"
         fi
         next_section="$(awk -v s="$runlog_start" 'NR > s && /^## / { print NR; exit }' "$log_file")"

@@ -57,12 +57,14 @@ Nothing is written before this passes.
 
 ## Phase 1 — Write the Files
 
-A rework owns `docs/<n>-<name>/`: `rework.md`, and one steps file per agent where it reaches more than one
-module. What each holds is [`the-files.md`](the-files.md). `rework.sh` (`scripts/rework/` under the plugin
-root, README beside it) reads, ticks and validates them. Refused or absent on the first call, tell the user once
-as [`scripts/README.md`](../../scripts/README.md) says and edit the files by hand.
+A rework owns `docs/<n>-<name>/`: `rework.md`, one steps file per agent where it reaches more than one module,
+and **a log beside every file that holds steps** — `rework-log.md`, `<module>/steps-log.md`,
+`shared/steps-log.md` — written here with its title alone. What each holds is [`the-files.md`](the-files.md).
+`rework.sh` (`scripts/rework/` under the plugin root, README beside it) reads, ticks and validates them, and
+`rework.sh block` writes the log. Refused or absent on the first call, tell the user once as
+[`scripts/README.md`](../../scripts/README.md) says and edit the files by hand.
 
-Run `rework.sh validate <the directory>` until it exits 0 before presenting anything.
+Run `rework.sh validate <the directory>` until it exits 0 before presenting anything; a missing log fails it.
 
 ## Phase 2 — Stop
 
@@ -78,8 +80,8 @@ none and ask nothing.
 
 ## Phase 3 — Apply the Steps
 
-**`rework.sh validate` exits 0 on every steps file before the first source file is touched**, again after any
-answer or re-classification written in Phase 2.
+**`rework.sh validate` exits 0 on every steps file and its log before the first source file is touched**, again
+after any answer or re-classification written in Phase 2.
 
 1. **`shared/steps.md` first, alone**, where there is one, by its own `rework-module` agent given every module
    on the seam. Its exit condition: every module on the seam compiles, passes its layering check, and its suite
@@ -88,8 +90,9 @@ answer or re-classification written in Phase 2.
 2. **One `rework-module` agent per steps file, concurrently**, spawned and waited for as
    [`templates/sub-agents.md`](../../templates/sub-agents.md) says, each handed its file's path, its module, its
    baseline figures, what the shared file disabled in its module, and `rework.md`. It applies its steps in ID
-   order and returns finished or blocked. A blocked agent's question is written into its file; answer it there
-   and spawn the agent again.
+   order and returns finished or blocked. A blocked agent's question is written into its steps file's
+   `## Open Questions` and the return itself is a `B` entry in the log's Run Log; answer the question there,
+   fill the entry's `Resolved:`, and spawn the agent again.
 
 **A step reaches a sub-agent as `rework.sh show <ID> --file <steps>`**, never as a prompt retelling it.
 
@@ -108,7 +111,8 @@ follows, and the commit is provisional: the closing full run proves the whole.
 
 1. **Nothing left in any `disables:` is still off**, and every steps file's last run is green. Anything red or
    still disabled names the step that left it, and the directory is not archived. An invariant from **What must
-   stay true** that could not be kept, and a step abandoned, are reported here.
+   stay true** that could not be kept, and a step abandoned — `abandoned — <why>` on its header, its `B` entry
+   in the log's Run Log — are reported here; `status` counts an abandoned step closed and lists it apart.
 2. **A refactor round per module** — see below. **Then one full build and full suite of every affected module,
    green** — the one full run of the rework. **Skipped where item 6's list holds an entry that runs the suite
    over this same tree**; the build conventions name it, and its verdict is this one. A red run belongs to the

@@ -6,7 +6,8 @@ What a finished upgrade tells the user, once phase 4 is done.
 - **What listed versions and vulnerabilities**, and where the conventions were silent, what the stack could
   offer — a versions plugin, an audit command, a CVE scanner — as an option, not a recommendation made.
 - Each step, its kind, the versions it moved between, and the files it touched.
-- **Every kept-back change** — what the guide asked, what was tried, what would unblock it.
+- **Every kept-back change**, from the logs' Run Log — what the guide asked, what was tried, what would unblock
+  it.
 - **Every abandoned step**, and the version it left in place.
 - **Every vulnerability still open**, and why: not offered, kept back, no fix released.
 - **Every deprecation a guide announced that this run left in the code.**

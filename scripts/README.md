@@ -8,8 +8,10 @@ uses the same one.
 
 Each one reads, validates and edits a file the skill would otherwise read and edit by hand. `validate` catches a
 malformed file before anything runs on it — a duplicate ID, a dependency nothing defines, a placeholder left in a
-scenario. `next` computes what the `after:` lines allow to be spawned. `tick` and `block` keep every checkbox
-consistent with what the suite actually proved. `settled` proves a design has no open decision. None of them
+scenario, a run-log entry out of order. `next` computes what the `after:` lines allow to be spawned. `tick` keeps
+every checkbox consistent with what the suite actually proved; `block` appends to the file's `<file-stem>-log.md`,
+where the run log — and, for a fix or an upgrade, the attempts — lives. `settled` proves a design has no open
+decision. None of them
 does anything the model cannot do by reading the file; what they add is that the answer is mechanical, the same
 every time, and never skipped because a long run was tired of it.
 

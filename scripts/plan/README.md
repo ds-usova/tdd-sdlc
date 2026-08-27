@@ -39,18 +39,18 @@ Run it with bash, from anywhere inside the project:
 `show` and `tick` take a whole stage's worth of IDs in one call, so neither needs a loop around it. `tick`
 resolves every ID before it writes any, and a name nothing defines ticks none of them.
 
-| Command             | Effect                                                                                                    |
-|---------------------|-----------------------------------------------------------------------------------------------------------|
-| `status`            | Done/total per group, and the IDs still open.                                                             |
-| `next [--all]`      | Items that can start now, longest remaining chain first. `--all` also lists what is waiting, and on what. |
-| `show <ID>...`      | One item: its header and everything indented under it. Several print in order, blank-line separated.      |
-| `tick <ID>...`      | Mark the items done. Saying so twice is not an error.                                                     |
-| `block <ID> <note>` | Leave the item open; record the note as the next `B` entry of the plan log's **Run Log**.                 |
-| `validate`          | See [What `validate` checks](#what-validate-checks).                                                      |
-| `task [<path>]`     | Every plan the task holds, its done/total, and whether all are finished. Exit 0 means nothing is open.    |
+| Command             | Effect                                                                                                          |
+|---------------------|-----------------------------------------------------------------------------------------------------------------|
+| `status`            | Done/total per group, and the IDs still open.                                                                   |
+| `next [--all]`      | Items that can start now, longest remaining chain first. `--all` also lists what is waiting, and on what.       |
+| `show <ID>...`      | One item: its header and everything indented under it. Several print in order, blank-line separated.            |
+| `tick <ID>...`      | Mark the items done; one already ticked is reported as `already ticked: <ID>` and left as it is.                |
+| `block <ID> <note>` | Leave the item open; record the note as the next `B` entry of the plan log's **Run Log**. One note, so quote it. |
+| `validate`          | See [What `validate` checks](#what-validate-checks).                                                            |
+| `task [<path>]`     | Every plan the task holds, its done/total, and whether all are finished. Exit 0 means nothing is open.          |
 
 Exit codes: **0** done, **1** no such item, `validate` found problems, or `task` found something open,
-**2** bad usage.
+**2** bad usage. `--help` or `-h` as the first argument prints the usage.
 
 **The plan is named as a bare path, on any subcommand**, and it comes last:
 
@@ -65,8 +65,8 @@ log, and one plan per module, `plan.md` for a single-module task and `<module>/p
 multi-module one. An archived plan under `docs/implemented/` has to be named explicitly.
 
 **Every plan has a `plan-log.md` beside it**, holding its **Review Findings** and its **Run Log**; `--log` names
-another. `validate` reads both, and `block` writes to the log. The plan stays what a step agent reads; the log is
-what happened to it.
+another, and takes one file, never a directory. `validate` reads both, and `block` writes to the log. The plan
+stays what a step agent reads; the log is what happened to it.
 
 A multi-module task therefore has several plans in flight, and every command names the one it addresses. IDs
 restart per plan, so `GU07` can exist in two of them and is only meaningful with its plan's path.
@@ -112,19 +112,21 @@ included; the plan path, when given, comes after it.
 
 ### What `validate` checks
 
-| Check                                                                         | Catches                                                      |
-|-------------------------------------------------------------------------------|--------------------------------------------------------------|
-| Duplicate IDs, items with no ID                                               | an item nothing can address                                  |
-| `after:` naming an ID nothing defines, dependency cycles                      | a schedule that never becomes eligible                       |
-| `after:` reaching into a group the plan lists later                           | a stage waiting on work a later stage owns                   |
-| A `given:` / `when:` / `then:` whose value is empty, `—`, `TBD` or `N/A`      | a scenario a step agent cannot implement                     |
-| An `update:` bullet on an **open** item naming a method found nowhere         | a plan written against remembered code                       |
-| No `plan-log.md` beside the plan                                              | a plan nothing reviewed and no run can record against        |
-| A `Review Findings` section, an `F` entry or a `Blockers` heading in the plan | the old shape — the log owns those now                       |
-| A `B` entry outside the log's `Run Log`                                       | a record `block` cannot number after                         |
-| A finding with no `Resolution:`, or an unrecognized one                       | a review that skipped the mechanical/decision classification |
-| A `mechanical` finding whose `Action:` is empty and that is not `Escalated:`  | a fix the orchestrator was meant to apply and did not        |
-| A `B` entry numbered below the entry above it                                 | a record inserted where it did not happen                    |
+| Check                                                                                              | Catches                                                      |
+|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------|
+| Duplicate IDs, items with no ID                                                                    | an item nothing can address                                  |
+| `after:` naming an ID nothing defines, dependency cycles                                           | a schedule that never becomes eligible                       |
+| `after:` reaching into a group the plan lists later                                                | a stage waiting on work a later stage owns                   |
+| A `given:` / `when:` / `then:` whose value is empty, `—`, `TBD` or `N/A`                           | a scenario a step agent cannot implement                     |
+| An `update:` bullet on an **open** item naming a method found nowhere                              | a plan written against remembered code                       |
+| No `plan-log.md` beside the plan                                                                   | a plan nothing reviewed and no run can record against        |
+| A `Review Findings` or `Run Log` section, an `F` or `B` entry, or a `Blockers` heading in the plan | the old shape — the log owns those now                       |
+| A `B` entry outside the log's `Run Log`                                                            | a record `block` cannot number after                         |
+| A `B` entry naming no item, or an item the plan does not define                                    | a record nothing can be resumed from                         |
+| A finding with no `Resolution:`, or an unrecognized one                                            | a review that skipped the mechanical/decision classification |
+| A `mechanical` finding whose `Action:` is empty and that is not `Escalated:`                       | a fix the orchestrator was meant to apply and did not        |
+| A `B` entry numbered below the entry above it                                                      | a record inserted where it did not happen                    |
+| A fenced block that never closes, in either file                                                   | an example whose own fence swallowed the rest of the file    |
 
 The `update:` check greps the tree once per method named, excluding `build/`, `.git/`, `.gradle/`,
 `node_modules/`, `target/`, `out/` — and every `plan.md` and `plan-log.md`, this plan above all: the plan names the method
@@ -202,7 +204,13 @@ wrong one to update, and a `Resolved:` line may be filled with nothing true. Whe
 is the `implement-plan` readiness gate's question, not this script's.
 
 Bullets inside fenced code blocks are skipped, so a plan quoting its own step format does not acquire phantom
-items from the example.
+items from the example. A fence is ``` or `~~~`, and closes only on the same marker at the same length, as in
+Markdown, so an example that nests a fence inside a longer one reads as one block. A block indented under an item
+belongs to it and `show` prints it; an unindented one is the document's. **`status`, `next`, `show`, `tick` and
+`block` refuse a plan or log whose fenced block never closed**, since everything below it went unread and half
+a file answers as confidently as a whole one; `validate` reports it with the rest.
+
+Line endings may be CRLF: the carriage return is stripped before a line is read.
 
 `next` degrades quietly on a plan with a dependency cycle: everything in the cycle waits forever and simply never
 appears. That is what `validate` is for, and why it is worth running once when the plan is written rather than

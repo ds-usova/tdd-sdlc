@@ -27,7 +27,8 @@ commit.
 ## What each kind owes
 
 **Each scenario in `survives:` is found again by name, in the test its line already names.** Where the run puts a
-scenario somewhere else, the line is corrected to say where.
+scenario somewhere else, the line is corrected to say where, and a `B` entry in the log's Run Log records the
+line before and after.
 
 **A mechanical test edit is a call this step renamed, re-shaped or re-imported** — a constructor argument, an
 import, a package, a method name. An assertion, a fixture value, and the removal of a test are not mechanical.
@@ -66,6 +67,12 @@ Each of these reverts the step and puts it back to the user, re-classified or re
 
 - **A step whose run is red for a reason other than its own claim** is waiting on what its `needs:` names. It is
   not finished, it does not commit, and it is not put back to the user either.
-- **A `stabilize` that finds a call site its `files:` does not name** widens the line in its steps file and says
-  so in the report. It never widens into a behaviour change: the new site keeps its logic and takes a `TODO`.
-- **A `pin` whose new check reds a file the step does not name** widens the line the same way and reports it.
+- **A `stabilize` that finds a call site its `files:` does not name** widens the line in its steps file, writes
+  a `B` entry in the log's Run Log naming the path added, and says so in the report. It never widens into a
+  behaviour change: the new site keeps its logic and takes a `TODO`.
+- **A `pin` whose new check reds a file the step does not name** widens the line the same way, with the same
+  `B` entry, and reports it.
+
+Each refusal above, once put to the user, is a blocked return: `rework.sh block <ID> "<why>"` writes its `B`
+entry, and the question goes under the steps file's `## Open Questions`. A step given up on after that keeps
+its row with `abandoned — <why>` on its header and a `B` entry saying so.

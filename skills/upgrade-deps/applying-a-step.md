@@ -3,10 +3,10 @@
 What each kind of step edits, what it runs, and when it refuses. The sequence around a step — the commit, what
 is never done — is the skill's.
 
-| Kind      | Edit                                                                                              | Then run                                                          |
-|-----------|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
-| `bump`    | the version line in the manifest, and the lock file through the stack's own command               | full build · the module's whole suite · the architecture check    |
-| `migrate` | the version line and the lock file, then each `change:` in order, inside `files:` and `test-files:` | full build · the module's whole suite · the architecture check    |
+| Kind      | Edit                                                                                                | Then run                                                       |
+|-----------|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| `bump`    | the version line in the manifest, and the lock file through the stack's own command                 | full build · the module's whole suite · the architecture check |
+| `migrate` | the version line and the lock file, then each `change:` in order, inside `files:` and `test-files:` | full build · the module's whole suite · the architecture check |
 
 **The lock file is regenerated, never edited.** `npm install`, `./gradlew dependencies --write-locks`,
 `poetry lock`, whatever the module's conventions name; where they name nothing and the stack keeps no lock file,
@@ -28,15 +28,17 @@ A `bump` never edits a source file. The moment one is needed the kind is wrong.
 Move the version first and build. Then take the `change:` lines in order; each is one edit and one build. Once
 every `change:` is made, run the whole suite.
 
-**A `change:` that fails is attempted, up to three times**, each attempt an entry in `## Attempts` with the
-compiler's or runner's own output. On the third failure the change is kept back:
+**A `change:` that fails is attempted, up to three times**, each attempt an entry in the log's `## Attempts`
+with the compiler's or runner's own output. On the third failure the change is kept back:
 
 1. **Undo that change only** — the version stays at the target, the other `change:` lines stay applied.
 2. **Build and run the suite.** Green: the module runs on the new version with the old API for this one item;
-   write the row in `## Kept back` and continue with the next `change:`. Red: the old API does not survive the
-   new version either.
+   write the `kept back` entry in the log's `## Run Log` — what the guide asked, `Kept because:` the attempt
+   IDs, `Would unblock:` what would finish it — and continue with the next `change:`. Red: the old API does not
+   survive the new version either.
 3. **Where step 2 is red**, the version goes back to where it was, every `change:` is undone, the step is
-   `abandoned — <why>`, and its survey row says `blocked`. Return; the level above decides.
+   `abandoned — <why>` on its header, a `B` entry in the log's `## Run Log` says what was reverted, and its
+   survey row says `blocked`. Return; the level above decides.
 
 **A `change:` whose old form still compiles under the new version but is deprecated is a legitimate keep-back.**
 The deprecation is written into `review/findings.md` by the level above; the step is still done.

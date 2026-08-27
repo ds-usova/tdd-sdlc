@@ -18,13 +18,13 @@ way.
 
 Sections are these five, in this order, and a section with nothing in it is left out:
 
-| Section                   | Holds                                            | Shape                                    |
-|---------------------------|--------------------------------------------------|------------------------------------------|
-| **Critical**              | fix before the next task starts                  | one block per defect, in the form below  |
-| **Bug**                   | real, and it can wait                            | one block per defect, in the form below  |
-| **Refactoring candidate** | nothing behaves wrong, and nothing should change | table — # · Status · module · what · why |
+| Section                   | Holds                                             | Shape                                    |
+|---------------------------|---------------------------------------------------|------------------------------------------|
+| **Critical**              | fix before the next task starts                   | one block per defect, in the form below  |
+| **Bug**                   | real, and it can wait                             | one block per defect, in the form below  |
+| **Refactoring candidate** | nothing behaves wrong, and nothing should change  | table — # · Status · module · what · why |
 | **Deferred change**       | nothing is wrong, but the behaviour should differ | table — # · Status · module · what · why |
-| **Manual test**           | what no test can see, so a person must look      | one block per check, in the form below   |
+| **Manual test**           | what no test can see, so a person must look       | one block per check, in the form below   |
 
 **A candidate and a deferred change are numbered and carry a status**, because they outlive the work that raised
 them. `#` is `R1` upward for a candidate and `D1` upward for a deferred change, assigned once and never reused.

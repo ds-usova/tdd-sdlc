@@ -1,8 +1,8 @@
 # The attempt log
 
-What was tried and did not work, written down as it happens. `## Attempts` is a section of every file a skill
-names as carrying one — `bug.md` and each `fix.md` in a fix, `upgrade.md` and each `steps.md` in an upgrade.
-Where a skill has a validating script, it reads this section.
+What was tried and did not work, written down as it happens. `## Attempts` is a section of every log a skill
+names as carrying one — `bug-log.md` and each `fix-log.md` in a fix, `upgrade-log.md` and each `steps-log.md`
+in an upgrade. Where a skill has a validating script, it reads this section.
 
 ## The entry
 
@@ -22,8 +22,8 @@ Where a skill has a validating script, it reads this section.
 | Line         | Holds                                                                      |
 |--------------|----------------------------------------------------------------------------|
 | the header   | `A<n>`, the phase, and what was tried, in a sentence                       |
-| `why:`       | what made it look like it would work — the observation, not the hunch    |
-| `result:`    | `failed — <what happened instead>`                                       |
+| `why:`       | what made it look like it would work — the observation, not the hunch      |
+| `result:`    | `failed — <what happened instead>`                                         |
 | `evidence:`  | a fenced block of the runner's, compiler's or process's **own output**     |
 | `ruled-out:` | what the next person no longer has to try, and why this attempt settles it |
 
@@ -31,13 +31,14 @@ Where a skill has a validating script, it reads this section.
 carries a fence of its own.
 
 **The phase is a step ID, or the one phase a skill names before its steps exist** — `diagnosis` for a fix. A
-step ID for an approach that failed while applying that step; those live in the file that holds the step.
+step ID for an approach that failed while applying that step; those live in the log beside the file that holds
+the step.
 
 **Every entry goes in the `## Attempts` section, whatever its phase names.** The step ID is how an entry says
 which step it belongs to. An entry written under the step's own checklist bullet is misplaced.
 
-**Numbers are `A1` upward, per file, assigned once and never renumbered.** A withdrawn attempt keeps its number.
-Since each file numbers its own, anything outside the file cites both: `module-a/fix.md · A3`.
+**Numbers are `A1` upward, per log, assigned once and never renumbered.** A withdrawn attempt keeps its number.
+Since each log numbers its own, anything outside the log cites both: `module-a/fix-log.md · A3`.
 
 ## The rules
 
@@ -66,8 +67,5 @@ and goes back to the user, or is kept back, as the skill says.
 **An attempt whose failure changed the tree is reverted before the next one starts.** Where it was not — a schema
 left migrated, a dependency left added — the entry says so.
 
-**The approach still being tried is not an entry.** It belongs on the file's `**In flight:**` line where the
+**The approach still being tried is not an entry.** It belongs on the log's `**In flight:**` line where the
 skill keeps one.
-
-**The top file's `**Attempts:**` header line names every entry in every file**, so a new session reads one line
-to know where the log is and how much of it there is.
