@@ -186,7 +186,8 @@ starts at its first unticked step.
 5. **Write `review/findings.md`** in the shape [`findings.md`](../../templates/findings.md) gives — a
    deprecation the guide announced that this run did not act on, every `kept back` entry lifted from the logs'
    Run Log with what would unblock it, a manual check where a bump changes runtime behaviour no test reaches. An
-   upgrade with nothing open still gets the file.
+   upgrade with nothing open still gets the file. Each entry is read off the manifest, the guide or the logs,
+   never off a module agent's closing observation on its own (**Measured, Not Noticed**).
 6. **Archive** once `upgrade.sh status` reports no open step in any steps file: move `docs/<n>-<name>/`, logs
    included, into `docs/implemented/`, and commit the move where the conventions commit at all. A steps file
    with an `abandoned` step or a log with a `kept back` entry still archives; what it left is in

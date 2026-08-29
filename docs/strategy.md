@@ -76,4 +76,5 @@ them.
 - The file is the record; the conversation is not.
 - One fact, one owner: a plan does not restate the design, a prompt restates neither.
 - A gate is run by whoever is accountable for the stage, on real command output.
+- Nothing is filed as work until it is measured; what a run only noticed is a hypothesis.
 - Nothing is archived while anything is open.

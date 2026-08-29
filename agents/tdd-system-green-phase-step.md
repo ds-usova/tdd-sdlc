@@ -115,7 +115,8 @@ End with a short, structured report the orchestrator can act on — the only cha
 - confirmation the full test class is green, with the passing-test count;
 - every production class modified, with a one-line reason each — plus any entry-point wiring performed;
 - confirmation that the owned test classes of every fixed class were re-run and stayed green;
-- any gaps or suspect tests you noticed but, by design, did not act on;
+- any gaps or suspect tests you noticed but, by design, did not act on — each as a hypothesis, in that section's
+  form;
 - any blockers (specification conflict between test levels, missing conventions entry, contract gap, test
   unsatisfiable within the guardrails) — stated precisely enough for the orchestrator to record them in the plan
   log's Run Log.

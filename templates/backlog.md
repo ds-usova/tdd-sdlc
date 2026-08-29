@@ -5,6 +5,14 @@ every deferred change still open across every archived task and rework, in three
 learn what the repository owes itself without opening a task's `review/findings.md`; a `fix-bug` starts from a
 row in the first table, a `rework` from a row in the second, a `design-task` from a row in the third.
 
+**Every row is measured work.** A row is appended only from an entry whose findings file measured what it claims
+— [`findings.md`](findings.md)'s **Measured, Not Noticed**. An observation a run merely reported gets no row
+here and no id.
+
+**A row is measured once more by whoever starts from it**, before that run writes a file: the same pass, over a
+tree that has moved since, by the only reader who did not write the row. What does not hold is reported, its
+owner's status set to `withdrawn`, and the row removed — never worked.
+
 **It holds pointers, never a second copy.** The task's `findings.md` owns the row — its text, its status, its
 reasoning. The backlog carries one clause and a link, and a row leaves the backlog when the owner closes it.
 
@@ -63,3 +71,4 @@ Who writes it:
 | a rework closes the row it came from               | `rework`, phase 4         | removes that `C` row; leaves it if the owner's status stays `open`                      |
 | a task closes the row its design came from         | `implement-plan`, phase 3 | removes that `T` row and sets the owner's status to `done · task <n>`                   |
 | a person closes a row directly (`done · directly`) | whoever set the status    | removes the row                                                                         |
+| a run's opening measurement withdraws its row      | `fix-bug` and `rework`, phase 0; `design-task`, §1 | removes that row and sets the owner's status to `withdrawn` |

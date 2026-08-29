@@ -28,9 +28,10 @@ Sections are these five, in this order, and a section with nothing in it is left
 
 **A candidate and a deferred change are numbered and carry a status**, because they outlive the work that raised
 them. `#` is `R1` upward for a candidate and `D1` upward for a deferred change, assigned once and never reused.
-`Status` is `open`, or `done · <the rework or task that closed it>` — or `done · directly` where it was taken
-without one. The opening count line says how many are still open, so the first line of the file answers what is
-left without reading the table.
+`Status` is `open`, `done · <the rework or task that closed it>`, `done · directly` where it was taken without
+one, or `withdrawn · <what the measurement found>` where a later reading showed the entry did not hold. The
+opening count line says how many are still open, so the first line of the file answers what is left without
+reading the table, and a status changed after the file was written re-emits it.
 
 **A refactoring candidate is a defect nobody sees yet, or the author's own deferral — never something the run
 merely noticed.** An asymmetry, a naming quibble, a test that could exist, a case the current schema or
@@ -57,10 +58,15 @@ and a paragraph about a class does not tell them how:
 - **Fix** <the proposal> · `<class or file>`
 ```
 
+**A defect block that is closed gains one line after `Fix`** — `- **Status** done · <the fix>`, or
+`withdrawn · <what the measurement found>` where a later reading showed the defect did not hold. A block without
+one is open; that is why a bug is never numbered.
+
 **Four of those lines are observations; `Fix` is not.** `Given`, `When`, `Then` and `Actual` are what the run
 saw. The fix is a proposal, and whoever picks it up implements it as written — so where this run did not
-exercise the mechanism behind it, the line says `unverified`. A design records the same distinction as
-`Basis:`; a findings file without it reads a guess and a tested conclusion in one voice.
+exercise the mechanism behind it, the line says `unverified` — the file-side form of a report's hypothesis,
+[`sub-agents.md`](sub-agents.md)'s **Reporting back**. A design records the same distinction as `Basis:`; a
+findings file without it reads a guess and a tested conclusion in one voice.
 
 **A manual check is the same block, minus what has not happened yet.** No `Actual`, since nobody has looked, and
 no `Fix`, since nothing is claimed to be wrong:
@@ -83,3 +89,22 @@ unless every entry in the section shares one module, which the section's opening
 have.
 
 **Write what a person hits, not the mechanism.** The class is the last thing on the line, never the sentence.
+
+## Measured, Not Noticed
+
+**A report's closing observation is a hypothesis, and nothing is filed as a hypothesis.** What a step agent, a
+refactor pass or a review offers beyond what it actually ran — a gap it noticed, a class of case it suspects, an
+inconsistency it saw in passing — records where its attention went, not what it measured. A row nobody re-checks
+reads as settled work and survives the archive.
+
+**Measure it before it becomes an entry, in one pass over the whole class the claim generalizes over**: "three
+entries are missing a terminator" is answered by reading all seventy-nine, not by re-reading the three. What the
+measurement contradicts is not filed; what it narrows is filed in the narrowed form.
+
+**The entry names its measurement.** In a defect block, `Given`/`When`/`Then`/`Actual` already are it. In an `R`
+or a `D` row the *why* carries it — `all 79 explanations end in a full stop; the 3 with an inner terminator hold
+it inside the quoted example` — what was counted and over what, rather than what somebody noticed.
+
+**A hypothesis nobody can settle in one pass is reported, not filed.** It stays where the run recorded it — the
+plan or steps log's Run Log — and the closing report tells the user it is unmeasured and what would settle it.
+It never reaches `docs/backlog.md`: a row there claims the work is correct to do.

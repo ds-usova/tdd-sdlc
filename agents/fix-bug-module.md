@@ -124,3 +124,7 @@ Short. Your log holds the detail, and the level above reads it. Four things:
 - **The failure output of every `red` step**, quoted — the one thing that is not in your log.
 - **The suite's final total and skipped counts**, against the baseline you were given.
 - **What is blocked, and the decision you need** — the `B` and attempt numbers behind it, not the log itself.
+
+**A second defect you noticed rather than ran — like anything else unexercised — is a hypothesis**, in the form
+[`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back** gives. One you watched fail is
+reported as the case that failed.

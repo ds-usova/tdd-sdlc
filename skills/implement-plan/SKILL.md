@@ -166,6 +166,11 @@ When every pipeline has returned:
    covered, a gap the design never named, an inconsistency the change left behind. A blocker the run settled
    stays in the log as that plan's history and never appears here; so does a question the plan already answers.
 
+   **A Run Log entry is not a finding yet.** Measure each one — one pass over the class it claims — before it
+   becomes a block or a row, per [`findings.md`](../../templates/findings.md)'s **Measured, Not Noticed**. What
+   the measurement contradicts stays in the log as history; what it narrows is filed narrowed; what one pass
+   cannot settle is reported to the user as unmeasured and filed nowhere.
+
    **An affected module's conventions may name something else that belongs here**, and that is read rather than
    remembered: a module whose suite cannot see a whole class of defect leaves the list of what a person still
    has to look at, which no step implemented and no test closed. Follow the conventions index to whatever the
@@ -185,8 +190,8 @@ When every pipeline has returned:
    backlog is how the row is found once the task directory has left `docs/`.
 
    **Close the row this task came from.** Where the spec's **Objective** names a backlog `T` row, set the
-   owning findings row's `Status` to `done · task <n>`, re-emit its count line, and remove the `T` row from
-   `docs/backlog.md` in the same edit.
+   owning findings row's `Status` to `done · task <n>` and remove the `T` row from `docs/backlog.md` in the same
+   edit.
 3. **Archive**, on exit 0 and on nothing else: move the **whole task directory** — every `plan.md` and its
    `plan-log.md`, the `design.md` they link, the `spec.md` and `design-log.md` beside it, `review/`, and
    anything else the task accumulated — into `docs/implemented/`. Moving the directory rather than the files

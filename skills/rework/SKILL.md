@@ -47,6 +47,16 @@ priorities, where extracted code goes, what it will not have touched. All of it 
 **The affected modules are clean before anything is measured.** Uncommitted work under one: name the files and
 stop. Uncommitted work elsewhere is left alone.
 
+**A run started from a backlog `C` row, or from a findings entry directly, measures it before the suite.** Check
+the entry's *why* against the code it names, in one pass over the whole class it generalizes over
+([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**).
+
+- **It holds** — proceed; the measurement is the first line of `rework.md`'s context.
+- **It holds for fewer cases than it claims** — the scope is what the measurement found, and the file says so.
+- **It does not hold**, or the change it asks for would break what is already correct: report what was measured,
+  set the entry's `Status` to `withdrawn` with that clause, remove its `C` row from `docs/backlog.md` in the
+  same edit, and stop.
+
 Run the full build and the entire suite of every affected module with its own commands. A whole-suite run that
 already answers for this commit is read, not repeated; that holds at every gate in this skill.
 
@@ -119,16 +129,18 @@ follows, and the commit is provisional: the closing full run proves the whole.
    step or refactor that edited what failed.
 3. **Write `review/findings.md`** into the rework's directory, in the shape
    [`findings.md`](../../templates/findings.md) gives: **Critical**, **Bug**, and **Manual test** where the
-   change needs a person to look. Where the rework touched one module, the section's opening line names it
-   instead of the module-first rule. **A rework files no refactoring candidates**; something worth doing later
+   change needs a person to look. **What the module agents reported is measured before it is filed**
+   (**Measured, Not Noticed**): a defect an agent noticed and did not reproduce is reproduced here or left in
+   the log, never turned into a block on its say-so. Where the rework touched one module, the section's opening
+   line names it instead of the module-first rule. **A rework files no refactoring candidates**; something worth doing later
    goes in the report, and the user decides whether it becomes a rework. **It may file a Deferred change**: a
    behaviour the code should have that this rework, being behaviour-preserving, could not add. A rework with
    nothing open still gets the file. **Every bug block and every `D` row it files is appended to
    `docs/backlog.md`** — a `B` row per bug, a `T` row per deferred change, each taking the next id in its table,
    in the shape [`backlog.md`](../../templates/backlog.md) gives, with the link written to the archived path.
 4. **Close the row this rework came from.** Where `Source:` names a findings file and a row, set the row's
-   `Status`: `done · <this rework's number>`, or leave it `open` with one clause naming what remains. Re-emit the
-   count line. A row set to `done` leaves `docs/backlog.md` in the same edit — its `C` row is removed, never
+   `Status`: `done · <this rework's number>`, or leave it `open` with one clause naming what remains. A row set
+   to `done` leaves `docs/backlog.md` in the same edit — its `C` row is removed, never
    struck through ([`backlog.md`](../../templates/backlog.md)); one left `open` keeps its backlog row. Nothing
    here blocks.
 5. **Archive** once the closing gate is clean and `rework.sh status` reports every steps file ticked — a manual

@@ -147,6 +147,7 @@ End with a short, structured report the orchestrator can act on — the only cha
   whose body did not meet it, with the reason;
 - compile status, and RED confirmation: which tests fail as expected, plus any negative-assertion tests listed as
   expected passes;
-- any coverage gaps or unlisted existing-test updates you noticed but, by design, did not implement;
+- any coverage gaps or unlisted existing-test updates you noticed but, by design, did not implement — each as a
+  hypothesis, in that section's form;
 - any blockers (missing conventions entry, schema/plan mismatch, a precondition impossible to reach through any
   entry point) — stated precisely enough for the orchestrator to record them in the plan log's Run Log.

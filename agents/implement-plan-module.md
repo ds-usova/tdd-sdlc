@@ -36,9 +36,15 @@ the **`Agent` tool**. Your own jobs are:
 **The Run Log is where the run writes.** An entry is `- **B<n> (<ID>):** what happened`, appended after the
 last, `<ID>` the step it belongs to. `plan.sh block` writes one for a blocker, with a `- Resolved:` line you
 fill when it is settled; a note nothing waits on — a test that passed red for a reason, a boundary a step
-widened, an unrelated failure — you append yourself, with no `Resolved:` line, creating the `## Run Log`
+widened, an unrelated failure, a hypothesis a step agent reported — you append yourself, with no `Resolved:`
+line, creating the `## Run Log`
 heading after **Review Findings** when no entry exists yet. The plan's **Open Questions**
 gains nothing from a run: a question is what the plan waits on before it starts.
+
+**An entry recording what a step agent noticed rather than what it ran keeps its `hypothesis:` form**
+([`templates/sub-agents.md`](../templates/sub-agents.md), **Reporting back**). You neither run the check that
+would settle it — a class-wide pass over a tree still being written answers nothing — nor promote it into a plan
+edit or a defect. The level above measures before it files.
 
 **You spawn step agents and nothing else.** You never spawn another pipeline, and you never read another plan.
 

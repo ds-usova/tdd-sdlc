@@ -94,6 +94,7 @@ End with a short, structured report the orchestrator can act on — the only cha
 
 - confirmation the full test class is green, with the passing-test count;
 - the methods implemented, and any uncovered stubs left untouched;
-- any gaps or suspect tests you noticed but, by design, did not act on;
+- any gaps or suspect tests you noticed but, by design, did not act on — each as a hypothesis, in that section's
+  form;
 - any blockers (test-vs-intent conflict, missing conventions entry, test unsatisfiable within the guardrails) —
   stated precisely enough for the orchestrator to record them in the plan log's Run Log.

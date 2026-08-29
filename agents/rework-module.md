@@ -119,3 +119,7 @@ Short. The level above assembles the closing report from it:
 - **The suite's final total and skipped counts**, against the baseline you were given.
 - **Every `B` entry you wrote**, by number.
 - **What is blocked, and the decision you need.**
+
+**A defect you noticed rather than ran — like anything else unexercised — is a hypothesis**, in the form
+[`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back** gives. One a mutation or a suite run
+demonstrated is reported as that result.

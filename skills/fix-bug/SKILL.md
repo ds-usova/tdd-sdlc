@@ -69,11 +69,20 @@ elsewhere, and untracked leavings that are nobody's work, are named and left alo
   pair goes into `reproduces:`. The `red` step then runs until it has failed twice, giving up at three times that
   run count. The `green` step runs three times the runs the `red` step took, and passes every time.
 - **It does not reproduce here, and could.** Stop, say what was run and what happened, ask for the missing
-  condition.
+  condition. On a run started from a backlog `B` row, the paragraph below decides first.
 - **It cannot reproduce here at all.** Stop, say what environment or data it needs. Whether to fix it blind is
   the user's call.
 
 **Never write a fix for a bug nobody has seen fail.**
+
+**A run started from a backlog `B` row measures the row, not only the case it quotes** — one pass over the class
+the row claims ([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**).
+
+- **It holds** — proceed; the reproduction is the measurement.
+- **It holds for fewer cases than it claims** — the diagnosis says what was measured, and `bug.md` scopes to it.
+- **It does not hold** — the class is mostly fine, or the behaviour it calls wrong is what the repository
+  promises: say what was measured, set the owning block's `Status` to `withdrawn` with that clause, remove the
+  `B` row from `docs/backlog.md` in the same edit, and stop.
 
 **Baseline.** Full build and full suite of every affected module, with the reproduction test disabled or
 reverted. Record the commit and, per module, the total and skipped counts, plus any machine state a skip depends
@@ -153,7 +162,7 @@ stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decisi
    paths: every test file it touches is named in some step's `test-files:`, and each step changed only what it
    named. A test changed under no step is a defect whatever the suite says. Remove what a minimal green left
    behind in the same read: a stale intent comment, a dead stub branch, an unused import, a fixture duplicated
-   from a neighbouring class. **Nothing in `disables:` is still off**, and the skipped count is back to phase
+   from a neighbouring class, a step reference in a comment or a test name. **Nothing in `disables:` is still off**, and the skipped count is back to phase
    0's — apart from a machine state the baseline recorded, restored where it can be.
 3. **A refactor round per module whose diff touches more than one production file or created one.** A diff
    inside one existing class gets none; step 2 read it. One `tdd-refactor-phase` agent per such module, on the

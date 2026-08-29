@@ -76,9 +76,15 @@ looking for cross-file issues that single-class agents structurally could not se
    shapes for the same policy, naming drift between analogous methods, mixed mapping styles).
 4. **Leftover scaffolding** — stale intent comments on implemented methods, dead branches from stub bodies,
    unused imports, `TODO` markers whose work is done.
-5. **Needless complexity** — minimal-green bodies that satisfy their tests but read poorly: collapsible
+5. **Step references in the code** — a plan step id, a plan path, a wave or phase name left in a comment, a
+   `TODO`, a test name or a disabled test's reason (`plan.md · RI03`, "stub for GU07", "see step RI03") — which
+   `stabilizing.md` forbids writing in the first place, so each one is a leak. Delete the reference; keep any real statement it was carrying, as a
+   sentence about the code. Two stay: one belonging to a **step still open or blocked** — that plan is
+   unfinished, and the reference is how it is picked up — and a **disabled test still disabled**, which is not a
+   comment to clean but a finding for the report, since the step that owed it never re-enabled it.
+6. **Needless complexity** — minimal-green bodies that satisfy their tests but read poorly: collapsible
    conditionals, duplicated expressions, methods the conventions' decomposition style says to split.
-6. **Import / qualified-name hygiene** — per the conventions' import rules.
+7. **Import / qualified-name hygiene** — per the conventions' import rules.
 
 Apply the module's **Refactoring Conventions** on top: its priorities decide what you tackle first, its extraction
 targets decide where shared code goes, and its leave-alone list is absolute — an item on it is out of bounds even
@@ -98,8 +104,10 @@ sensible checkpoints. A refactoring that goes wrong is fully reverted, never lef
 - **A suspected bug is reported with a failing case, or labelled as a guess.** Before writing one into the report,
   construct the concrete input that triggers it and state the values and the wrong output they produce. A
   behaviour-preserving pass may not *fix* a bug, but it may always *demonstrate* one. If you cannot build that
-  case, say so in the finding itself — `unverified — could not construct a failing case` — so the reader knows
-  they are holding a hypothesis. A confident-sounding finding nobody can reproduce costs more to disprove than it
+  case, the finding is a hypothesis and says so in the form
+  [`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back** gives — `hypothesis: <the claim> —
+  settled by a failing case, which this pass could not construct`. A confident-sounding finding nobody can
+  reproduce costs more to disprove than it
   ever saved: reading a suspected overflow out of an algorithm that reserves exactly the right headroom took an
   induction proof and a dedicated agent to put down.
 - **Signatures are frozen.** Port interfaces, public method signatures, and anything stabilization established are
@@ -123,7 +131,7 @@ sensible checkpoints. A refactoring that goes wrong is fully reverted, never lef
 
 1. Run the **architecture-enforcement test** — extractions and moves must respect the layer rules.
 2. Confirm no marker of unfinished work remains in the diff scope: no stale intent comments, no dead stub code,
-   no orphaned `TODO`s.
+   no orphaned `TODO`s, and no step reference except the two the checklist leaves standing.
 
 **The full suite is not yours to run here.** The caller runs it once over your result. Your report says what
 you changed; the caller's run says whether it held.
@@ -160,4 +168,5 @@ End with a short, structured report the orchestrator can act on — the only cha
 - anything worth doing that the brief forbids — the shape you would have applied, and what it would contradict;
 - any blocker-level findings (a suspected bug the tests missed, an over-specified test blocking cleanup) — stated
   precisely enough for the caller to record them wherever it keeps what is open, and each one either carrying the
-  failing case that demonstrates it or marked `unverified`.
+  failing case that demonstrates it or stated as a hypothesis; nothing is filed as work from one
+  ([`templates/findings.md`](../templates/findings.md), **Measured, Not Noticed**).

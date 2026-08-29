@@ -124,6 +124,7 @@ End with a short, structured report the orchestrator can act on — the only cha
 - `added:` — every mechanical case written that no scenario listed, one line each;
 - compile status, and RED confirmation: which tests fail as expected, plus any negative-assertion tests listed as
   expected passes;
-- any coverage gaps or unlisted existing-test updates you noticed but, by design, did not implement;
+- any coverage gaps or unlisted existing-test updates you noticed but, by design, did not implement — each as a
+  hypothesis, in that section's form;
 - any blockers (missing conventions entry, ambiguous intent comment, scenario impossible to express at unit level)
   — stated precisely enough for the orchestrator to record them in the plan log's Run Log.

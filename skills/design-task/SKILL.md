@@ -9,8 +9,9 @@ allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash 
 Settle **what** the change does and **what it does when things go wrong**. Record every judgment call it makes as
 an answered decision.
 
-This skill produces three files per task and stops. It writes no checklist items, no test scenarios, and no step
-IDs.
+This skill produces three files per task and stops — the one exception is a withdrawal §1's measurement forces:
+the backlog row, and the owning findings row's status. It writes no checklist items, no test scenarios, and no
+step IDs.
 
 | File            | Reader                     | Holds                                                                          |
 |-----------------|----------------------------|--------------------------------------------------------------------------------|
@@ -30,6 +31,13 @@ team on another stack implement it without asking?
 the design; the log says where each of those facts came from.
 
 ## 1. Create the Task Directory
+
+**A task started from a backlog `T` row measures the row before the directory exists.** Read the row's owning
+findings entry and check its *why* against the code it names, in one pass over the whole class the claim
+generalizes over ([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**). What the measurement
+narrows narrows the task, and §4's **Objective** says what was measured. What it contradicts ends the run before
+anything is created: report it, set the owning findings row's `Status` to `withdrawn` with that clause, remove
+the `T` row from `docs/backlog.md` in the same edit, and take no number.
 
 A task owns a directory under the repository-root `docs/`. Create it as `docs/<number>-<task-name>/` and write
 the three files inside it — `docs/7-create-expense/spec.md`, `design.md`, `design-log.md`. Whatever else the task
@@ -88,8 +96,9 @@ What needs to be achieved, and why it matters to whoever asked. A short paragrap
 section's; this one says why.
 
 **A task started from the backlog names its row.** Where the argument is a `T<n>` id, read the row in
-`docs/backlog.md` and the findings row it links; that row's *what* and *why* seed this paragraph, and its first
-line is `Closes T<n>`. `implement-plan` reads that line to close the row when the task is archived.
+`docs/backlog.md` and the findings row it links; that row's *what* and *why* seed this paragraph **as §1's
+measurement left them**, never as the row wrote them. Its first line is `Closes T<n>`, which `implement-plan`
+reads to close the row when the task is archived.
 
 ### Requirements
 

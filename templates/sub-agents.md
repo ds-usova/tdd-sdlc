@@ -65,6 +65,12 @@ report, and it never leaves the message unanswered.
 
 ## Reporting back
 
+**What you ran and what you noticed are two lists, and the report keeps them apart.** Everything you exercised —
+a suite run, a case you reproduced, a file you read end to end — is reported as what it is. Everything else is a
+hypothesis and carries the check that would settle it, in one form: `hypothesis: <the claim> — settled by <the
+pass over the data>`. Never soften one into a finding to make the report read as more finished; the orchestrator
+files what it is handed, and the wrong one becomes a task.
+
 **The report is the only channel back.** End the turn with a short, structured report the orchestrator can act
 on. The orchestrator is not addressable by name — never send it a message; anything you would have asked goes in
 the report as a blocker. A message arriving from the orchestrator mid-task resumes you: answer it the same way,

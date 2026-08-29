@@ -118,6 +118,11 @@ Short. The level above assembles the closing report from it:
 
 - **Every step by ID**, ticked, abandoned or blocked, the versions it moved between, and the files it touched.
 - **Every kept-back change**, by its `B` number, and what would unblock it.
-- **Every deprecation warning the build printed** on the new versions.
+- **Every deprecation warning the build printed** on the new versions — quoted from the output, not summarized
+  from what the guide led you to expect.
 - **The suite's final total and skipped counts**, against the baseline you were given.
 - **What is blocked, and the decision you need.**
+
+**A defect you noticed rather than ran — like anything else unexercised — is a hypothesis**, in the form
+[`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back** gives. One a run produced is reported
+as that output.
