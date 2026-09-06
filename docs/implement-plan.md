@@ -52,12 +52,15 @@ step.
 ## One task
 
 <p align="center">
-<img src="diagrams/implement-plan-task.svg" alt="Task level: two gates, the shared plan first if shared/plan.md exists, one pipeline per plan in parallel, a final gate, then archive and commit" width="360">
+<img src="diagrams/implement-plan-task.svg" alt="Task level: two gates, the shared plan first if shared/plan.md exists, one pipeline per plan in parallel, a gate that no item is open in any plan, then archive and commit" width="360">
 </p>
 
 The task level gates the plans, lands `shared/plan.md` first if there is one — whatever crosses between modules,
 such as a schema both builds read — then runs one `implement-plan-module` agent per plan, concurrently. Each
-agent runs one pipeline. A final gate over every module closes the run.
+agent runs one pipeline. Each pipeline's whole-plan guardrail is the last full suite run its module gets. A
+pipeline writes only inside its module, so nothing moves that module's tree after it returns. The task level
+then checks one thing: no open item in any plan. Then it archives. A module whose files moved after its
+guardrail is a defect. Its suite is rerun and the defect is reported.
 
 *Diagram sources: [`implement-plan-task.puml`](diagrams/implement-plan-task.puml),
 [`implement-plan-pipeline.puml`](diagrams/implement-plan-pipeline.puml). Re-render with `diagrams/render.sh`.*

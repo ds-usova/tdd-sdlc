@@ -159,6 +159,11 @@ When every pipeline has returned:
 1. **Ask `plan.sh task docs/<n>-<task-name>/`.** It lists every plan the directory holds and exits 0 only when
    all of them are complete, `shared/plan.md` included. Anything else: leave the directory in place and summarize
    what is open. The phases end here.
+
+   **No suite runs here.** Each pipeline's whole-plan guardrail was the last full run of its module. A
+   pipeline writes only inside its module, so that run still answers. A module whose files moved after its
+   pipeline returned is a defect: something wrote outside its own module. Record it in that plan's Run Log.
+   Rerun that module's suite. Stop on red.
 2. **Write `review/findings.md`** — everything the task leaves open, from every plan at once. A person reading it
    learns what they are inheriting without opening a plan.
 
