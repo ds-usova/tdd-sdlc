@@ -36,7 +36,8 @@ A yellow box in the diagram is a gate.
   - *Gate: the suite is green.*
 - **Refactor**
   - One pass cleans the whole diff, with the suite as the safety net.
-  - *Gate: the suite is green with the same test count.*
+  - *Gate: the suite is green with the same test count, and no stub marker remains in a file stabilization
+    recorded — a stub no scenario covered would otherwise ship as a stub.*
 
 Three test types, each with its own red agent and its own green agent:
 

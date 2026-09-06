@@ -47,6 +47,8 @@ resolves every ID before it writes any, and a name nothing defines ticks none of
 | `tick <ID>...`      | Mark the items done; one already ticked is reported as `already ticked: <ID>` and left as it is.                |
 | `block <ID> <note>` | Leave the item open; record the note as the next `B` entry of the plan log's **Run Log**. One note, so quote it. |
 | `validate`          | See [What `validate` checks](#what-validate-checks).                                                            |
+| `stub [<path>...]`  | Record files stabilization stubbed in the log's **Stubs** section; `--marker` sets the token on first use.      |
+| `stubs`             | Recorded files still carrying the marker, `file:line` each; exit 1 while any does. See [Stubs](#stubs).        |
 | `task [<path>]`     | Every plan the task holds, its done/total, and whether all are finished. Exit 0 means nothing is open.          |
 
 Exit codes: **0** done, **1** no such item, `validate` found problems, or `task` found something open,
@@ -109,6 +111,35 @@ that line. An entry recording a fact nobody has to act on — a test that passed
 step widened — carries no `Resolved:` line; whoever writes one creates the `## Run Log` heading after
 **Review Findings** where it is absent, as `block` does. `block`'s note may contain anything, a slash or `.md`
 included; the plan path, when given, comes after it.
+
+### Stubs
+
+A stub written by stabilization carries an intent comment that starts with one fixed token — the **stub
+marker**, `stub-intent:` unless the module's code-style conventions name another. The green step that
+implements the method removes it. A marker that survives every green step is a method nobody implemented, and
+the suite cannot see it because nothing calls a method no scenario covered.
+
+```
+<plugin>/scripts/plan/plan.sh stub module-a/src/main/java/.../WidgetService.java --marker 'stub-intent:'
+<plugin>/scripts/plan/plan.sh stubs
+```
+
+`stub` writes the log's `## Stubs` section on first use — `Marker: \`<token>\`` then one `- \`<path>\`` per
+file, relative to the repository root — and appends on later calls; a path already recorded is reported and
+left. The marker cannot be changed once written: a run that used one token is checked with that token.
+
+`stubs` greps every recorded file for the marker and exits 1 while any line carries it. Only recorded files are
+read, so the token appearing elsewhere in the module is nobody's problem. With no section recorded it says so
+and exits 0.
+
+**`tick` refuses a green item** (`GU`, `GI`, `GS`) whose target class — the first backticked name on the item's
+header — matches the basename of a recorded file still carrying the marker. The whole batch is refused, as a
+batch with an unknown ID is. Implement the stub and tick again; removing the marker to get a tick through is
+the defect the check exists to catch.
+
+The same check runs as a **hook** when a task directory is moved into `docs/implemented/`
+(`scripts/hooks/deny-archive-with-stubs.sh`): it calls `stubs` on every plan log the directory holds and denies
+the move while any reports a marker. A hook fires whether or not the run remembered to check.
 
 ### What `validate` checks
 

@@ -32,6 +32,8 @@ Usage:
   <plugin>/scripts/plan/plan.sh tick     <ID>... [--file <plan>]
   <plugin>/scripts/plan/plan.sh block    <ID> <note> [--file <plan>] [--log <log>]
   <plugin>/scripts/plan/plan.sh validate [--file <plan>] [--log <log>]
+  <plugin>/scripts/plan/plan.sh stub     [<path>...] [--marker <token>] [--file <plan>] [--log <log>]
+  <plugin>/scripts/plan/plan.sh stubs    [--file <plan>] [--log <log>]
   <plugin>/scripts/plan/plan.sh task     [<task directory> | <plan>]
 
 Commands:
@@ -50,6 +52,12 @@ Commands:
             given/when/then values, update: bullets naming a test method that is nowhere in the tree,
             a finding or a blockers section left in the plan, a missing plan log, and findings in it
             missing a Resolution: or an unapplied mechanical Action:.
+  stub      Record the files stabilization stubbed, as the log's Stubs section. The first call writes
+            the section with the marker an intent comment starts with (--marker, default
+            "stub-intent:"); later calls append. No path records an empty section. Paths are
+            recorded relative to the repository root.
+  stubs     Every recorded file still carrying the marker, file:line each. Exit 1 while any does.
+            tick refuses a green item whose target class's recorded file still carries it.
   task      Every plan the task holds, its done/total, and whether all of them are finished.
             Takes the task directory, or nothing when only one task is in flight. A plan works
             too, for a caller that has one and not the directory. Exit 0 means nothing is open
@@ -156,6 +164,51 @@ task_dir_of() {
     echo "$dir"
 }
 
+# The log's Stubs section: the marker an unimplemented stub's intent comment starts with, and the
+# files stabilization stubbed. Written by `stub`, read by `stubs` and by `tick`; the marker travels in
+# the file rather than in a flag, so a check months later reads the token the run actually used.
+stubs_section_range() {
+    awk '/^## Stubs/ { s = NR; next } s && /^## / { print s, NR - 1; e = 1; exit } END { if (s && !e) print s, NR }' "$log_file"
+}
+
+stubs_marker() {
+    local range
+    range="$(stubs_section_range)"
+    [ -n "$range" ] || return 1
+    sed -n "${range% *},${range#* }p" "$log_file" | sed -n 's/^Marker: `\(.*\)`[[:space:]]*$/\1/p' | head -1
+}
+
+stubs_files() {
+    local range
+    range="$(stubs_section_range)"
+    [ -n "$range" ] || return 0
+    sed -n "${range% *},${range#* }p" "$log_file" | sed -n 's/^- `\([^`]*\)`.*/\1/p'
+}
+
+# Prints file:line: text for every recorded file still carrying the marker. An optional class name
+# narrows it to files whose basename is that class.
+stubs_remaining() {
+    local marker_token class="${1:-}" f
+    marker_token="$(stubs_marker)" || return 0
+    [ -n "$marker_token" ] || return 0
+    while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        if [ -n "$class" ]; then
+            case "$(basename "$f")" in
+                "$class".*|"$class") ;;
+                *) continue ;;
+            esac
+        fi
+        [ -f "$repo_root/$f" ] || continue
+        grep -nF -e "$marker_token" "$repo_root/$f" 2>/dev/null | sed "s|^|$f:|"
+    done < <(stubs_files)
+}
+
+# The target class of an item: the first backticked name after the ID on the header line.
+item_target_class() {
+    sed -n "${1}p" "$plan_file" | sed -n 's/^- \[[ xX]\] [A-Za-z]*[0-9]* · `\([^`]*\)`.*/\1/p'
+}
+
 command="${1:-}"
 [ -n "$command" ] || { usage; exit 2; }
 case "$command" in
@@ -165,6 +218,7 @@ shift
 
 args=()
 verbose=0
+marker=""
 group_filter=""
 section_filter=""
 while [ $# -gt 0 ]; do
@@ -176,12 +230,17 @@ while [ $# -gt 0 ]; do
         --group)   group_filter="${2:-}"; shift 2 ;;
         --section) section_filter="${section_filter:+$section_filter,}${2:-}"; shift 2 ;;
         --all)     verbose=1; shift ;;
+        --marker)  marker="${2:-}"; shift 2 ;;
         -h|--help) usage; exit 0 ;;
         # A bare plan path is accepted wherever --file is, on every subcommand. Without this the
         # ID-taking ones read it as an ID and fail with "no item docs/x.md in docs/x.md". block's
         # note is exempt: a reason may well contain a slash or end in ".md".
         *.md|*/*)
             if [ "$command" = "block" ] && [ "${#args[@]}" -lt 2 ]; then
+                args+=("$1"); shift; continue
+            fi
+            # stub's arguments are source paths; only --file names its plan.
+            if [ "$command" = "stub" ]; then
                 args+=("$1"); shift; continue
             fi
             [ -z "$plan_file" ] || die "plan file given twice: $plan_file and $1"
@@ -270,6 +329,28 @@ case "$command" in
             [ -n "$range" ] || die "no item $id in ${plan_file#"$repo_root/"}" 1
             lines+=("${range% *}")
         done
+        # A green item claims its class is implemented. Where the log records the file stabilization
+        # stubbed for that class and the marker is still in it, the claim is refused before anything
+        # is written - the whole batch, since no ID is ticked until every one resolves.
+        resolve_log
+        if [ -f "$log_file" ]; then
+            refused=0
+            for i in "${!args[@]}"; do
+                case "${args[$i]}" in
+                    G[A-Z]*[0-9]*)
+                        class="$(item_target_class "${lines[$i]}")"
+                        [ -n "$class" ] || continue
+                        left="$(stubs_remaining "$class")"
+                        if [ -n "$left" ]; then
+                            echo "${args[$i]}: \`$class\` still carries the stub marker:" >&2
+                            printf '  %s\n' "$left" >&2
+                            refused=1
+                        fi
+                        ;;
+                esac
+            done
+            [ "$refused" -eq 0 ] || die "nothing ticked - implement the stub or remove its marker first" 1
+        fi
         # Ticking replaces "- [ ]" with "- [x]" in place, so no line moves and the ranges resolved
         # above stay valid for the whole batch.
         for i in "${!args[@]}"; do
@@ -314,6 +395,63 @@ case "$command" in
             rewrite_file "$log_file" awk -v n="$insert_at" \
                 '{ print } NR == n { print ""; print ENVIRON["entry"]; print "  - Resolved:" }' "$log_file"
         echo "$id left open; recorded as B${b} in ${log_file#"$repo_root/"}"
+        ;;
+
+    stub)
+        # No path is a valid call: it records that stabilization stubbed nothing, as an empty section.
+        resolve_plan
+        resolve_log
+        assert_read_whole
+        [ -f "$log_file" ] || die "no plan log at ${log_file#"$repo_root/"} - plan-task writes it beside the file"
+        rels=()
+        for f in "${args[@]:-}"; do
+            [ -n "$f" ] || continue
+            [ -e "$f" ] || die "no such file: $f"
+            abs="$(cd "$(dirname "$f")" && pwd)/$(basename "$f")"
+            case "$abs" in
+                "$repo_root_abs"/*) rels+=("${abs#"$repo_root_abs/"}") ;;
+                *) die "$f is outside the repository" ;;
+            esac
+        done
+        if [ -z "$(stubs_section_range)" ]; then
+            token="${marker:-stub-intent:}"
+            marker_line="Marker: \`$token\`" \
+                rewrite_file "$log_file" awk '{ print } END { print ""; print "## Stubs"; print ""; print ENVIRON["marker_line"]; print "" }' "$log_file"
+        elif [ -n "$marker" ] && [ "$marker" != "$(stubs_marker)" ]; then
+            die "the Stubs section already records marker \`$(stubs_marker)\`; --marker cannot change it"
+        fi
+        range="$(stubs_section_range)"
+        end="${range#* }"
+        for rel in "${rels[@]:-}"; do
+            [ -n "$rel" ] || continue
+            if stubs_files | grep -qxF "$rel"; then
+                echo "already recorded: $rel"
+                continue
+            fi
+            entry="- \`$rel\`" \
+                rewrite_file "$log_file" awk -v n="$end" '{ print } NR == n { print ENVIRON["entry"] }' "$log_file"
+            end=$(( end + 1 ))
+            echo "recorded: $rel"
+        done
+        ;;
+
+    stubs)
+        resolve_plan
+        resolve_log
+        [ -f "$log_file" ] || die "no plan log at ${log_file#"$repo_root/"}" 1
+        if [ -z "$(stubs_section_range)" ]; then
+            echo "${log_file#"$repo_root/"}: no Stubs section - nothing recorded to check"
+            exit 0
+        fi
+        left="$(stubs_remaining)"
+        n_files="$(stubs_files | grep -c .)"
+        if [ -n "$left" ]; then
+            echo "stub marker \`$(stubs_marker)\` still present:"
+            printf '  %s\n' "$left"
+            exit 1
+        fi
+        echo "no stub marker remains in the $n_files recorded file(s)"
+        exit 0
         ;;
 
     task)

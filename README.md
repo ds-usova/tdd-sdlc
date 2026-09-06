@@ -166,8 +166,10 @@ Templates and the section-by-section reference: [`templates/conventions/`](templ
 ## Requirements
 
 - `bash`, `awk`, `sed`, `git`, `find`, `grep` on `PATH`. On Windows that is Git Bash.
-- `jq`, for the one shipped hook. It refuses a commit message that names a plan step id (`ST01`, `GU05`, …),
-  since those ids die with the archived task. Without `jq` the hook exits silently.
+- `jq`, for the two shipped hooks. One refuses a commit message that names a plan step id (`ST01`, `GU05`, …),
+  since those ids die with the archived task. The other refuses to archive a task while a method its
+  stabilization stubbed still carries its stub marker, so an unimplemented stub cannot land as finished work.
+  Without `jq` both exit silently.
 - Conventions files. Without them `design-task` and `plan-task` stop and ask for `init-conventions`.
 
 ## Permissions
@@ -191,7 +193,7 @@ Templates and the section-by-section reference: [`templates/conventions/`](templ
 | `agents/`         | every sub-agent a skill spawns; none is for direct use    |
 | `scripts/<name>/` | the reader for one file format, its parser and its README |
 | `templates/`      | files more than one skill reads; `conventions/` templates |
-| `hooks/`          | the one shipped hook                                      |
+| `hooks/`          | the two shipped hooks                                     |
 | `docs/`           | diagrams and reference pages                              |
 
 Working on the plugin itself: [`docs/developing.md`](docs/developing.md).

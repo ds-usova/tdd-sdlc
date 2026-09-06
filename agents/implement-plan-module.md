@@ -109,7 +109,9 @@ against wording that may have changed mid-run.
 **Tick policy.** Tick with `plan.sh tick <ID>` and record blockers with `plan.sh block <ID> "<reason>"`; never
 hand-edit a checkbox. Completed and verified in this run → `- [x]`; not done or blocked → keep `- [ ]`. An item
 with several sub-tasks is ticked only when all are done. Never tick on a sub-agent's claim alone if the stage
-guardrail later contradicts it — the guardrail wins.
+guardrail later contradicts it — the guardrail wins. **`tick` refuses a green item whose target class still
+carries the stub marker** in a file the **Stubs** section records: the agent left a stub unimplemented. Re-delegate
+that class; never remove a marker to make a tick go through.
 
 **`plan.sh show <ID>` is also how a step's text reaches its sub-agent** — its target class, its test class, its
 `covers:` list and its scenarios verbatim. Read it from there rather than extracting it from the plan file by
@@ -164,6 +166,13 @@ Log**. The checks:
    intent comment exists and agrees with that step's given/when/then scenarios: the behaviour, the error cases,
    nothing contradicting the plan. A missing, vague or contradicting comment is re-delegated to
    `stabilization-step` before Stage 2 spawns a single red agent.
+
+3. **Record the stubbed files.** `plan.sh stub <path>... --marker <token> docs/<plan>.md`, with every file
+   the agent's report names a stub in, and the marker the module's code-style conventions name (omit
+   `--marker` for the default). That writes the log's **Stubs** section, which `plan.sh tick`, `plan.sh stubs`
+   and the archive hook read: a green item whose class still carries the marker cannot be ticked, and a task
+   whose files still carry it cannot be archived. Record even when the report names no stub, so the section
+   exists and says so.
 
 If any check fails for a reason caused by this plan's changes, re-delegate to `stabilization-step` until it holds.
 If it fails for a reason **unrelated to the plan**, apply the [Unrelated Failures](#unrelated-failures--report-dont-fail) rule.
@@ -298,6 +307,11 @@ plan, written for this task.
    touched. If the module conventions name a **coverage guardrail**, run it here too — this is the first point at
    which every step exists, so it is the only point where a coverage figure means anything. Coverage below the
    minimum is a blocker: spawn a step agent for the tests that close the gap, or record why in the **Run Log**.
+   Then **`plan.sh stubs`** must report no marker left in the recorded files: a stub no `covers:` list reached is
+   a method that ships returning its stub value, and the suite cannot see it because nothing calls it. One left
+   is a plan defect — a method stabilized and never planned — recorded in the **Run Log** and implemented by a
+   step agent against the intent comment, or reported as a blocker; the archive hook will refuse the task
+   otherwise.
 3. Commit per the Version Control policy, then **report your plan complete**. Leave the task directory exactly
    where it is. Whether the task as a whole is finished is a fact only the level above can see, and archiving on
    the first plan to finish would move the directory out from under a run still writing to it.

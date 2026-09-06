@@ -61,6 +61,10 @@ job — do not re-derive them by hand and do not report them again as findings.
   plan, and that the `after:` graph contains no cycles.
 - Confirm every class stubbed in **Interface-First / Build Stabilization** appears as a target in some Red phase, or
   is validly excluded under the simple-delegation rule (a one-line pass-through with no logic of its own).
+- **Per method, not per class:** every method a stub item names appears in some Red Phase step's `covers:` for
+  that class, or is a simple delegation. A class can be a red target while one of its stubbed methods is in no
+  `covers:` list; the green agent implements only covered methods, so that one ships returning its stub value.
+  Resolution `decision`, since the fix adds a scenario or drops the stub.
 - Confirm every shared fixture, builder, or base-class capability a Red Phase step's scenarios rely on (beyond what
   that single step needs) is listed under stabilization's **Shared Test Infrastructure** sub-group — a step that
   quietly assumes a shared helper exists without that sub-group creating it will duplicate or block at

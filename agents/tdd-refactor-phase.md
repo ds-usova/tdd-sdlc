@@ -76,7 +76,10 @@ looking for cross-file issues that single-class agents structurally could not se
 3. **Idiom inconsistency** — the same conventions rule realized differently across the diff (two error-handling
    shapes for the same policy, naming drift between analogous methods, mixed mapping styles).
 4. **Leftover scaffolding** — stale intent comments on implemented methods, dead branches from stub bodies,
-   unused imports, `TODO` markers whose work is done.
+   unused imports, `TODO` markers whose work is done. Grep for the stub marker (the module's code-style
+   conventions name it; `stub-intent:` by default): one on an *implemented* method is a stale comment to
+   delete; one on a method whose body is still the stub's minimum return is **not yours to touch** — it is an
+   unimplemented stub, reported as a blocker-level finding, and the pipeline's guardrail refuses the plan on it.
 5. **Step references in the code** — a plan step id, a plan path, a wave or phase name left in a comment, a
    `TODO`, a test name or a disabled test's reason (`plan.md · RI03`, "stub for GU07", "see step RI03") — which
    `stabilizing.md` forbids writing in the first place, so each one is a leak. Delete the reference; keep any real statement it was carrying, as a

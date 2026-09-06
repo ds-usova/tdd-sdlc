@@ -15,6 +15,8 @@ The idioms production code follows, and what a cleanup pass may touch.
 - Outbound adapter idioms: `<e.g. repository methods over hand-written SQL; transactions on write methods;
   declarative HTTP client interfaces>`
 - Inbound binding / validation / error mapping: `<the framework mechanism the inbound adapter uses>`
+- Stub marker: `<the token an unimplemented stub's intent comment starts with — "stub-intent:" unless this module
+  already has one; a green step removes it with the stub body>`
 
 Add a subsection per layer where the layers differ enough that one list would flatten them.
 

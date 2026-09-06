@@ -72,7 +72,9 @@ End with a short, structured report the orchestrator can act on — the only cha
 [`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back**.
 
 - per item id: done, or blocked and why;
-- every stub written, per class and method, and every `TODO` left on a changed signature;
+- every stub written, per class and method, **with the file's path relative to the repository root** — the
+  orchestrator records those paths with `plan.sh stub`, and the marker each intent comment starts with;
+- every `TODO` left on a changed signature;
 - every test disabled, with its class, method and the step its reason names; every file an item named for
   deletion that was deleted;
 - the checks' verdicts: compile, architecture test, suite total and skipped against the baseline;
