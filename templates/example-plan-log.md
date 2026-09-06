@@ -13,22 +13,22 @@ carry distinct names, so validating the example takes `--log example-plan-log.md
 
 ## Review Findings
 
-- **F1:** `RI02`'s error-mapping scenarios cover 404 and 409, but `WidgetControllerTest` must also assert the 503
+- **RF01:** `RI02`'s error-mapping scenarios cover 404 and 409, but `WidgetControllerTest` must also assert the 503
   the design maps `PersistenceFailedException` to — no scenario covers it at any layer.
   - Resolution: mechanical
   - Action: applied — added the scenario to `RI02`.
 
-- **F2:** `GI02` names `after: GU01`, but `WidgetControllerTest` mocks `CreateWidgetPort`, so the use case is
+- **RF02:** `GI02` names `after: GU01`, but `WidgetControllerTest` mocks `CreateWidgetPort`, so the use case is
   never on its execution path.
   - Resolution: mechanical
   - Action: applied — `GI02` now reads `after: GU03` only.
 
 ## Run Log
 
-- **B1 (RI01):** `WidgetRepositoryAdapterTest` cannot start the containerized database on this machine — the
+- **RL01 (RI01):** `WidgetRepositoryAdapterTest` cannot start the containerized database on this machine — the
   container runtime is not running. Left open; every other red item is ticked.
   - Resolved: runtime started, `RI01` re-run and ticked (2026-08-02).
 
-- **B2 (RU03):** `WidgetUtilsTest.whenOptionalFieldIsNull_thenNullIsPreserved()` passed in the red phase: the
+- **RL02 (RU03):** `WidgetUtilsTest.whenOptionalFieldIsNull_thenNullIsPreserved()` passed in the red phase: the
   existing `toRest()` already passes a null through, and the step's scenario only pins it. The assertion is real
   — it fails if the mapper substitutes a default — so `GU03` verifies it rather than implements it.

@@ -55,7 +55,7 @@ failure mode; an honest "nothing to recover — one write, one store" is the row
 and every scenario has a branch. A branch with no scenario is behaviour nobody agreed to; a scenario with no
 branch is a flow the diagram is missing. Both are findings, and both are usually cheaper than a new decision.
 Every **Requirements** line is proved by a scenario whose `Then:` actually checks it — a `Proves:` that names an
-`R` the scenario does not exercise is a finding.
+`RQ` the scenario does not exercise is a finding.
 
 **And over the diagram's shape.** A flow diagram whose branches are a chain of mutually exclusive conditions, each
 ending in one action and an exit, or whose branching nests deeper than two levels, is a table of condition and
@@ -107,7 +107,7 @@ Stack-neutral — fail — `NavLink`, `aria-current`, `bg-card` under "the confi
 Concern, verdict, why. The why is a business rule, a file, or one of the findings below — never "n/a". The session
 copies these into the log's **Concerns** table.
 
-**Then the findings**, each as a block, numbered from `1` for this report alone. Never a `D` or `F` number: those
+**Then the findings**, each as a block, numbered from `1` for this report alone. Never a `DN` or `DF` number: those
 belong to the files, and the session that owns them assigns them.
 
 ```

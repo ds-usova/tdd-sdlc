@@ -34,10 +34,10 @@ plan. The design is stack-neutral by rule; the class, the library and the file t
 to name.
 
 The `design-log.md` beside them is the record behind the two, not a third input. Open it only to chase a
-reference: a `F<n>` the spec or design cites, or the file a claim rests on when the step needs to mirror it.
+reference: a `DF<nn>` the spec or design cites, or the file a claim rests on when the step needs to mirror it.
 Everything binding is already in the spec and the design.
 
-Cite a decision or a finding by its clause, never by its number alone — "D2, a choice is never cleared", not "D2".
+Cite a decision or a finding by its clause, never by its number alone — "DN02, a choice is never cleared", not "DN02".
 
 **Two gates, both hard:**
 
@@ -49,7 +49,7 @@ Cite a decision or a finding by its clause, never by its number alone — "D2, a
   once as [`scripts/README.md`](../../scripts/README.md) says, then read the spec's `Basis:` lines yourself.
 
 A design gap found *while* planning — a case neither **Decisions** nor the log's **Findings** covers — is amended
-where it belongs: a **Findings** row in the log where the repository answers it, a new `D` entry in the spec
+where it belongs: a **Findings** row in the log where the repository answers it, a new `DN` entry in the spec
 escalated to the user where nothing does. It is never absorbed into the plan.
 
 ## 2. Create a Plan File per Module
@@ -123,6 +123,7 @@ Making any of it work again is the module plan's job.
 **Its header names every module on the seam:**
 
 ```
+**Format:** 2
 **Affected Modules:** `module-a`, `module-b`
 **Design:** [<task name>](../design.md)
 ```
@@ -164,12 +165,16 @@ instructions for writing those sections, not sections to reproduce in the plan.
 
 ### Header
 
-Two lines at the very top of the plan, immediately after the title:
+Three lines at the very top of the plan, immediately after the title:
 
 ```
+**Format:** 2
 **Affected Modules:** `module-a`
 **Design:** [<task name>](design.md)
 ```
+
+**Format** is the file-format number `plan.sh validate` checks ([`scripts/README.md`](../../scripts/README.md),
+**Formats**); every plan this skill writes carries `2`.
 
 **Affected Modules** is read differently by the two kinds of plan, and neither reading is inferred:
 
@@ -249,9 +254,9 @@ Within each group, its sections appear as `#### <Section>` headings, in the fixe
 
 **Under a group, items and nothing else.** The one prose a group admits is a coverage note — one line saying
 which spec scenario an existing test already holds, so a reader does not go looking for its step
-(`A5 is held by the existing regression tests in SettingsPage.test.tsx`). A paragraph saying what a branch does,
+(`AC05 is held by the existing regression tests in SettingsPage.test.tsx`). A paragraph saying what a branch does,
 which case is folded into which, or why — is behaviour, and behaviour is the spec's and the design's. Where the
-design lacks it, it goes back there as a `D` or a **Findings** row; where the design has it, the step's
+design lacks it, it goes back there as a `DN` or a **Findings** row; where the design has it, the step's
 scenarios already carry it. An item says **what** is created or changed, in the terms the Components section
 names; the reasoning behind it is the design log's **Decision Bases**, cited by clause where a step needs it,
 never restated under the item.
@@ -265,7 +270,7 @@ step reports:
 | `ST`   | Stabilization             | `GU`   | TDD Unit Green Phase        |
 | `RU`   | TDD Unit Red Phase        | `GI`   | TDD Integration Green Phase |
 | `RI`   | TDD Integration Red Phase | `GS`   | TDD System Test Green Phase |
-| `RS`   | TDD System Test Red Phase | `P`    | Post-Implementation Steps   |
+| `RS`   | TDD System Test Red Phase | `PI`    | Post-Implementation Steps   |
 
 Numbering restarts at `01` per prefix and follows the order the items are listed. An ID is never reused or
 renumbered once the plan is written — a dropped step leaves a gap.
@@ -273,7 +278,7 @@ renumbered once the plan is written — a dropped step leaves a gap.
 **An ID never leaves those places.** Not a commit message, not a test or display name, not a class, a file or a
 comment. Each of those outlives the plan directory, which moves into `docs/implemented/` the moment the work
 lands — so an ID written into one stops resolving exactly when a reader meets it. The same holds for a design's
-`D`, `F` and `A` entries, an Open Question's `Q`, and a findings file's `R`. Say what the thing does instead. A
+`DN`, `DF` and `AC` entries, an Open Question's `OQ`, and a findings file's `RX`. Say what the thing does instead. A
 `@Disabled` reason is the one exception, since it names the step that owes the rework and clears itself when that
 step lands.
 
@@ -362,15 +367,15 @@ something the run waits on, and a record is not.
 
 Generate placeholders for the user's answers beneath each open question, nested under it, for example:
 
-- **Q1:** [Your question here]?
+- **OQ01:** [Your question here]?
   - A:
 
-- **Q2:** [Next question]?
+- **OQ02:** [Next question]?
   - A:
 
 The answer is nested and a blank line separates the questions: flat bullets render as one undifferentiated list.
 
-**Number every question** (`Q1`, `Q2`, …) so it can be referenced in conversation, in a commit, or from another
+**Number every question** (`OQ01`, `OQ02`, …) so it can be referenced in conversation, in a commit, or from another
 document. Numbers are assigned once and never renumbered: a question that is answered or withdrawn keeps its number,
 and a new one takes the next unused value.
 
@@ -385,11 +390,11 @@ item in **Post-Implementation Steps** that authorizes it.
 
 | Section             | Holds                                                                           | Written by                        |
 |---------------------|---------------------------------------------------------------------------------|-----------------------------------|
-| **Review Findings** | `F<n>` entries, one per finding the reviewer raised, with what became of each   | this skill, steps 5–7             |
-| **Run Log**         | `B<n>` entries, one per thing the run recorded — a blocker, a note, a deviation | `implement-plan`, `plan.sh block` |
+| **Review Findings** | `RF<nn>` entries, one per finding the reviewer raised, with what became of each   | this skill, steps 5–7             |
+| **Run Log**         | `RL<nn>` entries, one per thing the run recorded — a blocker, a note, a deviation | `implement-plan`, `plan.sh block` |
 
 The **Run Log** heading is not written here; `plan.sh block` creates it at the first entry. An entry is
-`- **B<n> (<ID>):** what happened`, `<ID>` the step it belongs to, numbered once and appended; a blocker carries
+`- **RL<nn> (<ID>):** what happened`, `<ID>` the step it belongs to, numbered once and appended; a blocker carries
 a `- Resolved:` line beneath it, filled when it is settled, and a note that nothing waits on carries none.
 
 #### Review Findings
@@ -398,18 +403,18 @@ Populated by the `review-plan` subagent invoked in the next step — the log hol
 while the rest of the plan is written. Each finding uses this exact format:
 
 ```
-- **F1:** [what's wrong or missing, with file/class/scenario reference]
+- **RF01:** [what's wrong or missing, with file/class/scenario reference]
   - Resolution: mechanical | decision
   - Action:
 
-- **F2:** [the next one]
+- **RF02:** [the next one]
   - Resolution: …
 ```
 
 **`Resolution` and `Action` are nested under their finding, and a blank line separates one finding from the next.**
 The same holds for `Escalated:` where a finding carries one.
 
-Findings are numbered on the same terms as the questions above — `F1`, `F2`, … assigned once, never renumbered, and
+Findings are numbered on the same terms as the questions above — `RF01`, `RF02`, … assigned once, never renumbered, and
 continuing past the highest existing number on a re-review.
 
 `Resolution:` is the reviewer's classification of **who** resolves the finding — `mechanical` when a written rule or
@@ -430,7 +435,7 @@ Never review the plan in this context instead — the reviewer must verify the p
 unbiased by the reasoning that produced them, and this session holds that reasoning.
 
 **The reviewer writes nothing.** It reports, and this session writes its findings into the log's **Review
-Findings** section. Assign the `F` numbers here, past the highest already in the section
+Findings** section. Assign the `RF` numbers here, past the highest already in the section
 — this session is the only one that knows them all. Carry each finding's `Resolution:` across unchanged: regrading
 the reviewer's verdict is what step 6 forbids, and it is no more allowed while transcribing it.
 
@@ -465,13 +470,13 @@ How to apply them:
 - **Batch by affected step, not by finding.** Two findings often rewrite the same checklist item; applied one at a
   time they produce an incoherent step. Group the findings by the item each one touches and rewrite that item once,
   satisfying all of them together.
-- **Compress the finding as you apply it.** In the same edit, cut it to one sentence — keeping the `- **F<n>:**` /
+- **Compress the finding as you apply it.** In the same edit, cut it to one sentence — keeping the `- **RF<nn>:**` /
   `- Resolution:` / `- Action:` shape, so `plan.sh validate` and the readiness gate are unaffected. A `decision`
   finding resolved against the repository keeps one clause of evidence in its `Action:`, not the trail: the
   file it rests on, named, is the evidence; the reasoning that read it is not:
 
   ```
-  - **F1:** RU01's scenarios omitted the unknown `parentId` and the duplicate name under one parent.
+  - **RF01:** RU01's scenarios omitted the unknown `parentId` and the duplicate name under one parent.
   - Resolution: mechanical
   - Action: applied — added both scenarios.
   ```

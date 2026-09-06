@@ -7,7 +7,7 @@ in an upgrade. Where a skill has a validating script, it reads this section.
 ## The entry
 
 ````
-- **A1** · diagnosis · Rewrote the read so it could not return a row twice, to find out whether the duplication
+- **AT01** · diagnosis · Rewrote the read so it could not return a row twice, to find out whether the duplication
   came from the query.
   - why: the count doubled exactly when a record had two active children.
   - result: failed — the duplicates survived the rewrite.
@@ -21,7 +21,7 @@ in an upgrade. Where a skill has a validating script, it reads this section.
 
 | Line         | Holds                                                                      |
 |--------------|----------------------------------------------------------------------------|
-| the header   | `A<n>`, the phase, and what was tried, in a sentence                       |
+| the header   | `AT<nn>`, the phase, and what was tried, in a sentence                       |
 | `why:`       | what made it look like it would work — the observation, not the hunch      |
 | `result:`    | `failed — <what happened instead>`                                         |
 | `evidence:`  | a fenced block of the runner's, compiler's or process's **own output**     |
@@ -37,8 +37,8 @@ the step.
 **Every entry goes in the `## Attempts` section, whatever its phase names.** The step ID is how an entry says
 which step it belongs to. An entry written under the step's own checklist bullet is misplaced.
 
-**Numbers are `A1` upward, per log, assigned once and never renumbered.** A withdrawn attempt keeps its number.
-Since each log numbers its own, anything outside the log cites both: `module-a/fix-log.md · A3`.
+**Numbers are `AT01` upward, per log, assigned once and never renumbered.** A withdrawn attempt keeps its number.
+Since each log numbers its own, anything outside the log cites both: `module-a/fix-log.md · AT03`.
 
 ## The rules
 

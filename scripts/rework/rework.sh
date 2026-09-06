@@ -36,7 +36,7 @@ Commands:
             separated by a blank line.
   tick      Mark the steps done. Several IDs are one batch: all are resolved before any is written,
             so a name nothing defines ticks none of them.
-  block     Leave the step open and record the note as the next B entry of the log's Run Log.
+  block     Leave the step open and record the note as the next RL entry of the log's Run Log.
   validate  Duplicate or missing IDs, an unrecognized kind, a line the kind does not take, a line
             the kind owes and does not carry, a placeholder value, a "survives:" naming no tier,
             "needs:"/"disables:" pointing at a step nothing defines, an unanswered Open Question, a
@@ -49,7 +49,7 @@ archived rework under docs/implemented/, are addressed by passing --file explici
 given positionally on any subcommand. Each file's log
 sits beside it as <file-stem>-log.md - rework-log.md, steps-log.md; --log names another. validate
 given the rework's directory validates rework.md and every steps file under it, each with its log,
-in one call; a step named with its file ("shared/steps.md · R01") is not resolved across files.
+in one call; a step named with its file ("shared/steps.md · WK01") is not resolved across files.
 
 Exit codes: 0 done - 1 nothing matched or validate found problems - 2 bad usage.
 EOF
@@ -122,10 +122,29 @@ assert_read_whole() {
 
 # The parser's checks over the file and, where it exists, the log; then the log's absence, which
 # only this script can name the path of.
+# Every file a script validates carries "**Format:** <n>" in its header, written by the skill that
+# created it. A file with no such line predates format 2 - single-letter ids, D3 and B7 - and is
+# reported as such rather than failing on symptoms. The number is scripts/README.md's, "Formats".
+FORMAT=2
+check_format() {
+    local file="$1" found
+    found="$(sed -n 's/^\*\*Format:\*\*[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$file" | head -1)"
+    if [ -z "$found" ]; then
+        echo "${file#"$repo_root/"}: no **Format:** line - written before format $FORMAT (ids were one letter: D3, B7). Migrate the ids by hand and add \"**Format:** $FORMAT\" under the title, or archive it as it is"
+        return 1
+    fi
+    if [ "$found" != "$FORMAT" ]; then
+        echo "${file#"$repo_root/"}: **Format:** $found, and this plugin reads format $FORMAT"
+        return 1
+    fi
+    return 0
+}
+
 validate_one() {
     local failed=0
     resolve_log
     parse validate || failed=1
+    check_format "$rework_file" || failed=1
     if [ ! -f "$log_file" ]; then
         echo "no rework log at ${log_file#"$repo_root/"} - the run log lives there"
         failed=1
@@ -247,7 +266,7 @@ cmd_block() {
     step_range "$id" > /dev/null || die "no such step: $id" 1
     [ -f "$log_file" ] || die "no rework log at ${log_file#"$repo_root/"} - rework writes it beside the file"
 
-    # Appended as the next B entry at the end of the log's Run Log, which is created when absent.
+    # Appended as the next RL entry at the end of the log's Run Log, which is created when absent.
     # The number comes from the parser, so the entry lands above nothing that came before it.
     local b runlog_start next_section insert_at
     b="$(parse nextblock)"
@@ -263,10 +282,10 @@ cmd_block() {
 
     # The note travels in the environment, not through -v, which would expand escape sequences
     # in whatever the caller wrote.
-    entry="- **B${b} (${id}):** ${note}" \
+    entry="- **RL$(printf '%02d' "$b") (${id}):** ${note}" \
         rewrite_file "$log_file" awk -v n="$insert_at" \
             '{ print } NR == n { print ""; print ENVIRON["entry"]; print "  - Resolved:" }' "$log_file"
-    echo "$id left open; recorded as B${b} in ${log_file#"$repo_root/"}"
+    echo "$id left open; recorded as RL$(printf '%02d' "$b") in ${log_file#"$repo_root/"}"
 }
 
 command="${1:-}"

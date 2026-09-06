@@ -36,10 +36,10 @@ log:
 | Need                    | Command                                                     |
 |-------------------------|-------------------------------------------------------------|
 | Where the run stands    | `fix.sh status --file <fix>`                                |
-| One step's text         | `fix.sh show R01 G01 --file <fix>`                          |
-| Say what you are trying | `fix.sh start G01 <the approach, in a clause> --file <fix>` |
-| Mark a step done        | `fix.sh tick R01 --file <fix>`                              |
-| Return blocked on one   | `fix.sh block G01 "<why, in a clause>" --file <fix>`        |
+| One step's text         | `fix.sh show FR01 FG01 --file <fix>`                          |
+| Say what you are trying | `fix.sh start FG01 <the approach, in a clause> --file <fix>` |
+| Mark a step done        | `fix.sh tick FR01 --file <fix>`                              |
+| Return blocked on one   | `fix.sh block FG01 "<why, in a clause>" --file <fix>`        |
 | Check the grammar       | `fix.sh validate --file <fix>`                              |
 
 **Name your file on every call**; several are in flight at once. The log is found beside it as `fix-log.md`;
@@ -78,7 +78,7 @@ cover rather than retrying.
   under the step's ID.
 - **The `**In flight:**` header line, through `fix.sh start`**: run it when a step starts and again whenever the
   approach changes. `tick` empties it.
-- **`## Run Log`, a `B` entry for everything the run records**: a blocked return, through `fix.sh block`, which
+- **`## Run Log`, an `RL` entry for everything the run records**: a blocked return, through `fix.sh block`, which
   leaves a `- Resolved:` line the level above fills; a boundary you widened, an effect a revert did not undo, a
   failure on a path this fix never touched — appended yourself, with no `Resolved:` line, creating the heading
   at the first entry as `block` does.
@@ -87,8 +87,8 @@ cover rather than retrying.
 
 - **A tick**, through `fix.sh tick`.
 - **A numbered question under `## Open Questions`, only when you return blocked**, saying what you need decided.
-  `Q` numbers are your file's own, starting at `Q1`. The return itself is the `B` entry in the log.
-- **One widened boundary line of a `stabilize` step**, where `applying-a-step.md` allows it, with its `B` note in
+  `OQ` numbers are your file's own, starting at `OQ01`. The return itself is the `RL` entry in the log.
+- **One widened boundary line of a `stabilize` step**, where `applying-a-step.md` allows it, with its `RL` note in
   the log. Nothing else about a step is yours: not its kind, not its scenario, never a step added or removed.
 
 ## Where You Stop And Return
@@ -123,7 +123,7 @@ Short. Your log holds the detail, and the level above reads it. Four things:
 - **Every step by ID**, ticked or not, and the files it touched.
 - **The failure output of every `red` step**, quoted — the one thing that is not in your log.
 - **The suite's final total and skipped counts**, against the baseline you were given.
-- **What is blocked, and the decision you need** — the `B` and attempt numbers behind it, not the log itself.
+- **What is blocked, and the decision you need** — the `RL` and attempt numbers behind it, not the log itself.
 
 **A second defect you noticed rather than ran — like anything else unexercised — is a hypothesis**, in the form
 [`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back** gives. One you watched fail is

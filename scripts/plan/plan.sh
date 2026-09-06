@@ -47,8 +47,8 @@ Commands:
             separated by a blank line.
   tick      Mark the items done. Several IDs are one batch: all are resolved before any is written,
             so a name nothing defines ticks none of them.
-  block     Leave the item open and record the reason as the next B entry of the plan log's Run Log.
-  validate  Duplicate IDs, items with no ID, dependencies on IDs nothing defines, cycles, placeholder
+  block     Leave the item open and record the reason as the next RL entry of the plan log's Run Log.
+  validate  A missing or older **Format:** line, duplicate IDs, items with no ID, dependencies on IDs nothing defines, cycles, placeholder
             given/when/then values, update: bullets naming a test method that is nowhere in the tree,
             a finding or a blockers section left in the plan, a missing plan log, and findings in it
             missing a Resolution: or an unapplied mechanical Action:.
@@ -162,6 +162,24 @@ task_dir_of() {
         dir="$parent"
     done
     echo "$dir"
+}
+
+# Every file a script validates carries "**Format:** <n>" in its header, written by the skill that
+# created it. A file with no such line predates format 2 - single-letter ids, D3 and B7 - and is
+# reported as such rather than failing on symptoms. The number is scripts/README.md's, "Formats".
+FORMAT=2
+check_format() {
+    local file="$1" found
+    found="$(sed -n 's/^\*\*Format:\*\*[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$file" | head -1)"
+    if [ -z "$found" ]; then
+        echo "${file#"$repo_root/"}: no **Format:** line - written before format $FORMAT (ids were one letter: D3, B7). Migrate the ids by hand and add \"**Format:** $FORMAT\" under the title, or archive it as it is"
+        return 1
+    fi
+    if [ "$found" != "$FORMAT" ]; then
+        echo "${file#"$repo_root/"}: **Format:** $found, and this plugin reads format $FORMAT"
+        return 1
+    fi
+    return 0
 }
 
 # The log's Stubs section: the marker an unimplemented stub's intent comment starts with, and the
@@ -279,6 +297,7 @@ case "$command" in
             echo "no plan log at ${log_file#"$repo_root/"} - the review findings and the run log live there"
             problems=1
         fi
+        check_format "$plan_file" || problems=1
 
         # An "update:" bullet names a test that already exists - that is what distinguishes it from a
         # new scenario. One naming nothing in the tree is a plan written against remembered code.
@@ -376,7 +395,7 @@ case "$command" in
         [ -n "$range" ] || die "no item $id in ${plan_file#"$repo_root/"}" 1
         [ -f "$log_file" ] || die "no plan log at ${log_file#"$repo_root/"} - plan-task writes it beside the file"
 
-        # Appended as the next B entry at the end of the log's Run Log, which is created when absent.
+        # Appended as the next RL entry at the end of the log's Run Log, which is created when absent.
         # The number comes from the parser, so the entry lands above nothing that came before it.
         b="$(awk -f "$parser" -v mode=nextblock "$plan_file" "$log_file")"
         runlog_start="$(grep -n '^## Run Log' "$log_file" | head -1 | cut -d: -f1)"
@@ -391,10 +410,10 @@ case "$command" in
 
         # The note travels in the environment, not through -v, which would expand escape sequences
         # in whatever the caller wrote.
-        entry="- **B${b} (${id}):** ${note}" \
+        entry="- **RL$(printf '%02d' "$b") (${id}):** ${note}" \
             rewrite_file "$log_file" awk -v n="$insert_at" \
                 '{ print } NR == n { print ""; print ENVIRON["entry"]; print "  - Resolved:" }' "$log_file"
-        echo "$id left open; recorded as B${b} in ${log_file#"$repo_root/"}"
+        echo "$id left open; recorded as RL$(printf '%02d' "$b") in ${log_file#"$repo_root/"}"
         ;;
 
     stub)

@@ -32,8 +32,8 @@ Run it with bash, from anywhere inside the project:
 
 ```
 <plugin>/scripts/rework/rework.sh status
-<plugin>/scripts/rework/rework.sh show R03
-<plugin>/scripts/rework/rework.sh tick R02 R04
+<plugin>/scripts/rework/rework.sh show WK03
+<plugin>/scripts/rework/rework.sh tick WK02 WK04
 <plugin>/scripts/rework/rework.sh validate
 ```
 
@@ -43,7 +43,7 @@ Run it with bash, from anywhere inside the project:
 | `show <ID>...`      | One step: its header and everything indented under it. Several print blank-line separated. |
 | `tick <ID>...`      | Mark the steps done. Every ID is resolved before any is written; one already ticked is     |
 |                     | reported as `already ticked: <ID>` and left as it is.                                      |
-| `block <ID> <note>` | Leave the step open; record the note as the next `B` entry of the log's **Run Log**.       |
+| `block <ID> <note>` | Leave the step open; record the note as the next `RL` entry of the log's **Run Log**.       |
 | `validate`          | See [What `validate` checks](#what-validate-checks).                                       |
 
 Exit codes: **0** done, **1** no such step or `validate` found problems, **2** bad usage.
@@ -62,7 +62,7 @@ file stays what a step agent reads; the log is what happened to it. `validate` e
 run-log entries, no problems` when it finds nothing — `0 steps` included, since a multi-module `rework.md` holds
 none by design.
 
-A run-log entry is `- **B<n> (<ID>):** <what happened>` at the left margin, `<ID>` a step the steps file
+A run-log entry is `- **RL<nn> (<ID>):** <what happened>` at the left margin, `<ID>` a step the steps file
 defines, numbered from 1 per log in the order it was written and never renumbered; `block` writes one with an
 empty `- Resolved:` line beneath it, and whoever settles the blocker fills that line. An entry recording a fact
 nobody has to act on — a boundary a step widened, a mutation that did not bite — carries no `Resolved:` line;
@@ -73,12 +73,12 @@ included.
 A step whose header ends in `abandoned — <why>` keeps its open box; `status` counts it closed and lists it
 apart from the open ones.
 
-**A step in another file is named with that file** — `needs: shared/steps.md · R01`. `validate` skips that
+**A step in another file is named with that file** — `needs: shared/steps.md · WK01`. `validate` skips that
 form rather than resolving it, and holds every bare ID to the file it appears in.
 
 ### Step IDs
 
-A step is `- [ ] <ID> · <kind> · <text>`, the ID being a letter prefix and a number — `R01`, `R02`. The kinds
+A step is `- [ ] <ID> · <kind> · <text>`, the ID being a letter prefix and a number — `WK01`, `WK02`. The kinds
 and the numbering rule belong to the rework format, defined by the `rework` skill this ships with.
 
 `files:` and `test-files:` carry their paths as bullets under the label rather than as text beside it, so their
@@ -100,12 +100,12 @@ label line is empty by design. Every other label keeps its value on its own line
 | An Open Question whose `- A:` is empty                           | a run about to start on a decision nobody made        |
 | A fenced block that never closes                                 | a file read as half of itself                         |
 | No `<stem>-log.md` beside the file                               | a run with nowhere to record against                  |
-| A `Run Log`, `Attempts`, `B` or `A` entry in the steps file      | the old shape — the log owns those                    |
-| A `B` entry outside the log's `Run Log`                          | a record `block` cannot number after                  |
-| A `B` entry numbered below the entry above it                    | a record inserted where it did not happen             |
-| A `B` entry with no `(<ID>)`, or naming a step nothing defines   | a record about nothing in the steps file              |
+| A `Run Log`, `Attempts`, `RL` or `AT` entry in the steps file      | the old shape — the log owns those                    |
+| An `RL` entry outside the log's `Run Log`                          | a record `block` cannot number after                  |
+| An `RL` entry numbered below the entry above it                    | a record inserted where it did not happen             |
+| An `RL` entry with no `(<ID>)`, or naming a step nothing defines   | a record about nothing in the steps file              |
 
-**A duplicate ID's own block is not judged.** The second `R01` is reported and its lines are skipped, since
+**A duplicate ID's own block is not judged.** The second `WK01` is reported and its lines are skipped, since
 attributing them to an ID that already means something else would report the same step twice. Fix the ID and run
 again.
 

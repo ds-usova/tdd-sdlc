@@ -7,7 +7,7 @@
 # kind decides which of those lines the step owes and which it may not carry, which is what validate
 # checks. "abandoned" on the header is a step struck by the level above; it is closed, not open.
 #
-# An attempt is "- **A1** · <phase> · <text>" under the log's "## Attempts". It owes its reasoning,
+# An attempt is "- **AT01** · <phase> · <text>" under the log's "## Attempts". It owes its reasoning,
 # its result, a fenced block of the runner's own output, and what it rules out - a failed approach
 # recorded without its evidence is a rumour the next session has to reproduce.
 #
@@ -52,7 +52,7 @@ function a(word) {
     return (word ~ /^[aeiou]/ ? "an " : "a ") word
 }
 
-# A step ID mentioned inside a labelled line. Scanned with its own boundaries: "S3UploadTest" holds
+# A step ID mentioned inside a labelled line. Scanned with its own boundaries: "FS3UploadTest" holds
 # the characters of a step ID and is a test class, and a disabled test whose name happens to start
 # that way must not be reported as a reference to a step nothing defines.
 function scan_refs(who, label, text, line,   rest, id, before, after, found) {
@@ -68,7 +68,7 @@ function scan_refs(who, label, text, line,   rest, id, before, after, found) {
         gsub(/[^ ,;]*\.md[^ ]* *\xc2\xb7 *[A-Za-z]+[0-9]+/, "", text)
     }
     rest = text
-    while (match(rest, /[SRG][0-9]+/)) {
+    while (match(rest, /F[SRG][0-9]+/)) {
         id = substr(rest, RSTART, RLENGTH)
         before = (RSTART > 1) ? substr(rest, RSTART - 1, 1) : ""
         after = substr(rest, RSTART + RLENGTH, 1)
@@ -154,9 +154,9 @@ BEGIN {
     requires["green"]     = "files fixes runs"
 
     # One ID sequence per kind, so a reader knows what a step is before reading it.
-    prefix_of["stabilize"] = "S"
-    prefix_of["red"]       = "R"
-    prefix_of["green"]     = "G"
+    prefix_of["stabilize"] = "FS"
+    prefix_of["red"]       = "FR"
+    prefix_of["green"]     = "FG"
 
     kinds = " stabilize red green "
 
@@ -270,7 +270,7 @@ awaiting_evidence != "" && /[^ \t]/ { awaiting_evidence = "" }
 # Steps live in the fix file alone; a checkbox in the log is a record, not work.
 fileidx != 1 && /^-[ \t]+\[[ xX]\][ \t]+/ { next }
 
-# - [ ] R01 · red · what reproduces the bug
+# - [ ] FR01 · red · what reproduces the bug
 #
 # At the left margin only. A checkbox indented under a step is part of that step's own text - reading
 # it as a peer both invents a step nothing can tick and truncates the block "show" hands over.
@@ -321,12 +321,12 @@ fileidx != 1 && /^-[ \t]+\[[ xX]\][ \t]+/ { next }
     next
 }
 
-# - **A1** · S02 · what was tried
-/^[ \t]*-[ \t]+\*\*A[0-9]+\*\*/ {
+# - **AT01** · FS02 · what was tried
+/^[ \t]*-[ \t]+\*\*AT[0-9]+\*\*/ {
     flush_awaiting()
     cur = ""
     line = $0
-    match(line, /A[0-9]+/)
+    match(line, /AT[0-9]+/)
     aid = substr(line, RSTART, RLENGTH)
 
     if (fileidx == 1) {
@@ -365,22 +365,22 @@ fileidx != 1 && /^-[ \t]+\[[ xX]\][ \t]+/ { next }
     next
 }
 
-# A run-log entry: "- **B3 (G01):** …", numbered once and ascending, so a new one is appended and
+# A run-log entry: "- **RL03 (FG01):** …", numbered once and ascending, so a new one is appended and
 # never inserted above an older one. One outside the Run Log is reported, and still counted, so the
 # next number never repeats it. The parenthesis names what the entry is about: a step ID beside a
 # fix.md, which the file has to define; "diagnosis" or a module beside a bug.md, which holds no steps.
-/^-[ \t]+\*\*B[0-9]+/ {
+/^-[ \t]+\*\*RL[0-9]+/ {
     close_step()
-    match($0, /B[0-9]+/)
-    b = substr($0, RSTART + 1, RLENGTH - 1) + 0
+    match($0, /RL[0-9]+/)
+    b = substr($0, RSTART + 2, RLENGTH - 2) + 0
     if (fileidx == 1) {
-        problem(FILENAME ":" FNR ": B" b " sits in the " spec_base " - the log beside it owns the run log")
+        problem(FILENAME ":" FNR ": RL" sprintf("%02d", b) " sits in the " spec_base " - the log beside it owns the run log")
         next
     }
     if (!in_runlog) {
-        problem(FILENAME ":" FNR ": B" b " sits outside '## Run Log'")
+        problem(FILENAME ":" FNR ": RL" sprintf("%02d", b) " sits outside '## Run Log'")
     } else if (b <= last_b) {
-        problem(FILENAME ":" FNR ": B" b " is not above the entry before it - append, never insert")
+        problem(FILENAME ":" FNR ": RL" sprintf("%02d", b) " is not above the entry before it - append, never insert")
     }
     if (b > last_b) last_b = b
     b_count++
@@ -388,12 +388,12 @@ fileidx != 1 && /^-[ \t]+\[[ xX]\][ \t]+/ { next }
         subject = substr($0, RSTART + 1, RLENGTH - 2)
         if (subject ~ /^[A-Za-z]+[0-9]+$/ || spec_base != "bug.md") {
             b_step_count++
-            b_step_id[b_step_count] = "B" b
+            b_step_id[b_step_count] = sprintf("RL%02d", b)
             b_step_of[b_step_count] = subject
             b_step_line[b_step_count] = FNR
         }
     } else {
-        problem(FILENAME ":" FNR ": B" b " names no step - write it as **B" b " (<step ID>):**")
+        problem(FILENAME ":" FNR ": RL" sprintf("%02d", b) " names no step - write it as **B" b " (<step ID>):**")
     }
     next
 }
@@ -489,13 +489,13 @@ cur != "" && /^[ \t]+[^ \t]/ { end_line[cur] = FNR; next }
 # to a step agent as part of its step.
 cur != "" && /^[^ \t]/ { close_step() }
 
-# - **Q1:** … / - A:
-in_questions && /^[ \t]*-[ \t]+\*\*Q[0-9]+/ {
+# - **OQ01:** … / - A:
+in_questions && /^[ \t]*-[ \t]+\*\*OQ[0-9]+/ {
     if (open_question != "") {
         problem(FILENAME ":" question_line ": " open_question " has no answer")
     }
     line = $0
-    match(line, /Q[0-9]+/)
+    match(line, /OQ[0-9]+/)
     open_question = substr(line, RSTART, RLENGTH)
     question_line = FNR
     next

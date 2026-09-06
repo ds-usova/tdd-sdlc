@@ -52,12 +52,12 @@ for the two to drift apart.
 These bind every Red Phase format below.
 
 **A scenario comes from the spec, not from the planner.** The spec's **Acceptance Scenarios** are the
-behaviour a person signed off, numbered `A1`, `A2`. Every scenario written here traces to one, and the step names
-which: `covers scenarios: A1, A3`, on the step line. A scenario the design does not carry is either a mechanical
+behaviour a person signed off, numbered `AC01`, `AC02`. Every scenario written here traces to one, and the step names
+which: `covers scenarios: AC01, AC03`, on the step line. A scenario the design does not carry is either a mechanical
 case the design never needed — a boundary value, a mapping detail — or a behaviour nobody agreed to. The second
-goes back to the design as a new `D` entry, never in here as an invention.
+goes back to the design as a new `DN` entry, never in here as an invention.
 
-**A spec scenario no step names is a gap.** Check the whole set before finishing: every `A<n>` in the spec is
+**A spec scenario no step names is a gap.** Check the whole set before finishing: every `AC<nn>` in the spec is
 covered by at least one step in one of the task's plans.
 
 **Coverage balance rule.** Before listing scenarios, review the existing tests in the step's test class to
@@ -129,7 +129,7 @@ into scenarios, not into code.
 Each item in the `TDD Unit Red Phase` section MUST follow this exact format:
 
 ```
-- [ ] RU<nn> · `<TargetClass>` · test: `<TestClass>` · covers: `method1()`, `method2()` · scenarios: A1, A3
+- [ ] RU<nn> · `<TargetClass>` · test: `<TestClass>` · covers: `method1()`, `method2()` · scenarios: AC01, AC03
   - `method1()`:
     - given: [precondition]
       when: [action]
@@ -180,7 +180,7 @@ framework calls is reached through the framework.
 **Infrastructure steps** — the class against a real database, cache, store, broker or HTTP API:
 
 ```
-- [ ] RI<nn> · `<AdapterImplClass>` · test: `<AdapterTestClass>` · covers: `method1()`, `method2()` · scenarios: A2
+- [ ] RI<nn> · `<AdapterImplClass>` · test: `<AdapterTestClass>` · covers: `method1()`, `method2()` · scenarios: AC02
   - `method1()`:
     - given: [precondition]
       when: [action]
@@ -213,7 +213,7 @@ Tests are expected to **fail at runtime** because the implementation is still a 
 **Entry-point steps** — the class the framework calls, against the framework's real machinery:
 
 ```
-- [ ] RI<nn> · `<TargetClass>` · test: `<TestClass>` · covers: `<entry point>` · mocks: `<Collaborator>` · scenarios: A1
+- [ ] RI<nn> · `<TargetClass>` · test: `<TestClass>` · covers: `<entry point>` · mocks: `<Collaborator>` · scenarios: AC01
   - Happy Path:
     - given: [what the mocked collaborator returns]
       when: [request with a valid payload]
@@ -246,7 +246,7 @@ apply.
 Each item in the `TDD System Test Red Phase` section MUST follow this exact format:
 
 ```
-- [ ] RS<nn> · `<SystemTestClass>` · covers: `<entry point>` · scenarios: A1, A4
+- [ ] RS<nn> · `<SystemTestClass>` · covers: `<entry point>` · scenarios: AC01, AC04
   - Happy Path:
     - given: [preconditions]
       when: [request or invocation with valid data]

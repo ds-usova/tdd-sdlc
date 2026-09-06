@@ -8,6 +8,7 @@ repository's documentation conventions. The directory carries the number and the
 ```
 # Upgrade: <the module, or the modules, and what moves>
 
+**Format:** 2
 **Affected Modules:** `module-a`
 **Source:** <one line — the request, or the conventions entry that scheduled this run>
 **Baseline:** <the commit the suite was green at>
@@ -34,7 +35,7 @@ repository's documentation conventions. The directory carries the number and the
 
 ## Open Questions
 
-- **Q1:** …
+- **OQ01:** …
   - A:
 ```
 
@@ -63,13 +64,13 @@ the manifest, or the one package a `migrate` change reaches.
 
 ### Open Questions
 
-`Q1` upward per file, assigned once, never renumbered; a question in `<module>/steps.md` is `Q1` of that file,
-and anything outside the file cites both: `module-a/steps.md · Q2`. An agent that returns blocked writes its
-question here, in the steps file it owns; the blocked return itself is a `B` entry in the log.
+`OQ01` upward per file, assigned once, never renumbered; a question in `<module>/steps.md` is `OQ01` of that file,
+and anything outside the file cites both: `module-a/steps.md · OQ02`. An agent that returns blocked writes its
+question here, in the steps file it owns; the blocked return itself is an `RL` entry in the log.
 
 ## `<module>/steps.md`
 
-Carries `**Affected Module:**` and `**Upgrade:** [<the upgrade>](../upgrade.md)` above its `## Steps`, its own
+Carries `**Format:** 2`, `**Affected Module:**` and `**Upgrade:** [<the upgrade>](../upgrade.md)` above its `## Steps`, its own
 `## Open Questions`, and nothing else. `## Survey` and `## What changes` stay in `upgrade.md` and cover every
 steps file. `shared/steps.md` names every module the catalog serves.
 
@@ -89,30 +90,30 @@ a steps file without one. The steps file is what an agent reads; the log is what
 
 ## Run Log
 
-- **B1 (U03):** kept back — <what the guide asked>
-  - Kept because: A1, A2, A3
+- **RL01 (UP03):** kept back — <what the guide asked>
+  - Kept because: AT01, AT02, AT03
   - Would unblock: <a fixed release, a dependency of the module's own that has to move first, a decision>
 
-- **B2 (U05):** <what happened>
+- **RL02 (UP05):** <what happened>
   - Resolved:
 ```
 
 ### Attempts
 
-`A1` upward per log, in the shape [`attempts.md`](../../templates/attempts.md) gives, phase the step ID.
-Anything outside the log cites both: `module-a/steps-log.md · A3`.
+`AT01` upward per log, in the shape [`attempts.md`](../../templates/attempts.md) gives, phase the step ID.
+Anything outside the log cites both: `module-a/steps-log.md · AT03`.
 
 ### Run Log
 
-`- **B<n> (<ID>):** <note>`, `B1` upward per log, numbered in the order written and never renumbered; a new
+`- **RL<nn> (<ID>):** <note>`, `RL01` upward per log, numbered in the order written and never renumbered; a new
 entry is appended, never inserted above an older one. `upgrade.sh block` writes one with an empty `- Resolved:`
 line beneath it, and whoever settles the blocker fills that line. An entry recording a fact nobody has to act
 on — a boundary a step widened, a deprecation the build printed — carries no `Resolved:`.
 
-**A kept-back change is a `B` entry** — the section that keeps a half-done migration honest. One entry per
+**A kept-back change is an `RL` entry** — the section that keeps a half-done migration honest. One entry per
 change a guide asked for that stays undone at the target version: the note is `kept back — <what the guide
 said>`, `Kept because:` is the attempt IDs in one clause, and `Would unblock:` is what would let the next run
 finish it. `validate` refuses one missing either line. A step abandoned gets `abandoned — <why>` on its header
-in the steps file and a `B` entry here saying what was reverted.
+in the steps file and an `RL` entry here saying what was reverted.
 
 Absent on most upgrades' logs. Never removed once written.

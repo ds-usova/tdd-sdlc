@@ -11,8 +11,8 @@
 # attempts and run-log entries from the second only; an attempt or a run-log entry in the steps file
 # is reported, never read. `-v files=1` says the log is absent, which validate reports.
 #
-# An attempt is "- **A1** · <step ID> · <text>" under the log's "## Attempts"; the shape is
-# templates/attempts.md. A run-log entry is "- **B1 (<step ID>):** <note>" under the log's
+# An attempt is "- **AT01** · <step ID> · <text>" under the log's "## Attempts"; the shape is
+# templates/attempts.md. A run-log entry is "- **RL01 (<step ID>):** <note>" under the log's
 # "## Run Log", numbered once and ascending. One whose note starts "kept back" owes a "Kept because:"
 # and a "Would unblock:" line.
 #
@@ -211,7 +211,7 @@ awaiting_evidence != "" && /[^ \t]/ { awaiting_evidence = "" }
     next
 }
 
-# - [ ] U01 · bump · `group:artifact` 1.0 -> 1.1
+# - [ ] UP01 · bump · `group:artifact` 1.0 -> 1.1
 #
 # At the left margin only. A checkbox indented under a step is part of that step's own text.
 # In the log a checkbox is a record, not work.
@@ -263,13 +263,13 @@ fileidx != 1 && /^-[ \t]+\[[ xX]\][ \t]+/ { next }
     next
 }
 
-# - **A1** · U03 · what was tried
-/^[ \t]*-[ \t]+\*\*A[0-9]+\*\*/ {
+# - **AT01** · UP03 · what was tried
+/^[ \t]*-[ \t]+\*\*AT[0-9]+\*\*/ {
     flush_awaiting()
     cur = ""
     cur_b = ""
     line = $0
-    match(line, /A[0-9]+/)
+    match(line, /AT[0-9]+/)
     aid = substr(line, RSTART, RLENGTH)
 
     if (fileidx == 1) {
@@ -308,19 +308,19 @@ fileidx != 1 && /^-[ \t]+\[[ xX]\][ \t]+/ { next }
     next
 }
 
-# - **B3 (U03):** what happened
+# - **RL03 (UP03):** what happened
 #
 # Numbered once and ascending, so a new one is appended and never inserted above an older one. One
 # outside the Run Log is reported, and still counted, so the next number never repeats it.
-/^-[ \t]+\*\*B[0-9]+/ {
+/^-[ \t]+\*\*RL[0-9]+/ {
     flush_awaiting()
     cur = ""
     cur_attempt = ""
     cur_b = ""
     line = $0
-    match(line, /B[0-9]+/)
+    match(line, /RL[0-9]+/)
     bid = substr(line, RSTART, RLENGTH)
-    b = substr(bid, 2) + 0
+    b = substr(bid, 3) + 0
 
     if (fileidx == 1) {
         problem(FILENAME ":" FNR ": " bid " sits in the " spec_base " - the log beside it owns the run log")
@@ -356,7 +356,7 @@ fileidx != 1 && /^-[ \t]+\[[ xX]\][ \t]+/ { next }
     next
 }
 
-#   - Kept because: A1, A2, A3 / - Would unblock: … / - Resolved:
+#   - Kept because: AT01, AT02, AT03 / - Would unblock: … / - Resolved:
 cur_b != "" && /^[ \t]+-[ \t]+[A-Za-z][A-Za-z ]*:/ {
     line = trim($0)
     sub(/^-[ \t]+/, "", line)
@@ -424,12 +424,12 @@ cur_b != "" && /^[ \t]+-[ \t]+[A-Za-z][A-Za-z ]*:/ {
     if (name == "change" && index(value, SEP) == 0) {
         problem(FILENAME ":" FNR ": " cur "'s \"change:\" names no place - put where it lands after a " SEP)
     }
-    # A step in another steps file is named with that file - "shared/steps.md · U01" - and cannot be
+    # A step in another steps file is named with that file - "shared/steps.md · UP01" - and cannot be
     # resolved from here, so only the bare IDs are held to this file.
     if (name == "needs") {
         rest = value
         gsub(/[^ ,;]*\.md[^ ]* *\xc2\xb7 *[A-Za-z]+[0-9]+/, "", rest)
-        while (match(rest, /U[0-9]+/)) {
+        while (match(rest, /UP[0-9]+/)) {
             referenced[cur "\t" substr(rest, RSTART, RLENGTH)] = FNR
             rest = substr(rest, RSTART + RLENGTH)
         }
@@ -446,13 +446,13 @@ awaiting != "" && /^[ \t]+-[ \t]+[^ \t]/ {
 
 cur != "" && /^[ \t]+[^ \t]/ { end_line[cur] = FNR; next }
 
-# - **Q1:** … / - A:
-in_questions && /^[ \t]*-[ \t]+\*\*Q[0-9]+/ {
+# - **OQ01:** … / - A:
+in_questions && /^[ \t]*-[ \t]+\*\*OQ[0-9]+/ {
     if (open_question != "") {
         problem(FILENAME ":" question_line ": " open_question " has no answer")
     }
     line = $0
-    match(line, /Q[0-9]+/)
+    match(line, /OQ[0-9]+/)
     open_question = substr(line, RSTART, RLENGTH)
     question_line = FNR
     next

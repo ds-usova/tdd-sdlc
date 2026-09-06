@@ -115,16 +115,16 @@ trusted with a test suite — and adds what a spec alone cannot give:
 | Stage                              | Here                                                                     | What is checked, not just written                                                                                                                             |
 |------------------------------------|--------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | project rules                      | `docs/conventions.md` and `<module>/docs/conventions.md`                 | deduced from your tree by `init-conventions`, not written from a template                                                                                     |
-| requirements, acceptance scenarios | `spec.md`: `R1…`, `A1…`                                                  | every requirement must be proved by a scenario; `design.sh validate` refuses one that is not                                                                  |
-| open questions                     | a `D` entry in `spec.md` marked `must-decide`                            | answered against the repository first; only what nothing answers reaches you                                                                                  |
+| requirements, acceptance scenarios | `spec.md`: `RQ01…`, `AC01…`                                                  | every requirement must be proved by a scenario; `design.sh validate` refuses one that is not                                                                  |
+| open questions                     | a `DN` entry in `spec.md` marked `must-decide`                            | answered against the repository first; only what nothing answers reaches you                                                                                  |
 | clarification                      | the grill: `grill-design` for APIs and stores, `grill-frontend` for a UI | an independent agent, a fixed list of concerns, a verdict and a why for each                                                                                  |
 | technical design, research         | `design.md`, `design-log.md`                                             | the design says what is stored, exposed and exchanged, readable by any stack; the log says what each verdict and decision rested on — a file where one exists |
-| plan, tasks                        | `plan.md` per module, `plan-log.md` beside it                            | every step starts with a failing test, and cites the acceptance scenario (`A`) it proves; the plan holds only what binds, the log what was found and recorded |
+| plan, tasks                        | `plan.md` per module, `plan-log.md` beside it                            | every step starts with a failing test, and cites the acceptance scenario (`AC`) it proves; the plan holds only what binds, the log what was found and recorded |
 
 **Evidence-backed assumptions.** A question the repository answered becomes a Findings row in `design-log.md`,
 citing the file that answers it. A question no file answers is put to you.
 
-**Scenario-to-test traceability.** Requirement (`R`) → acceptance scenario (`A`) → failing-test step in the plan →
+**Scenario-to-test traceability.** Requirement (`RQ`) → acceptance scenario (`AC`) → failing-test step in the plan →
 test class. A requirement with no failing test behind it cannot reach the plan.
 
 <hr>

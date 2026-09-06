@@ -36,7 +36,7 @@ Run it with bash, from anywhere inside the project:
 ```
 <plugin>/scripts/design/design.sh settled
 <plugin>/scripts/design/design.sh validate docs/7-create-expense
-<plugin>/scripts/design/design.sh show D4 D7
+<plugin>/scripts/design/design.sh show DN04 DN07
 ```
 
 | Command        | Effect                                                                                  |
@@ -58,12 +58,12 @@ flight is used. An archived task under `docs/implemented/` has to be named expli
 An entry in the spec is three lines — the question, the answer, and who chose:
 
 ```
-- **D4:** What happens when the same widget is created twice concurrently?
+- **DN04:** What happens when the same widget is created twice concurrently?
   - Answer: One request wins with 200; the other returns the same 409 a sequential duplicate returns.
   - Basis: decided (user, 2026-07-30)
 ```
 
-`D<n>` is assigned once and never renumbered. Only `decided` and `must-decide` are entries; the reasoning behind a
+`DN<nn>` is assigned once and never renumbered. Only `decided` and `must-decide` are entries; the reasoning behind a
 decided one is a **Decision Bases** line in the log, under the same number. The four bases and what each obliges
 are defined in the `design-task` skill this ships with (`skills/design-task/SKILL.md`, **Decisions**); worked examples are at
 `skills/design-task/example-spec.md`, `example-design.md` and `example-design-log.md` under the plugin root.
@@ -75,12 +75,12 @@ The spec:
 | Check                                                                  | Catches                                                                 |
 |------------------------------------------------------------------------|-------------------------------------------------------------------------|
 | Every required section, in order                                       | a spec a plan cannot be written from                                    |
-| A `Requirements` line no scenario proves, a scenario proving no `R`    | a promise with no test behind it, behaviour nobody asked for            |
-| Duplicate `D`, `R` or `A` IDs, an entry outside the Decisions section  | a decision nothing can address                                          |
+| A `Requirements` line no scenario proves, a scenario proving no `RQ`    | a promise with no test behind it, behaviour nobody asked for            |
+| Duplicate `DN`, `RQ` or `AC` IDs, an entry outside the Decisions section  | a decision nothing can address                                          |
 | A missing or repeated `Answer:` / `Basis:`                             | an entry no gate can classify                                           |
 | A basis that is not `decided` or `must-decide`, or with nothing after  | an assumption in the user's section — it belongs in the log             |
 | A `must-decide` carrying an answer, or a `decided` carrying none       | an entry whose two halves disagree                                      |
-| A `Design Findings` section or an `F` row outside the log              | the old shape — the log owns those now                                  |
+| A `Design Findings` section or a `DF` row outside the log              | the old shape — the log owns those now                                  |
 
 The design:
 
@@ -96,7 +96,7 @@ The log:
 |------------------------------------------------------------------------|-------------------------------------------------------------------------|
 | No log beside the spec, or no `Grilled (<date>): <grill>` line         | a design the grill never saw                                            |
 | A concern the named grill owns with no row, or a row with no why       | a concern nobody can tell was examined                                  |
-| An `F` row numbered below the row above it, or with an empty cell      | a row inserted at the wrong line, or a claim with no evidence           |
+| A `DF` row numbered below the row above it, or with an empty cell      | a row inserted at the wrong line, or a claim with no evidence           |
 | A `decided` entry with no **Decision Bases** line, or one for no entry | a decision whose reasoning was never written down                       |
 
 A `must-decide` entry is **not** a problem here: a spec in flight is expected to have them, and that is exactly

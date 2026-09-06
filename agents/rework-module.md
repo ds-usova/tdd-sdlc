@@ -32,9 +32,9 @@ as a plugin, under `.claude/` in a plain checkout — README beside it, and is h
 | Need                      | Command                                                                 |
 |---------------------------|-------------------------------------------------------------------------|
 | Where the run stands      | `rework.sh status --file <steps>`                                       |
-| One step's text           | `rework.sh show R01 R02 --file <steps>`                                 |
-| Mark a step done          | `rework.sh tick R01 --file <steps>`                                     |
-| Leave it open, record why | `rework.sh block R01 "<reason>" --file <steps>` — the log's next `B`    |
+| One step's text           | `rework.sh show WK01 WK02 --file <steps>`                                 |
+| Mark a step done          | `rework.sh tick WK01 --file <steps>`                                     |
+| Leave it open, record why | `rework.sh block WK01 "<reason>" --file <steps>` — the log's next `RL`    |
 | Check the grammar         | `rework.sh validate --file <steps>` — reads the log too                 |
 
 **Name your file on every call**; several are in flight at once. The log is found beside it; `--log` names
@@ -47,7 +47,7 @@ final report, as [`scripts/README.md`](../scripts/README.md) says; never stop fo
 you.
 
 **A resumed run starts at the first unticked step**, from its own beginning, having read the log's Run Log
-first: a `B` entry with its `Resolved:` filled is a decision already made, and an abandoned step is skipped.
+first: an `RL` entry with its `Resolved:` filled is a decision already made, and an abandoned step is skipped.
 
 ## The Sequence
 
@@ -73,9 +73,9 @@ Into the steps file:
   else about a step is yours: not its kind, not its claim, never a step added or removed.
 - **`abandoned — <why>` on a step's header**, only where the level above has decided to give the step up.
 - **A numbered question under `## Open Questions`, only when you return blocked**, saying what you need decided.
-  `Q` numbers are your file's own, starting at `Q1`.
+  `OQ` numbers are your file's own, starting at `OQ01`.
 
-Into the log's **Run Log**, as `- **B<n> (<ID>):** what happened`, appended after the last entry:
+Into the log's **Run Log**, as `- **RL<nn> (<ID>):** what happened`, appended after the last entry:
 
 - **A blocked return**, through `rework.sh block`, which adds the `- Resolved:` line the level above fills.
 - **A widened `files:` line**, naming the path added; **a corrected `survives:` line**, before and after.
@@ -117,7 +117,7 @@ Short. The level above assembles the closing report from it:
 - **Every mutation** — what was broken, and what caught it or failed to.
 - **Every hunk an `inline` or `tests` step made to a test file.**
 - **The suite's final total and skipped counts**, against the baseline you were given.
-- **Every `B` entry you wrote**, by number.
+- **Every `RL` entry you wrote**, by number.
 - **What is blocked, and the decision you need.**
 
 **A defect you noticed rather than ran — like anything else unexercised — is a hypothesis**, in the form

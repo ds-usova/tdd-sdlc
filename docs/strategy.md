@@ -69,6 +69,30 @@ run. A task directory still under `docs/` is itself the record of unfinished wor
 notes, and everything else that outlives the plan are your repository's job, in whatever form it already keeps
 them.
 
+## The ids
+
+Every id is two capital letters and at least two digits, one prefix per kind, no letter pair reused across
+files, so `DN03` can be cited from anywhere without saying which file it lives in. Numbers are assigned once and
+never reused; a withdrawn entry keeps its number.
+
+| Prefix                          | Names                                        | Lives in                  | Scope       |
+|---------------------------------|----------------------------------------------|---------------------------|-------------|
+| `RQ` `AC` `DN`                  | requirement, acceptance scenario, decision   | `spec.md`                 | the task    |
+| `DF`                            | design finding                               | `design-log.md`           | the task    |
+| `ST` `RU` `RI` `RS` `GU` `GI` `GS` `PI` | plan steps                           | `plan.md`                 | one plan    |
+| `OQ`                            | open question                                | any steps-carrying file   | that file   |
+| `RF`                            | review finding                               | `plan-log.md`             | one plan    |
+| `RL` `AT`                       | run-log entry, attempt                       | every log                 | that log    |
+| `FS` `FR` `FG`                  | fix steps: stabilize, red, green             | `fix.md`                  | that file   |
+| `WK`                            | rework step                                  | `rework.md`, `steps.md`   | that file   |
+| `UP`                            | upgrade step                                 | `upgrade.md`, `steps.md`  | that file   |
+| `RX` `DX`                       | refactoring candidate, deferred change       | `review/findings.md`      | the task    |
+| `BB` `BR` `BT`                  | backlog bug, rework candidate, deferred task | `docs/backlog.md`         | the repository |
+
+The commit-message hook refuses exactly this list, and nothing shaped like it occurs in ordinary prose. The
+format number every file carries, and what changed between formats, is
+[`scripts/README.md`](../scripts/README.md), **Formats**.
+
 ## The invariants
 
 - A skill contains no fact about any project.

@@ -47,14 +47,14 @@ priorities, where extracted code goes, what it will not have touched. All of it 
 **The affected modules are clean before anything is measured.** Uncommitted work under one: name the files and
 stop. Uncommitted work elsewhere is left alone.
 
-**A run started from a backlog `C` row, or from a findings entry directly, measures it before the suite.** Check
+**A run started from a backlog `BR` row, or from a findings entry directly, measures it before the suite.** Check
 the entry's *why* against the code it names, in one pass over the whole class it generalizes over
 ([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**).
 
 - **It holds** — proceed; the measurement is the first line of `rework.md`'s context.
 - **It holds for fewer cases than it claims** — the scope is what the measurement found, and the file says so.
 - **It does not hold**, or the change it asks for would break what is already correct: report what was measured,
-  set the entry's `Status` to `withdrawn` with that clause, remove its `C` row from `docs/backlog.md` in the
+  set the entry's `Status` to `withdrawn` with that clause, remove its `BR` row from `docs/backlog.md` in the
   same edit, and stop.
 
 Run the full build and the entire suite of every affected module with its own commands. A whole-suite run that
@@ -101,7 +101,7 @@ after any answer or re-classification written in Phase 2.
    [`templates/sub-agents.md`](../../templates/sub-agents.md) says, each handed its file's path, its module, its
    baseline figures, what the shared file disabled in its module, and `rework.md`. It applies its steps in ID
    order and returns finished or blocked. A blocked agent's question is written into its steps file's
-   `## Open Questions` and the return itself is a `B` entry in the log's Run Log; answer the question there,
+   `## Open Questions` and the return itself is an `RL` entry in the log's Run Log; answer the question there,
    fill the entry's `Resolved:`, and spawn the agent again.
 
 **A step reaches a sub-agent as `rework.sh show <ID> --file <steps>`**, never as a prompt retelling it.
@@ -121,7 +121,7 @@ follows, and the commit is provisional: the closing full run proves the whole.
 
 1. **Nothing left in any `disables:` is still off**, and every steps file's last run is green. Anything red or
    still disabled names the step that left it, and the directory is not archived. An invariant from **What must
-   stay true** that could not be kept, and a step abandoned — `abandoned — <why>` on its header, its `B` entry
+   stay true** that could not be kept, and a step abandoned — `abandoned — <why>` on its header, its `RL` entry
    in the log's Run Log — are reported here; `status` counts an abandoned step closed and lists it apart.
 2. **A refactor round per module** — see below. **Then one full build and full suite of every affected module,
    green** — the one full run of the rework. **Skipped where item 6's list holds an entry that runs the suite
@@ -135,12 +135,12 @@ follows, and the commit is provisional: the closing full run proves the whole.
    line names it instead of the module-first rule. **A rework files no refactoring candidates**; something worth doing later
    goes in the report, and the user decides whether it becomes a rework. **It may file a Deferred change**: a
    behaviour the code should have that this rework, being behaviour-preserving, could not add. A rework with
-   nothing open still gets the file. **Every bug block and every `D` row it files is appended to
-   `docs/backlog.md`** — a `B` row per bug, a `T` row per deferred change, each taking the next id in its table,
+   nothing open still gets the file. **Every bug block and every `DX` row it files is appended to
+   `docs/backlog.md`** — a `BB` row per bug, a `BT` row per deferred change, each taking the next id in its table,
    in the shape [`backlog.md`](../../templates/backlog.md) gives, with the link written to the archived path.
 4. **Close the row this rework came from.** Where `Source:` names a findings file and a row, set the row's
    `Status`: `done · <this rework's number>`, or leave it `open` with one clause naming what remains. A row set
-   to `done` leaves `docs/backlog.md` in the same edit — its `C` row is removed, never
+   to `done` leaves `docs/backlog.md` in the same edit — its `BR` row is removed, never
    struck through ([`backlog.md`](../../templates/backlog.md)); one left `open` keeps its backlog row. Nothing
    here blocks.
 5. **Archive** once the closing gate is clean and `rework.sh status` reports every steps file ticked — a manual

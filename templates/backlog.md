@@ -16,9 +16,9 @@ owner's status set to `withdrawn`, and the row removed — never worked.
 **It holds pointers, never a second copy.** The task's `findings.md` owns the row — its text, its status, its
 reasoning. The backlog carries one clause and a link, and a row leaves the backlog when the owner closes it.
 
-**The backlog assigns the id.** A findings file numbers its candidates `R1` upward and its deferred changes `D1`
+**The backlog assigns the id.** A findings file numbers its candidates `RX01` upward and its deferred changes `DX01`
 upward within itself and gives a bug no number at all, so none of them names a row across the repository. The
-backlog gives every row one id on append — `B<n>` for a bug, `C<n>` for a refactoring candidate, `T<n>` for a
+backlog gives every row one id on append — `BB<nn>` for a bug, `BR<nn>` for a refactoring candidate, `BT<nn>` for a
 deferred change, each counted from 1 and never reused — and that id is what a fix, a rework or a design is
 started from.
 
@@ -27,31 +27,31 @@ Shape:
 ```
 # Backlog
 
-Work still open from reviews: one row per bug not yet fixed, one row per `R` row and one per `D` row whose
+Work still open from reviews: one row per bug not yet fixed, one row per `RX` row and one per `DX` row whose
 owner still says `open`. The owning `review/findings.md` holds the finding; this file only points at it. The
-`#` column is the id to name when starting a bug fix, a rework or a design — `B<n>` for a bug, `C<n>` for a
-refactoring candidate, `T<n>` for a deferred change — and it never changes once given.
+`#` column is the id to name when starting a bug fix, a rework or a design — `BB<nn>` for a bug, `BR<nn>` for a
+refactoring candidate, `BT<nn>` for a deferred change — and it never changes once given.
 
 ## Bugs
 
 | #  | Raised by | Module     | What                                   | Where                                                 |
 |----|-----------|------------|----------------------------------------|-------------------------------------------------------|
-| B1 | task <n>  | `<module>` | <the block's heading, cut to a clause> | [findings](implemented/<n>-<task>/review/findings.md) |
+| BB01 | task <n>  | `<module>` | <the block's heading, cut to a clause> | [findings](implemented/<n>-<task>/review/findings.md) |
 
 ## Refactoring candidates
 
 | #  | Raised by | Module     | What                              | Where                                                 |
 |----|-----------|------------|-----------------------------------|-------------------------------------------------------|
-| C1 | task <n>  | `<module>` | <the row's what, cut to a clause> | [findings](implemented/<n>-<task>/review/findings.md) |
+| BR01 | task <n>  | `<module>` | <the row's what, cut to a clause> | [findings](implemented/<n>-<task>/review/findings.md) |
 
 ## Deferred changes
 
 | #  | Raised by | Module     | What                              | Where                                                 |
 |----|-----------|------------|-----------------------------------|-------------------------------------------------------|
-| T1 | task <n>  | `<module>` | <the row's what, cut to a clause> | [findings](implemented/<n>-<task>/review/findings.md) |
+| BT01 | task <n>  | `<module>` | <the row's what, cut to a clause> | [findings](implemented/<n>-<task>/review/findings.md) |
 ```
 
-- **#** — the backlog's own id, `B<n>`, `C<n>` or `T<n>`, one more than the highest in its table.
+- **#** — the backlog's own id, `BB<nn>`, `BR<nn>` or `BT<nn>`, one more than the highest in its table.
 - **Raised by** — `task <n>` or `rework <n>`, the directory's number.
 - **Module** — the module the finding names; several, comma-separated, where it names several.
 - **What** — one clause: a bug's heading cut to a line, a candidate's or a deferred change's *what* cut to a
@@ -65,10 +65,10 @@ Who writes it:
 
 | Moment                                             | Who                       | Does                                                                                    |
 |----------------------------------------------------|---------------------------|-----------------------------------------------------------------------------------------|
-| a task's `review/findings.md` is written           | `implement-plan`, phase 3 | appends one `B` row per bug block, one `C` row per `R` row and one `T` row per `D` row  |
-| a rework's `review/findings.md` is written         | `rework`, phase 3         | appends one `B` row per bug block and one `T` row per `D` row                           |
-| a fix closes the bug it came from                  | `fix-bug`, phase 7        | removes that `B` row                                                                    |
-| a rework closes the row it came from               | `rework`, phase 4         | removes that `C` row; leaves it if the owner's status stays `open`                      |
-| a task closes the row its design came from         | `implement-plan`, phase 3 | removes that `T` row and sets the owner's status to `done · task <n>`                   |
+| a task's `review/findings.md` is written           | `implement-plan`, phase 3 | appends one `BB` row per bug block, one `BR` row per `RX` row and one `BT` row per `DX` row  |
+| a rework's `review/findings.md` is written         | `rework`, phase 3         | appends one `BB` row per bug block and one `BT` row per `DX` row                           |
+| a fix closes the bug it came from                  | `fix-bug`, phase 7        | removes that `BB` row                                                                    |
+| a rework closes the row it came from               | `rework`, phase 4         | removes that `BR` row; leaves it if the owner's status stays `open`                      |
+| a task closes the row its design came from         | `implement-plan`, phase 3 | removes that `BT` row and sets the owner's status to `done · task <n>`                   |
 | a person closes a row directly (`done · directly`) | whoever set the status    | removes the row                                                                         |
 | a run's opening measurement withdraws its row      | `fix-bug` and `rework`, phase 0; `design-task`, §1 | removes that row and sets the owner's status to `withdrawn` |

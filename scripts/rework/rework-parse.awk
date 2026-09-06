@@ -207,24 +207,24 @@ fenced {
     next
 }
 
-# - **B3 (R02):** … - a run-log entry, numbered once and ascending, so a new one is appended and never
+# - **RL03 (WK02):** … - a run-log entry, numbered once and ascending, so a new one is appended and never
 # inserted above an older one. At the left margin only: indented, it is text under whatever is above
 # it. One outside the Run Log is reported, and still counted, so the next number never repeats it.
 # In the steps file it is reported and not counted: the log's numbering is the log's alone. The step
 # it names is held to the steps file, once that file has been read whole.
-/^- \*\*B[0-9]+/ {
+/^- \*\*RL[0-9]+/ {
     close_step()
-    match($0, /B[0-9]+/)
-    b = substr($0, RSTART + 1, RLENGTH - 1) + 0
+    match($0, /RL[0-9]+/)
+    b = substr($0, RSTART + 2, RLENGTH - 2) + 0
     if (fileidx == 1) {
-        problem(FILENAME ":" FNR ": B" b " sits in the " basename(FILENAME) " - the log beside it owns the run log")
+        problem(FILENAME ":" FNR ": RL" sprintf("%02d", b) " sits in the " basename(FILENAME) " - the log beside it owns the run log")
         next
     }
     b_count++
     if (!in_runlog) {
-        problem(FILENAME ":" FNR ": B" b " sits outside '## Run Log'")
+        problem(FILENAME ":" FNR ": RL" sprintf("%02d", b) " sits outside '## Run Log'")
     } else if (b <= last_b) {
-        problem(FILENAME ":" FNR ": B" b " is not above the entry before it - append, never insert")
+        problem(FILENAME ":" FNR ": RL" sprintf("%02d", b) " is not above the entry before it - append, never insert")
     }
     if (b > last_b) last_b = b
     if (match($0, /\([A-Za-z]+[0-9]+\)/)) {
@@ -233,15 +233,15 @@ fenced {
         b_ref_b[b_ref_count] = b
         b_ref_line[b_ref_count] = FILENAME ":" FNR
     } else {
-        problem(FILENAME ":" FNR ": B" b " names no step - write it as **B" b " (<step ID>):**")
+        problem(FILENAME ":" FNR ": RL" sprintf("%02d", b) " names no step - write it as **B" b " (<step ID>):**")
     }
     next
 }
 
-# - **A1** · … - an attempt entry, which this format does not keep.
-fileidx == 1 && /^[ \t]*-[ \t]+\*\*A[0-9]+\*\*/ {
+# - **AT01** · … - an attempt entry, which this format does not keep.
+fileidx == 1 && /^[ \t]*-[ \t]+\*\*AT[0-9]+\*\*/ {
     close_step()
-    match($0, /A[0-9]+/)
+    match($0, /AT[0-9]+/)
     problem(FILENAME ":" FNR ": " substr($0, RSTART, RLENGTH) " sits in the " basename(FILENAME) " - the log beside it owns the attempts")
     next
 }
@@ -249,7 +249,7 @@ fileidx == 1 && /^[ \t]*-[ \t]+\*\*A[0-9]+\*\*/ {
 # Steps live in the steps file alone; a checkbox in the log is a record, not work.
 fileidx != 1 && /^-[ \t]+\[[ xX]\][ \t]+/ { next }
 
-# - [ ] R01 · extract · what moves
+# - [ ] WK01 · extract · what moves
 #
 # At the left margin only. A checkbox indented under a step is part of that step's own text - reading
 # it as a peer both invents a step nothing can tick and truncates the block "show" hands over.
@@ -333,13 +333,13 @@ cur != "" && /^[ \t]+-[ \t]+[A-Za-z-]+:/ {
     if (name == "survives" && index(value, SEP) == 0) {
         problem(FILENAME ":" FNR ": " cur "'s \"survives:\" names no tier - put what it runs against after a " SEP)
     }
-    # A step in another steps file is named with that file - "shared/steps.md · R01" - and cannot be
+    # A step in another steps file is named with that file - "shared/steps.md · WK01" - and cannot be
     # resolved from here, so only the bare IDs are held to this file. A value merely mentioning a
     # path names no step.
     if (name == "needs" || name == "disables") {
         rest = value
         gsub(/[^ ,;]*\.md[^ ]* *\xc2\xb7 *[A-Za-z]+[0-9]+/, "", rest)
-        while (match(rest, /R[0-9]+/)) {
+        while (match(rest, /WK[0-9]+/)) {
             referenced[cur "\t" substr(rest, RSTART, RLENGTH)] = FNR
             rest = substr(rest, RSTART + RLENGTH)
         }
@@ -361,13 +361,13 @@ cur != "" && /^[ \t]+[^ \t]/ { end_line[cur] = FNR; next }
 # to a step agent as part of its step.
 cur != "" && /^[^ \t]/ { close_step() }
 
-# - **Q1:** … / - A:
-in_questions && /^[ \t]*-[ \t]+\*\*Q[0-9]+/ {
+# - **OQ01:** … / - A:
+in_questions && /^[ \t]*-[ \t]+\*\*OQ[0-9]+/ {
     if (open_question != "") {
         problem(question_file ":" question_line ": " open_question " has no answer")
     }
     line = $0
-    match(line, /Q[0-9]+/)
+    match(line, /OQ[0-9]+/)
     open_question = substr(line, RSTART, RLENGTH)
     question_line = FNR
     question_file = FILENAME
@@ -416,7 +416,7 @@ END {
 
     for (i = 1; i <= b_ref_count; i++) {
         if (!(b_ref_id[i] in start_line)) {
-            problem(b_ref_line[i] ": B" b_ref_b[i] " names " b_ref_id[i] ", which no step defines")
+            problem(b_ref_line[i] ": RL" sprintf("%02d", b_ref_b[i]) " names " b_ref_id[i] ", which no step defines")
         }
     }
 

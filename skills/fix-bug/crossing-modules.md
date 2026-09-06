@@ -25,6 +25,7 @@ wiring to it, every call site carried back to compiling, and whatever it had to 
 module on the seam, and its log is `shared/fix-log.md`, as for any other fix file:
 
 ```
+**Format:** 2
 **Affected Modules:** `module-a`, `module-b`
 **Bug:** [<the bug>](../bug.md)
 ```

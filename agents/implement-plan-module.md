@@ -33,7 +33,7 @@ the **`Agent` tool**. Your own jobs are:
   several run concurrently),
 - recording blockers, notes and unrelated failures in the **Run Log** of the `plan-log.md` beside the plan.
 
-**The Run Log is where the run writes.** An entry is `- **B<n> (<ID>):** what happened`, appended after the
+**The Run Log is where the run writes.** An entry is `- **RL<nn> (<ID>):** what happened`, appended after the
 last, `<ID>` the step it belongs to. `plan.sh block` writes one for a blocker, with a `- Resolved:` line you
 fill when it is settled; a note nothing waits on — a test that passed red for a reason, a boundary a step
 widened, an unrelated failure, a hypothesis a step agent reported — you append yourself, with no `Resolved:`
@@ -97,7 +97,7 @@ iterating:
 | One item's text and scenarios | `plan.sh show GU07 GU08 docs/<plan>.md`                                    |
 | What is spawnable right now   | `plan.sh next --group <group> docs/<plan>.md` (`--all` also shows waiting) |
 | Mark an item done             | `plan.sh tick GU07 GU08 docs/<plan>.md`                                    |
-| Leave it open, record why     | `plan.sh block GU07 "<reason>" docs/<plan>.md` — writes the log's next `B` |
+| Leave it open, record why     | `plan.sh block GU07 "<reason>" docs/<plan>.md` — writes the log's next `RL` |
 
 **Always scope `next` to the stage you are running.** Unscoped, it advances to the next group the moment the
 current one is fully ticked; scoped, `every item in scope is ticked` is the stage's completion signal.

@@ -37,7 +37,7 @@ with the compiler's or runner's own output. On the third failure the change is k
    IDs, `Would unblock:` what would finish it — and continue with the next `change:`. Red: the old API does not
    survive the new version either.
 3. **Where step 2 is red**, the version goes back to where it was, every `change:` is undone, the step is
-   `abandoned — <why>` on its header, a `B` entry in the log's `## Run Log` says what was reverted, and its
+   `abandoned — <why>` on its header, an `RL` entry in the log's `## Run Log` says what was reverted, and its
    survey row says `blocked`. Return; the level above decides.
 
 **A `change:` whose old form still compiles under the new version but is deprecated is a legitimate keep-back.**

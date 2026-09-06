@@ -1,6 +1,6 @@
 ---
 description: Settle a change before any plan exists — a spec the user signs (requirements, acceptance scenarios, decisions), a design that reads the same in any language (context, solution, diagrams, the data), and a log of why (every concern the grill examined with its verdict, every question the repository answered, what each decision rested on). Runs the grill subagent, then puts only the genuinely open questions in front of the user.
-argument-hint: [ description of the feature or task to design, or a backlog id T<n> ]
+argument-hint: [ description of the feature or task to design, or a backlog id BT<nn> ]
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *)
 ---
 
@@ -32,12 +32,12 @@ the design; the log says where each of those facts came from.
 
 ## 1. Create the Task Directory
 
-**A task started from a backlog `T` row measures the row before the directory exists.** Read the row's owning
+**A task started from a backlog `BT` row measures the row before the directory exists.** Read the row's owning
 findings entry and check its *why* against the code it names, in one pass over the whole class the claim
 generalizes over ([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**). What the measurement
 narrows narrows the task, and §4's **Objective** says what was measured. What it contradicts ends the run before
 anything is created: report it, set the owning findings row's `Status` to `withdrawn` with that clause, remove
-the `T` row from `docs/backlog.md` in the same edit, and take no number.
+the `BT` row from `docs/backlog.md` in the same edit, and take no number.
 
 A task owns a directory under the repository-root `docs/`. Create it as `docs/<number>-<task-name>/` and write
 the three files inside it — `docs/7-create-expense/spec.md`, `design.md`, `design-log.md`. Whatever else the task
@@ -54,7 +54,7 @@ accumulates joins it there. The directory carries the number and the task name; 
 
 A request that adds more than one subject — a new store *and* a new consumer *and* a new prompt — is one task per
 subject, each with its own directory, numbered in dependency order. Every task is then one grill, one plan and one
-delivery. The first spec names the sequence in its **Objective**; a later one cites an earlier one's `D` and `F`
+delivery. The first spec names the sequence in its **Objective**; a later one cites an earlier one's `DN` and `DF`
 by task number, the way it cites an implemented task's, and its design lists it in **Context**.
 
 Split **before** writing, not after the grill: a design that reaches a second `####` section on a subject the
@@ -88,25 +88,27 @@ shape, decompiling it from the dependency if the source is not at hand.
 
 ## 4. The Spec
 
-`spec.md` MUST contain these sections, in this order.
+`spec.md` opens with the title and `**Format:** 2` on the line beneath it - the file-format number
+`design.sh validate` checks ([`scripts/README.md`](../../scripts/README.md), **Formats**) - and MUST contain
+these sections, in this order.
 
 ### Objective
 
 What needs to be achieved, and why it matters to whoever asked. A short paragraph. What it promises is the next
 section's; this one says why.
 
-**A task started from the backlog names its row.** Where the argument is a `T<n>` id, read the row in
+**A task started from the backlog names its row.** Where the argument is a `BT<nn>` id, read the row in
 `docs/backlog.md` and the findings row it links; that row's *what* and *why* seed this paragraph **as §1's
-measurement left them**, never as the row wrote them. Its first line is `Closes T<n>`, which `implement-plan`
+measurement left them**, never as the row wrote them. Its first line is `Closes BT<nn>`, which `implement-plan`
 reads to close the row when the task is archived.
 
 ### Requirements
 
-What the change promises, one line each, numbered `R1`, `R2`, …:
+What the change promises, one line each, numbered `RQ01`, `RQ02`, …:
 
 ```
-- **R1:** A person can pick the currency their amounts are assumed to be in.
-- **R2:** A chosen currency reaches the model on every turn.
+- **RQ01:** A person can pick the currency their amounts are assumed to be in.
+- **RQ02:** A chosen currency reaches the model on every turn.
 ```
 
 A requirement is a behaviour the user signs off, in their words — not a mechanism, not a status code. Every
@@ -118,16 +120,16 @@ Numbers are assigned once and never reused.
 ### Acceptance Scenarios
 
 What the change does, as behaviour a person can agree or disagree with. One block per entry point, each scenario
-numbered `A1`, `A2`, … in this format:
+numbered `AC01`, `AC02`, … in this format:
 
 ```
-- **A1:** [what the scenario is, one line]
+- **AC01:** [what the scenario is, one line]
   - Given: [the state before]
   - When: [what the user or caller does]
   - Then: [what they get back, and what changed]
-  - Proves: R1, R3
+  - Proves: RQ01, RQ03
 
-- **A2:** [the next one]
+- **AC02:** [the next one]
   - Given: …
 ```
 
@@ -151,27 +153,27 @@ scenario no step names is a visible gap.
 Every judgment call the user made or still has to make, one entry each, in this exact format:
 
 ```
-- **D1:** [the question, one line]
+- **DN01:** [the question, one line]
   - Answer: [what the change does]
   - Basis: decided (user, <date>) | must-decide — [what the repository does not say]
 
-- **D2:** [the next question]
+- **DN02:** [the next question]
   - Answer: …
 ```
 
 **`Answer` and `Basis` are nested under their entry, and a blank line separates one entry from the next.**
 
-Numbered `D1`, `D2`, … assigned once and never renumbered: an entry that is answered, withdrawn, or reversed keeps
+Numbered `DN01`, `DN02`, … assigned once and never renumbered: an entry that is answered, withdrawn, or reversed keeps
 its number, so anything citing it stays valid for the life of the change.
 
 **Only two bases live here: `decided` and `must-decide`.** This section is what the user reads. It holds the calls
 they made and the ones still waiting for them, and nothing else. An entry is the question, the answer, and who
 chose. **The reasoning is the log's**: the alternative that lost, why, and the files it rested on go under the
-same `D` number in the log's **Decision Bases**. `design.sh validate` refuses a `decided` entry with no such
+same `DN` number in the log's **Decision Bases**. `design.sh validate` refuses a `decided` entry with no such
 line.
 
 An `assumed` or `deferred` question is a **Findings** row in the log instead. It was still asked and still
-answered — it just needs no reader. `design.sh validate` refuses a `D` entry carrying either basis.
+answered — it just needs no reader. `design.sh validate` refuses a `DN` entry carrying either basis.
 
 **The four bases, and what each obliges:**
 
@@ -190,8 +192,8 @@ what it was observed to produce; otherwise the row is `deferred`, naming what wo
 **Answer against the repository before asking.** Ask only what the repository genuinely cannot answer, and say in
 `Basis:` precisely what it does not say — so the user answers a question rather than picks from a menu.
 
-**Cite a decision by its clause, not its number alone.** In any file, in a plan, in a report: "D2 — a choice is
-never cleared", not "D2". The user has not memorised the numbers.
+**Cite a decision by its clause, not its number alone.** In any file, in a plan, in a report: "DN02 — a choice is
+never cleared", not "DN02". The user has not memorised the numbers.
 
 The spec is **settled** when no entry carries `Basis: must-decide`.
 
@@ -333,7 +335,7 @@ and stack-neutral. A concern that came out clear still gets its row — "no pagi
 person, keyed by the person" is its why. `design.sh validate` refuses a missing row, an empty verdict and a
 verdict with no why.
 
-**Why is a business rule, a file, or a `D`/`F`.** Never "not applicable" alone.
+**Why is a business rule, a file, or a `DN`/`DF`.** Never "not applicable" alone.
 
 ### Findings
 
@@ -346,10 +348,10 @@ Every question the change answered that needs no reader — the `assumed` and th
 - **Evidence is a file** — the class, the migration, the conventions page, the ADR. Never an argument. A row with
   no file to point at is a `must-decide`, not a row.
 - **A `deferred` row's answer says what happens instead**, and its evidence is what would bring it back.
-- **`F1`, `F2`, … on the same terms as a `D`:** assigned once, never renumbered, never reused. The spec and the
+- **`DF01`, `DF02`, … on the same terms as a `DN`:** assigned once, never renumbered, never reused. The spec and the
   design cite a row the way they cite an entry, and a row that is answered or withdrawn keeps its number.
 
-The `F` sequence is the task's own. A plan log's **Review Findings** numbers its own `F1` upward, in its own
+The `DF` sequence is the task's own. A plan log's **Review Findings** numbers its own `RF01` upward, in its own
 file, and the two never meet.
 
 A question that needs a paragraph was not settled. It is a `must-decide` in the spec's **Decisions**, and the
@@ -357,10 +359,10 @@ user answers it.
 
 ### Decision Bases
 
-One line per `D` in the spec, same number: what the user chose over, why, and the files the choice rested on.
+One line per `DN` in the spec, same number: what the user chose over, why, and the files the choice rested on.
 
 ```
-- **D2:** The user chose a choice that stays set over one that can be returned to nothing; the request schema
+- **DN02:** The user chose a choice that stays set over one that can be returned to nothing; the request schema
   cannot express null (`<api-schema-file>`), and `<sibling-usecase-file>` never clears a stored value either.
 ```
 
@@ -409,7 +411,7 @@ exactly one place, and never in two:
 | a concern's verdict                            | that concern's row in the log's **Concerns**, verdict and why         |
 | changes what the design says gets built        | an edit to the design, plus whichever row or entry its basis calls for |
 | the grill marked it `assumed` or `deferred`    | one row in the log's **Findings**                                     |
-| the grill marked it `must-decide`              | a `D` entry in the spec, which step 8 puts to the user                |
+| the grill marked it `must-decide`              | a `DN` entry in the spec, which step 8 puts to the user                |
 | a **Stack-neutral** failure                    | an edit to the design, and the row's verdict once it passes           |
 
 **The basis decides the home, and the grill already assigned it.** This session re-homes a finding only by
@@ -419,7 +421,7 @@ evidence does not hold becomes an entry.
 **An answer the design already carries is still a row.** The grill cannot see whether the solution section three
 pages up already says what it just derived, and the row is what stops the next grill deriving it again.
 
-Assign the `D` and `F` numbers here, each past the highest already in its own sequence. A finding challenging an
+Assign the `DN` and `DF` numbers here, each past the highest already in its own sequence. A finding challenging an
 existing entry or row becomes a *new* one citing it; neither is ever rewritten, except to correct a claim a
 finding proved false.
 
@@ -450,7 +452,7 @@ A widened design also invalidates entries written before it. Re-read the ones th
 ## 9. Hand Over
 
 - Present the spec, and name the design and the log beside it.
-- **Report what the grill added and what step 8 answered from the repository** — each `D` with its clause.
+- **Report what the grill added and what step 8 answered from the repository** — each `DN` with its clause.
 - **Run `design.sh validate` and `design.sh settled`** and report what they say.
 - List any entry still `must-decide`, and say that the spec is unfinished while any remains.
 - **Stop.** Do not plan, write code, create other files, or run build commands.

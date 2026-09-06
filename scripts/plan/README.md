@@ -45,7 +45,7 @@ resolves every ID before it writes any, and a name nothing defines ticks none of
 | `next [--all]`      | Items that can start now, longest remaining chain first. `--all` also lists what is waiting, and on what.       |
 | `show <ID>...`      | One item: its header and everything indented under it. Several print in order, blank-line separated.            |
 | `tick <ID>...`      | Mark the items done; one already ticked is reported as `already ticked: <ID>` and left as it is.                |
-| `block <ID> <note>` | Leave the item open; record the note as the next `B` entry of the plan log's **Run Log**. One note, so quote it. |
+| `block <ID> <note>` | Leave the item open; record the note as the next `RL` entry of the plan log's **Run Log**. One note, so quote it. |
 | `validate`          | See [What `validate` checks](#what-validate-checks).                                                            |
 | `stub [<path>...]`  | Record files stabilization stubbed in the log's **Stubs** section; `--marker` sets the token on first use.      |
 | `stubs`             | Recorded files still carrying the marker, `file:line` each; exit 1 while any does. See [Stubs](#stubs).        |
@@ -105,7 +105,7 @@ anything should be concluded from.
 An item is `- [ ] <ID> · <text>`, the ID being a letter prefix and a number — `ST01`, `RU07`, `GI02`. The prefixes
 and the numbering rule belong to the plan format, defined by the `plan-task` skill this ships with.
 
-A run-log entry is `- **B<n> (<ID>):** <what happened>`, numbered from 1 in the order it was written and never
+A run-log entry is `- **RL<nn> (<ID>):** <what happened>`, numbered from 1 in the order it was written and never
 renumbered; `block` writes one with an empty `- Resolved:` line beneath it, and whoever settles the blocker fills
 that line. An entry recording a fact nobody has to act on — a test that passed red for a reason, a boundary a
 step widened — carries no `Resolved:` line; whoever writes one creates the `## Run Log` heading after
@@ -151,12 +151,12 @@ the move while any reports a marker. A hook fires whether or not the run remembe
 | A `given:` / `when:` / `then:` whose value is empty, `—`, `TBD` or `N/A`                           | a scenario a step agent cannot implement                     |
 | An `update:` bullet on an **open** item naming a method found nowhere                              | a plan written against remembered code                       |
 | No `plan-log.md` beside the plan                                                                   | a plan nothing reviewed and no run can record against        |
-| A `Review Findings` or `Run Log` section, an `F` or `B` entry, or a `Blockers` heading in the plan | the old shape — the log owns those now                       |
-| A `B` entry outside the log's `Run Log`                                                            | a record `block` cannot number after                         |
-| A `B` entry naming no item, or an item the plan does not define                                    | a record nothing can be resumed from                         |
+| A `Review Findings` or `Run Log` section, an `RF` or `RL` entry, or a `Blockers` heading in the plan | the old shape — the log owns those now                       |
+| An `RL` entry outside the log's `Run Log`                                                            | a record `block` cannot number after                         |
+| An `RL` entry naming no item, or an item the plan does not define                                    | a record nothing can be resumed from                         |
 | A finding with no `Resolution:`, or an unrecognized one                                            | a review that skipped the mechanical/decision classification |
 | A `mechanical` finding whose `Action:` is empty and that is not `Escalated:`                       | a fix the orchestrator was meant to apply and did not        |
-| A `B` entry numbered below the entry above it                                                      | a record inserted where it did not happen                    |
+| An `RL` entry numbered below the entry above it                                                      | a record inserted where it did not happen                    |
 | A fenced block that never closes, in either file                                                   | an example whose own fence swallowed the rest of the file    |
 
 The `update:` check greps the tree once per method named, excluding `build/`, `.git/`, `.gradle/`,

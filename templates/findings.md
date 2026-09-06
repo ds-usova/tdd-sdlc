@@ -27,7 +27,7 @@ Sections are these five, in this order, and a section with nothing in it is left
 | **Manual test**           | what no test can see, so a person must look       | one block per check, in the form below   |
 
 **A candidate and a deferred change are numbered and carry a status**, because they outlive the work that raised
-them. `#` is `R1` upward for a candidate and `D1` upward for a deferred change, assigned once and never reused.
+them. `#` is `RX01` upward for a candidate and `DX01` upward for a deferred change, assigned once and never reused.
 `Status` is `open`, `done · <the rework or task that closed it>`, `done · directly` where it was taken without
 one, or `withdrawn · <what the measurement found>` where a later reading showed the entry did not hold. The
 opening count line says how many are still open, so the first line of the file answers what is left without
@@ -101,8 +101,8 @@ reads as settled work and survives the archive.
 entries are missing a terminator" is answered by reading all seventy-nine, not by re-reading the three. What the
 measurement contradicts is not filed; what it narrows is filed in the narrowed form.
 
-**The entry names its measurement.** In a defect block, `Given`/`When`/`Then`/`Actual` already are it. In an `R`
-or a `D` row the *why* carries it — `all 79 explanations end in a full stop; the 3 with an inner terminator hold
+**The entry names its measurement.** In a defect block, `Given`/`When`/`Then`/`Actual` already are it. In an `RX`
+or a `DX` row the *why* carries it — `all 79 explanations end in a full stop; the 3 with an inner terminator hold
 it inside the quoted example` — what was counted and over what, rather than what somebody noticed.
 
 **A hypothesis nobody can settle in one pass is reported, not filed.** It stays where the run recorded it — the

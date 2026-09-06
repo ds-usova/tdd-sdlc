@@ -18,7 +18,7 @@ one statement of it for every workflow that stabilizes. What is a fix step's own
 named in `disables:`, and a migration that has run is not undone by reverting its file — say so in the report.
 
 **A `stabilize` that finds a file its boundary does not name widens that line and says so in the log's Run
-Log** — the one edit to a step's text its agent may make, and every widening gets its `B` note. It never widens
+Log** — the one edit to a step's text its agent may make, and every widening gets its `RL` note. It never widens
 into a behaviour change.
 
 **A `stabilize` step with an empty `files:` is proven by the classes it named**, plus the architecture check.
@@ -55,7 +55,7 @@ attempt in the log's Attempts saying which cause is now gone, `fix.sh block` the
 
 ## Where a step refuses
 
-Each of these reverts the step, writes the attempt in the log's Attempts, records the return as a `B` entry in
+Each of these reverts the step, writes the attempt in the log's Attempts, records the return as an `RL` entry in
 its Run Log through `fix.sh block`, and returns to the level above:
 
 - a `red` step that passes before any production code is touched;

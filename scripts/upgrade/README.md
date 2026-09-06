@@ -32,8 +32,8 @@ Run it with bash, from anywhere inside the project:
 
 ```
 <plugin>/scripts/upgrade/upgrade.sh status
-<plugin>/scripts/upgrade/upgrade.sh show U03
-<plugin>/scripts/upgrade/upgrade.sh tick U02 U04
+<plugin>/scripts/upgrade/upgrade.sh show UP03
+<plugin>/scripts/upgrade/upgrade.sh tick UP02 UP04
 <plugin>/scripts/upgrade/upgrade.sh validate
 ```
 
@@ -43,7 +43,7 @@ Run it with bash, from anywhere inside the project:
 | `show <ID>...`      | One step: its header and everything indented under it. Several print blank-line separated. |
 | `tick <ID>...`      | Mark the steps done. Every ID is resolved before any is written; one already ticked is     |
 |                     | reported as `already ticked: <ID>` and left as it is.                                      |
-| `block <ID> <note>` | Leave the step open; record the note as the next `B` entry of the log's **Run Log**.       |
+| `block <ID> <note>` | Leave the step open; record the note as the next `RL` entry of the log's **Run Log**.       |
 | `validate`          | See [What `validate` checks](#what-validate-checks).                                       |
 
 Exit codes: **0** done, **1** no such step or `validate` found problems, **2** bad usage.
@@ -60,22 +60,22 @@ also takes the path positionally, the same as `--file`; `validate` given the upg
 what an agent reads; the log is what happened to it. Every command reads both files whole before answering: an
 unclosed fenced block in either is refused with the line it opened at.
 
-**A step in another file is named with that file** — `needs: shared/steps.md · U01`. `validate` skips that
+**A step in another file is named with that file** — `needs: shared/steps.md · UP01`. `validate` skips that
 form rather than resolving it, and holds every bare ID to the file it appears in.
 
 ### Step IDs
 
-A step is `- [ ] <ID> · <kind> · <text>`, the ID being a letter prefix and a number — `U01`, `U02`. A step
+A step is `- [ ] <ID> · <kind> · <text>`, the ID being a letter prefix and a number — `UP01`, `UP02`. A step
 whose header carries `abandoned — <why>` is closed, and reported apart from the open ones. The kinds and the
 numbering rule belong to the upgrade format, defined by the `upgrade-deps` skill this ships with.
 
 `files:` and `test-files:` carry their paths as bullets under the label rather than as text beside it, so their
 label line is empty by design. Every other label keeps its value on its own line.
 
-A run-log entry is `- **B<n> (<ID>):** <what happened>`, numbered from 1 in the order it was written and never
+A run-log entry is `- **RL<nn> (<ID>):** <what happened>`, numbered from 1 in the order it was written and never
 renumbered; `block` writes one with an empty `- Resolved:` line beneath it, and whoever settles the blocker
 fills that line. An entry recording a fact nobody has to act on carries no `Resolved:` line. A kept-back change
-is the entry `- **B<n> (<ID>):** kept back — <what the guide asked>` with `- Kept because:` and
+is the entry `- **RL<nn> (<ID>):** kept back — <what the guide asked>` with `- Kept because:` and
 `- Would unblock:` beneath it; `validate` refuses one missing either. The `## Run Log` heading is created at the
 first entry, never empty: whoever writes an entry by hand adds it after **Attempts** where it is absent, as
 `block` does. `block`'s note may contain anything, a slash, a middot or `.md` included, and is quoted as one
@@ -94,12 +94,12 @@ argument.
 | A `change:` with nothing after the middot                                                | a guide item that never said where it lands             |
 | A bare `needs:` ID nothing in the file defines                                           | a reference to a step that was renumbered or dropped    |
 | No `<stem>-log.md` beside the steps file                                                 | a file no run can record against                        |
-| An `Attempts`, `Run Log` or `Kept back` heading, an `A` or a `B` entry in the steps file | the old shape — the log owns those now                  |
+| An `Attempts`, `Run Log` or `Kept back` heading, an `AT` or an `RL` entry in the steps file | the old shape — the log owns those now                  |
 | An attempt missing `why:`, `result:`, `evidence:` or `ruled-out:`                        | a failure the next session has to reproduce             |
 | An `evidence:` with no fenced block under it                                             | a failure described instead of pasted                   |
 | An attempt filed under a step nothing defines                                            | a log entry that belongs to nothing                     |
-| A `B` entry outside the log's `Run Log`, naming no step, or naming one nothing defines   | a record `block` cannot number after                    |
-| A `B` entry numbered below the entry above it, or repeating it                           | a record inserted where it did not happen               |
+| An `RL` entry outside the log's `Run Log`, naming no step, or naming one nothing defines   | a record `block` cannot number after                    |
+| An `RL` entry numbered below the entry above it, or repeating it                           | a record inserted where it did not happen               |
 | A `kept back` entry missing `Kept because:` or `Would unblock:`                          | a migration nobody can finish                           |
 | A fenced block that never closes, in either file                                         | pasted output that swallowed the rest of the file       |
 | An Open Question whose `- A:` is empty                                                   | a run about to start on a decision nobody made          |

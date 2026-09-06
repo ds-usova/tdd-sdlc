@@ -23,6 +23,7 @@ agent** — the module agents run concurrently, so two of them never write the s
 ```
 # Bug: <the symptom, in the user's terms>
 
+**Format:** 2
 **Affected Modules:** `module-a`, `module-b`
 **Source:** <one line — a findings file and row, a report, an issue, or the request>
 **Baseline:** <the commit, then per module: total, skipped, and any machine state a skip depends on>
@@ -54,7 +55,7 @@ its own line; a chain with one is a hypothesis, and the section says what would 
 never archived, and not resumed. It is the header line alone; nothing is written to the log.
 **`## Structure`**, two component diagrams Now and Target in the module's diagram
 language, is added only where the fix moves responsibility between classes. **`## Open Questions`**, in the
-`- **Q1:** … / - A:` form, is added only where Phase 2 has something to ask.
+`- **OQ01:** … / - A:` form, is added only where Phase 2 has something to ask.
 
 ## `bug-log.md`
 
@@ -67,24 +68,25 @@ language, is added only where the fix moves responsibility between classes. **`#
 
 ## Run Log
 
-- **B1 (diagnosis):** <what happened — an effect a probe's revert did not undo, a second defect found and
+- **RL01 (diagnosis):** <what happened — an effect a probe's revert did not undo, a second defect found and
   not fixed>
 ```
 
 **The log is written from the first probe.** Phase 1 creates it with `## Attempts` and nothing under it; the
-`## Run Log` heading appears with its first entry. An entry is `- **B<n> (<what it is about>):** what
+`## Run Log` heading appears with its first entry. An entry is `- **RL<nn> (<what it is about>):** what
 happened`, numbered from 1 in the order written and never renumbered, appended after the last — a fix file's
-step ID in the parenthesis where it concerns one, `diagnosis` or a module where it does not. A `B` entry here
+step ID in the parenthesis where it concerns one, `diagnosis` or a module where it does not. An `RL` entry here
 records a fact; nothing waits on it, so it carries no `Resolved:` line.
 
-`fix.sh attempts <the directory>` prints every log's attempt numbers as one line — `bug-log.md · A1–A3,
-module-a/fix-log.md · A1, module-b/fix-log.md · —` — for the report.
+`fix.sh attempts <the directory>` prints every log's attempt numbers as one line — `bug-log.md · AT01–AT03,
+module-a/fix-log.md · AT01, module-b/fix-log.md · —` — for the report.
 
 ## Each `fix.md`
 
 ```
 # Fix: <what changes in this module>
 
+**Format:** 2
 **Affected Module:** `module-a`
 **Bug:** [<the bug>](../bug.md)
 
@@ -102,8 +104,8 @@ is read down one column. What proves a step is its kind's, and is not repeated p
 the steps, never the steps from the table.
 
 **`## Open Questions`** appears in a `fix.md` only when its agent returns blocked and writes the question it
-needs answered. `Q` numbers are per file, starting at `Q1` in each `fix.md` however many `bug.md` asked;
-anything outside the file cites both: `module-a/fix.md · Q2`.
+needs answered. `OQ` numbers are per file, starting at `OQ01` in each `fix.md` however many `bug.md` asked;
+anything outside the file cites both: `module-a/fix.md · OQ02`.
 
 **Nothing else in a `fix.md` is written after approval** but a tick, `abandoned — <why>` on a struck step's
 header, a named widening of a `stabilize` step's boundary, and the answer to an Open Question. Everything the
@@ -122,7 +124,7 @@ run records goes in the log beside it.
 
 ## Run Log
 
-- **B1 (G01):** <what happened — a blocked return, a widened boundary, an effect a revert did not undo>
+- **RL01 (FG01):** <what happened — a blocked return, a widened boundary, an effect a revert did not undo>
   - Resolved: <how it was settled, filled by whoever settles it>
 ```
 
@@ -130,7 +132,7 @@ run records goes in the log beside it.
 `fix.sh tick` empties it. A resumed run reads it for what was being tried and for nothing else — the first
 unticked step, not this line, says where to pick up. Phase 1 writes the line with nothing after it.
 
-**The Run Log is where the run writes.** An entry is `- **B<n> (<ID>):** what happened`, `<ID>` the step it
+**The Run Log is where the run writes.** An entry is `- **RL<nn> (<ID>):** what happened`, `<ID>` the step it
 concerns, numbered from 1 and appended after the last. `fix.sh block` writes one for a blocked return, with a
 `- Resolved:` line beneath it that whoever settles it fills; a note nothing waits on — a boundary a step widened,
 a step the level above struck as abandoned, a schema a revert left migrated — is appended by hand, with no

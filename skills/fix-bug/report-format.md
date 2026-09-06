@@ -10,7 +10,7 @@ restating them.
   the attempts its log holds, as `fix.sh attempts` prints them.
 - **What a reader would not expect from the files** — a struck or re-classified step, an effect no revert undid,
   a defect found and not fixed, a guardrail that failed, a manual check the suite cannot cover — each pointing at
-  the `B` entry that records it. Nothing here means the line is left out.
+  the `RL` entry that records it. Nothing here means the line is left out.
 - **What the conventions' finished-work list did**, one line per entry.
 
 **A fix abandoned entirely** says what was reverted, what would not revert, and points at the logs — the

@@ -100,7 +100,7 @@ Stack-neutral — fail — `NavLink`, `aria-current`, `bg-card`, `CommandItem` u
 Concern, verdict, why. The why is a rule, a file, or one of the findings below — never "n/a". The session copies
 these into the log's **Concerns** table.
 
-**Then the findings**, each as a block, numbered from `1` for this report alone. Never a `D` or `F` number: those
+**Then the findings**, each as a block, numbered from `1` for this report alone. Never a `DN` or `DF` number: those
 belong to the files, and the session that owns them assigns them.
 
 ```

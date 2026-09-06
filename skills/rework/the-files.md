@@ -28,6 +28,7 @@ and not resumed.
 ```
 # Rework: <what changes>
 
+**Format:** 2
 **Affected Modules:** `module-a`
 **Source:** <one line, a path not a link — a findings file and the row's number, a file, or the request>
 **Baseline:** <the commit the suite was green at>
@@ -73,15 +74,15 @@ Whatever moves between the two is labelled with the step IDs that move it.>
 
 ## Open Questions
 
-- **Q1:** …
+- **OQ01:** …
   - A:
 ```
 
-`Q` numbers are per file: a steps file's questions start at `Q1` however many `rework.md` asked.
+`OQ` numbers are per file: a steps file's questions start at `OQ01` however many `rework.md` asked.
 
 ## Each `steps.md`
 
-A `<module>/steps.md` carries `**Affected Module:**` and `**Rework:** [<the rework>](../rework.md)` above its
+A `<module>/steps.md` carries `**Format:** 2`, `**Affected Module:**` and `**Rework:** [<the rework>](../rework.md)` above its
 `## Steps`, and `## Open Questions` where a run has something to ask; `shared/steps.md` names every module on
 the seam. **`## What changes` stays in `rework.md`** and covers every steps file.
 
@@ -92,10 +93,10 @@ holding one section:
 
 | Section     | Holds                                                                           | Written by                         |
 |-------------|---------------------------------------------------------------------------------|------------------------------------|
-| **Run Log** | `B<n>` entries, one per thing the run recorded — a blocker, a note, a deviation | `rework-module`, `rework.sh block` |
+| **Run Log** | `RL<nn>` entries, one per thing the run recorded — a blocker, a note, a deviation | `rework-module`, `rework.sh block` |
 
 Phase 1 writes the title alone; `rework.sh block` creates the **Run Log** heading at the first entry. An entry
-is `- **B<n> (<ID>):** what happened`, `<ID>` the step it belongs to, numbered once per log and appended; a
+is `- **RL<nn> (<ID>):** what happened`, `<ID>` the step it belongs to, numbered once per log and appended; a
 blocker carries a `- Resolved:` line beneath it, filled when it is settled, and a note nothing waits on carries
 none. A rework keeps no **Attempts** and no **Review Findings**.
 
@@ -115,4 +116,4 @@ rest is evidence.
 **Write the tables from the checklist, never the checklist from the tables.** They are written once at Phase 1;
 a step re-classified in Phase 2 edits both. Ticks live in the checklist only. **Nothing in a steps file is
 history**: what a run wrote into it is a tick, `abandoned — <why>` on a header, a corrected `survives:`, a
-widened `files:`, and an Open Question — each of the last three with a `B` entry in the log saying so.
+widened `files:`, and an Open Question — each of the last three with an `RL` entry in the log saying so.

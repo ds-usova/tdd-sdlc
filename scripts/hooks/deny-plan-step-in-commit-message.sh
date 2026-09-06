@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Bash port of the plugin's deny-plan-step-in-commit-message hook.
-# A consumer without jq gets a hook that is silent, never one that fails every matched tool call.
+# PreToolUse hook on Bash: refuses a `git commit` whose message names an id from one of the framework's
+# files - a plan step, a decision, a finding, a run-log entry, a backlog row. Those documents are
+# archived once the work lands, so an id in a commit message stops resolving the moment a reader meets
+# it. A consumer without jq gets a hook that is silent, never one that fails every matched tool call.
 set -u
 
 if ! command -v jq >/dev/null 2>&1; then
@@ -8,70 +10,87 @@ if ! command -v jq >/dev/null 2>&1; then
 fi
 
 input="$(cat)"
-
 command_text="$(printf '%s' "$input" | jq -r '.tool_input.command // empty')"
+cwd="$(printf '%s' "$input" | jq -r '.cwd // empty')"
+[ -n "$command_text" ] || exit 0
 
-if [ -z "$command_text" ]; then
-    exit 0
-fi
+printf '%s' "$command_text" | grep -Eiq '(^|[;&|][[:space:]]*)git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+commit\b' || exit 0
 
-if ! printf '%s' "$command_text" | grep -Eiq '^[[:space:]]*git[[:space:]]+commit\b'; then
-    exit 0
-fi
-
-# Only the message is searched. A pathspec may legitimately name a plan file, so the ids are looked for
-# where a reader would meet them: -m '...', -m "...", --message=...
+# Only the message is searched. A pathspec may legitimately name a plan file, so the ids are looked
+# for where a reader would meet them: -m '...', -m "...", -m"...", --message=..., -F <file>,
+# --file <file>, and a heredoc feeding the command.
 messages=()
+add_messages() {
+    while IFS= read -r line; do
+        [ -n "$line" ] && messages+=("$line")
+    done
+}
 
-while IFS= read -r line; do
-    [ -n "$line" ] && messages+=("$line")
-done < <(printf '%s' "$command_text" | awk '
+# -m / --message with a single- or double-quoted value, with or without a space before the quote.
+add_messages < <(printf '%s' "$command_text" | awk '
     {
         s = $0
-        while (match(s, /-m[ \t]+'"'"'[^'"'"']*'"'"'/)) {
+        while (match(s, /(-m|--message)[ \t]*=?[ \t]*'"'"'[^'"'"']*'"'"'/)) {
             seg = substr(s, RSTART, RLENGTH)
-            sub(/^-m[ \t]+'"'"'/, "", seg)
+            sub(/^(-m|--message)[ \t]*=?[ \t]*'"'"'/, "", seg)
             sub(/'"'"'$/, "", seg)
             print seg
             s = substr(s, RSTART + RLENGTH)
         }
-    }
-')
-
-while IFS= read -r line; do
-    [ -n "$line" ] && messages+=("$line")
-done < <(printf '%s' "$command_text" | awk '
+    }')
+add_messages < <(printf '%s' "$command_text" | awk '
     {
         s = $0
-        while (match(s, /-m[ \t]+"[^"]*"/)) {
+        while (match(s, /(-m|--message)[ \t]*=?[ \t]*"[^"]*"/)) {
             seg = substr(s, RSTART, RLENGTH)
-            sub(/^-m[ \t]+"/, "", seg)
+            sub(/^(-m|--message)[ \t]*=?[ \t]*"/, "", seg)
             sub(/"$/, "", seg)
             print seg
             s = substr(s, RSTART + RLENGTH)
         }
-    }
-')
-
-while IFS= read -r line; do
-    [ -n "$line" ] && messages+=("$line")
-done < <(printf '%s' "$command_text" | awk '
+    }')
+# An unquoted --message=word or -m word.
+add_messages < <(printf '%s' "$command_text" | awk '
     {
         s = $0
-        while (match(s, /--message=[^ \t]+/)) {
+        while (match(s, /(-m|--message=)[ \t]*[^ \t"'"'"'-][^ \t]*/)) {
             seg = substr(s, RSTART, RLENGTH)
-            sub(/^--message=/, "", seg)
+            sub(/^(-m|--message=)[ \t]*/, "", seg)
             print seg
             s = substr(s, RSTART + RLENGTH)
         }
-    }
-')
+    }')
+# -F <file> / --file <file> / --file=<file>: the message is in the file, read relative to the cwd.
+while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    [ "$f" = "-" ] && continue
+    case "$f" in /*) path="$f" ;; *) path="${cwd:-.}/$f" ;; esac
+    [ -f "$path" ] && add_messages < "$path"
+done < <(printf '%s' "$command_text" | awk '
+    {
+        s = $0
+        while (match(s, /(-F|--file)[ \t]*=?[ \t]*[^ \t]+/)) {
+            seg = substr(s, RSTART, RLENGTH)
+            sub(/^(-F|--file)[ \t]*=?[ \t]*/, "", seg)
+            gsub(/["'"'"']/, "", seg)
+            print seg
+            s = substr(s, RSTART + RLENGTH)
+        }
+    }')
+# A heredoc: everything after the first line is the message.
+if printf '%s' "$command_text" | grep -q '<<'; then
+    add_messages < <(printf '%s\n' "$command_text" | tail -n +2)
+fi
 
 if [ ${#messages[@]} -eq 0 ]; then
     exit 0
 fi
 
-# ST01, RU02, RI03, RS04, GU05, GI06, GS07, P01 - the plan's own step ids, and D3/F12/A7/Q2 from a design.
+# Every id prefix the framework's files define - two capital letters and at least two digits - and
+# nothing else. Plan steps: ST RU RI RS GU GI GS PI. Spec: RQ AC DN. Design log: DF. Plan: OQ. Plan
+# log: RF. Every log: RL AT. Findings file: RX DX. Backlog: BB BR BT. Fix steps: FS FR FG. Rework
+# steps: WK. Upgrade steps: UP. Case-sensitive on purpose: "rq01" is not an id.
+pattern='(^|[^A-Za-z0-9_])(ST|RU|RI|RS|GU|GI|GS|PI|RQ|AC|DN|DF|OQ|RF|RL|AT|RX|DX|BB|BR|BT|FS|FR|FG|WK|UP)[0-9]{2,}([^A-Za-z0-9_]|$)'
 found=()
 for message in "${messages[@]}"; do
     while IFS= read -r hit; do
@@ -81,7 +100,7 @@ for message in "${messages[@]}"; do
             [ "$f" = "$hit" ] && already=1 && break
         done
         [ "$already" -eq 0 ] && found+=("$hit")
-    done < <(printf '%s' "$message" | grep -Eo '\b(ST|RU|RI|RS|GU|GI|GS|P|D|F|A|Q|R)[0-9]{1,3}\b')
+    done < <(printf '%s' "$message" | grep -Eo "$pattern" | sed -E 's/^[^A-Z]*//; s/[^0-9]*$//')
 done
 
 if [ ${#found[@]} -eq 0 ]; then
@@ -90,6 +109,6 @@ fi
 
 names="$(IFS=', '; echo "${found[*]}")"
 
-reason="A commit message names no plan step, design entry or finding, and this one names ${names}. An id belongs to a document that is archived once the work lands, so the message stops resolving the moment it would be read. Say what the commit does instead. See skills/plan-task/SKILL.md, 'An ID never leaves those places'."
+reason="A commit message names no plan step, design entry, finding or backlog row, and this one names ${names}. An id belongs to a document that is archived once the work lands, so the message stops resolving the moment it would be read. Say what the commit does instead. See skills/plan-task/SKILL.md, 'An ID never leaves those places'."
 
 jq -nc --arg reason "$reason" '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $reason}}'

@@ -22,9 +22,9 @@ once, in **Context**, and nowhere else.
 | What exists                                    | Where                    | What this change does with it                                                 |
 |------------------------------------------------|--------------------------|-------------------------------------------------------------------------------|
 | The parent resource, the closest existing shape | `<parent-usecase-file>`  | Mirrored throughout — same layering, same adapter style, same error vocabulary |
-| The parent's persistence adapter               | `<parent-adapter-file>`  | Its failure classification is the evidence F1 rests on                        |
+| The parent's persistence adapter               | `<parent-adapter-file>`  | Its failure classification is the evidence DF01 rests on                        |
 | The module's API contract                      | `<api-schema-file>`      | Gains `POST /widgets`                                                         |
-| The parent table and its cascade               | `<migration-file>`       | The widget table hangs off it (F7)                                            |
+| The parent table and its cascade               | `<migration-file>`       | The widget table hangs off it (DF07)                                            |
 
 ## Proposed Solution
 
@@ -91,7 +91,7 @@ end
 @enduml
 ```
 
-Five branches, five scenarios: A1 to A5 in the spec.
+Five branches, five scenarios: AC01 to AC05 in the spec.
 
 ### Details
 
@@ -123,5 +123,5 @@ CREATE TABLE widget (
 CREATE UNIQUE INDEX idx_widget_parent_name ON widget (parent_id, name);
 ```
 
-The unique index is what enforces R2 and decides the concurrent case — D4, one request wins — so the guarantee
+The unique index is what enforces RQ02 and decides the concurrent case — DN04, one request wins — so the guarantee
 holds across two service instances.

@@ -15,6 +15,26 @@ decision. None of them
 does anything the model cannot do by reading the file; what they add is that the answer is mechanical, the same
 every time, and never skipped because a long run was tired of it.
 
+## Formats
+
+**Every file a script validates carries `**Format:** 2` in its header**, directly under the title - `spec.md`,
+`plan.md` and `shared/plan.md`, `bug.md` and each `fix.md`, `rework.md` and each `steps.md`, `upgrade.md` and
+each `steps.md`. The skill that creates the file writes it; `validate` refuses a file without it, saying the
+file predates the format rather than failing on the symptoms, and refuses a number this plugin does not read.
+
+The number moves when the shape of a file changes in a way an older reader misreads. It is not the plugin
+version.
+
+| Format | Since plugin | What changed                                                                                          |
+|--------|--------------|-------------------------------------------------------------------------------------------------------|
+| 1      | 0.1.0        | single-letter ids: `R1`, `A3`, `D2`, `F1`, `Q1`, `B3`, and plan steps `ST01` … `P01`                   |
+| 2      | 0.2.0        | every id is two letters and at least two digits, one prefix per kind, no letter reused across files   |
+
+Format 2's prefixes: plan steps `ST RU RI RS GU GI GS PI`; spec `RQ AC DN`; design log `DF`; plan `OQ`; plan
+log `RF`; every log's run log `RL` and attempts `AT`; findings file `RX DX`; backlog `BB BR BT`; fix steps
+`FS FR FG`; rework steps `WK`; upgrade steps `UP`. A task written in format 1 is migrated by hand - the ids
+renamed in every file of the directory and the line added - or archived as it stands.
+
 ## When one cannot run
 
 Each skill's `allowed-tools` frontmatter grants its own script to the skill session; a sub-agent gets no such

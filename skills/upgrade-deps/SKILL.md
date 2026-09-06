@@ -150,16 +150,16 @@ bug of its own, a setting the module's framework does not yet honour, an API the
 still bind. After three failed attempts on one change, the agent stops on it: the version stays at the target
 where the module compiles and is green on the old API — the guide's change written into the log's `## Run Log`
 as a `kept back` entry with what was tried and what would unblock it. Where the module is not green on the old
-API either, the version goes back to where it was, the step is `abandoned — <why>`, a `B` entry in the log says
+API either, the version goes back to where it was, the step is `abandoned — <why>`, an `RL` entry in the log says
 what was reverted, and the survey row says `Status: blocked`. Every attempt on the way is an entry in the log's
 `## Attempts`, in the shape [`attempts.md`](../../templates/attempts.md) gives.
 
 **An agent that returns blocked changes the plan, not the rules**: it returns for a step whose kind is wrong, a
 change the guide asks for that lands in another module, a test asserting the old behaviour that nobody foresaw,
-or a refusal from [`applying-a-step.md`](applying-a-step.md). Its question is a `Q` in its steps file's
-`## Open Questions`; the return itself is a `B` entry in its log's `## Run Log`, and whoever settles it fills
+or a refusal from [`applying-a-step.md`](applying-a-step.md). Its question is an `OQ` in its steps file's
+`## Open Questions`; the return itself is an `RL` entry in its log's `## Run Log`, and whoever settles it fills
 that entry's `Resolved:`. Amend the files — each amendment a step widened, a kind re-classified, a `change:`
-added gets a `B` note of its own — stop for approval again as in Phase 2, re-spawn that module's agent; it
+added gets an `RL` note of its own — stop for approval again as in Phase 2, re-spawn that module's agent; it
 starts at its first unticked step.
 
 ### What Is Never Done

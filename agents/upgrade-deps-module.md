@@ -34,9 +34,9 @@ the files:
 | Need                    | Command                                       |
 |-------------------------|-----------------------------------------------|
 | Where the run stands    | `upgrade.sh status --file <steps>`            |
-| One step's text         | `upgrade.sh show U01 U02 --file <steps>`      |
-| Mark a step done        | `upgrade.sh tick U01 --file <steps>`          |
-| Leave a step blocked    | `upgrade.sh block U01 "<why>" --file <steps>` |
+| One step's text         | `upgrade.sh show UP01 UP02 --file <steps>`      |
+| Mark a step done        | `upgrade.sh tick UP01 --file <steps>`          |
+| Leave a step blocked    | `upgrade.sh block UP01 "<why>" --file <steps>` |
 | Check both files' shape | `upgrade.sh validate --file <steps>`          |
 
 **Name your file on every call**; several are in flight at once; the log is found beside it. **Read a step
@@ -74,16 +74,16 @@ Into the log:
 - **An entry in the log's `## Attempts`** for every change that failed, the moment it fails, in
   `attempts.md`'s shape, phase the step ID.
 - **A `kept back` entry in the log's `## Run Log`** for every `change:` you gave up on with the version still
-  at its target — `- **B<n> (<ID>):** kept back — <what the guide asked>`, with `Kept because:` the attempt
+  at its target — `- **RL<nn> (<ID>):** kept back — <what the guide asked>`, with `Kept because:` the attempt
   IDs and `Would unblock:` what would finish it.
-- **A `B` entry in the log's `## Run Log`** for everything else worth a record: a step abandoned and what was
-  reverted, a deprecation the build printed, a blocked return. `B` numbers ascend per log; append, never insert.
+- **An `RL` entry in the log's `## Run Log`** for everything else worth a record: a step abandoned and what was
+  reverted, a deprecation the build printed, a blocked return. `RL` numbers ascend per log; append, never insert.
 
 Into the steps file:
 
 - **A tick**, through `upgrade.sh tick`, once you have verified the step yourself.
-- **`abandoned — <why>` on a step's header** whose version had to go back, with its `B` entry in the log.
-- **A numbered question under `## Open Questions`, only when you return blocked** — `Q<n>` per file, starting at `Q1`.
+- **`abandoned — <why>` on a step's header** whose version had to go back, with its `RL` entry in the log.
+- **A numbered question under `## Open Questions`, only when you return blocked** — `OQ<nn>` per file, starting at `OQ01`.
 
 Nothing else about a step is yours: not its kind, not its versions, never a `change:` added, never a step added
 or removed.
@@ -117,7 +117,7 @@ detail to reproduce, not treated as a step failure.**
 Short. The level above assembles the closing report from it:
 
 - **Every step by ID**, ticked, abandoned or blocked, the versions it moved between, and the files it touched.
-- **Every kept-back change**, by its `B` number, and what would unblock it.
+- **Every kept-back change**, by its `RL` number, and what would unblock it.
 - **Every deprecation warning the build printed** on the new versions — quoted from the output, not summarized
   from what the guide led you to expect.
 - **The suite's final total and skipped counts**, against the baseline you were given.

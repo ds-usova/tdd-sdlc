@@ -3,7 +3,7 @@
 The grammar of a fix's checklist, read by `fix.sh` and by the agent applying a step. When each kind is used,
 and what proves it, is the skill's.
 
-Every step carries an ID, its kind, and one line of what it does. IDs are `S01`, `R01`, `G01` upward, one
+Every step carries an ID, its kind, and one line of what it does. IDs are `FS01`, `FR01`, `FG01` upward, one
 sequence per kind, assigned once and never renumbered. **The letter is the kind**, and `validate` refuses a step
 whose prefix says something its kind does not.
 
@@ -18,27 +18,27 @@ ID, its lines and its table row. `fix.sh` counts it closed rather than open; a `
 `green` one.
 
 ```
-- [ ] S01 · stabilize · <the signature, interface or contract that moves>
+- [ ] FS01 · stabilize · <the signature, interface or contract that moves>
   - files:
     - `path/to/Port`
     - `path/to/OneCaller`
   - test-files:
     - `path/to/OneCallerTest`
-  - disables: `SomeTest#aMethod` — cleared by R01
+  - disables: `SomeTest#aMethod` — cleared by FR01
   - docs: `<module>/docs/contracts/out/<counterpart>.md`
-  # in shared/fix.md the same line names the file: cleared by module-a/fix.md · R01
+  # in shared/fix.md the same line names the file: cleared by module-a/fix.md · FR01
 
-- [ ] R01 · red · <the test that reproduces the bug>
+- [ ] FR01 · red · <the test that reproduces the bug>
   - test-files:
     - `path/to/TheBugTest`
   - reproduces: <the symptom the test must fail with>
   - runs: `TheBugTest#theScenario`
-  - needs: S01
+  - needs: FS01
 
-- [ ] G01 · green · <what starts happening instead>
+- [ ] FG01 · green · <what starts happening instead>
   - files:
     - `path/to/TheClass`
-  - fixes: R01
+  - fixes: FR01
   - runs: `TheBugTest#theScenario`
 ```
 
@@ -78,7 +78,7 @@ fix's.
 
 **A path under `files:` or `test-files:` is written from the repository root**, so a step in one module's file
 and a step in another's read the same way. A reference to another fix file names it as it sits beside this one:
-`shared/fix.md · S01`.
+`shared/fix.md · FS01`.
 
 **A `stabilize` step may carry no `files:` at all.** Preparing a stub, a fixture or a builder so the `red` step
 can be written is what the kind is for, and that work is all `test-files:`.
@@ -86,8 +86,8 @@ can be written is what the kind is for, and that work is all `test-files:`.
 **A step lives in the file of the module it edits.** A bug crossing two services has a `stabilize` step in
 `shared/fix.md` for the contract, and its own `red` and `green` steps in each module's file.
 
-**A step in another file is named with that file** — `needs: shared/fix.md · S01`, or
-`disables: `SomeTest#aMethod` — cleared by module-a/fix.md · R01`. Only `needs:` and `disables:` may cross, and
+**A step in another file is named with that file** — `needs: shared/fix.md · FS01`, or
+`disables: `SomeTest#aMethod` — cleared by module-a/fix.md · FR01`. Only `needs:` and `disables:` may cross, and
 `validate` does not resolve what it cannot see. A bare ID always means this file, and `validate` refuses one no
 step here defines.
 

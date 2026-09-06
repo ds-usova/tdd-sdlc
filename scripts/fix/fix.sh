@@ -45,7 +45,7 @@ Commands:
             being tried. Run it when a step starts and whenever the approach changes.
   tick      Mark the steps done and empty the log's "**In flight:**" line. Several IDs are one
             batch: all are resolved before any is written, so a name nothing defines ticks none.
-  block     Leave the step open and record the reason as the next B entry of the log's Run Log.
+  block     Leave the step open and record the reason as the next RL entry of the log's Run Log.
   validate  Duplicate or missing IDs, an unrecognized kind, an ID whose prefix contradicts it, a
             line the kind does not take, a line the kind owes and does not carry, a placeholder
             value, "needs:"/"disables:"/"fixes:" pointing at a step nothing defines, a reproduction
@@ -57,8 +57,8 @@ Commands:
             holds and the log beside each, in one call.
   task      Every fix file the bug holds, its done/total, and whether all of them are finished. An
             abandoned step counts as closed.
-  attempts  The attempt IDs every log of the bug holds, as one line - "bug-log.md · A1-A3,
-            module-a/fix-log.md · A1, module-b/fix-log.md · —".
+  attempts  The attempt IDs every log of the bug holds, as one line - "bug-log.md · AT01-AT03,
+            module-a/fix-log.md · AT01, module-b/fix-log.md · —".
 
 --file names a file on every subcommand. validate, task and attempts also take a path positionally:
 validate accepts a bug directory and validates everything in it, task and attempts accept a bug
@@ -315,7 +315,7 @@ cmd_block() {
     done < <(parse list)
     [ -n "$matched" ] || die "no such step: $id" 1
 
-    # Appended as the next B entry at the end of the log's Run Log, which is created when absent.
+    # Appended as the next RL entry at the end of the log's Run Log, which is created when absent.
     # The number comes from the parser, so the entry lands above nothing that came before it.
     local b runlog_start next_section insert_at
     b="$(parse nextblock)"
@@ -332,21 +332,21 @@ cmd_block() {
 
     # The note travels in the environment, not through -v, which would expand escape sequences
     # in whatever the caller wrote.
-    entry="- **B${b} (${id}):** ${note}" \
+    entry="- **RL$(printf '%02d' "$b") (${id}):** ${note}" \
         rewrite_file "$log_file" awk -v n="$insert_at" \
             '{ print } NR == n { print ""; print ENVIRON["entry"]; print "  - Resolved:" }' "$log_file" \
         || die "could not write $log_file"
-    echo "$id left open; recorded as B${b} in ${log_file#"$repo_root_abs/"}"
+    echo "$id left open; recorded as RL$(printf '%02d' "$b") in ${log_file#"$repo_root_abs/"}"
 }
 
-# "A1-A3" where the IDs run 1..n without a gap, the list otherwise, "-" for none.
+# "AT01-AT03" where the IDs run 1..n without a gap, the list otherwise, "-" for none.
 attempt_range() {
     local ids=("$@") n="$#"
     [ "$n" -gt 0 ] || { printf '%s' $'\xe2\x80\x94'; return; }
     [ "$n" -gt 1 ] || { printf '%s' "${ids[0]}"; return; }
     local i=1 contiguous=1
     while [ "$i" -le "$n" ]; do
-        [ "${ids[$((i - 1))]}" = "A$i" ] || { contiguous=0; break; }
+        [ "${ids[$((i - 1))]}" = "$(printf 'AT%02d' "$i")" ] || { contiguous=0; break; }
         i=$((i + 1))
     done
     if [ "$contiguous" = 1 ]; then
@@ -417,10 +417,29 @@ bug_dir_of() {
 
 # One file and the log beside it. The parser's own checks first; the log's absence is reported here,
 # where the path it was looked for under is known.
+# Every file a script validates carries "**Format:** <n>" in its header, written by the skill that
+# created it. A file with no such line predates format 2 - single-letter ids, D3 and B7 - and is
+# reported as such rather than failing on symptoms. The number is scripts/README.md's, "Formats".
+FORMAT=2
+check_format() {
+    local file="$1" found
+    found="$(sed -n 's/^\*\*Format:\*\*[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$file" | head -1)"
+    if [ -z "$found" ]; then
+        echo "${file#"$repo_root/"}: no **Format:** line - written before format $FORMAT (ids were one letter: D3, B7). Migrate the ids by hand and add \"**Format:** $FORMAT\" under the title, or archive it as it is"
+        return 1
+    fi
+    if [ "$found" != "$FORMAT" ]; then
+        echo "${file#"$repo_root/"}: **Format:** $found, and this plugin reads format $FORMAT"
+        return 1
+    fi
+    return 0
+}
+
 validate_one() {
     local failed=0
     resolve_log
     parse validate || failed=1
+    check_format "$fix_file" || failed=1
     if [ ! -f "$log_file" ]; then
         echo "no $(log_noun) at ${log_file#"$repo_root_abs/"} - the attempts and the run log live there"
         failed=1

@@ -9,8 +9,8 @@ user wants it reopened, the `**Closed:**` line goes and the run continues from h
 ## Read before acting
 
 The main file, every steps file beside it, and each file's `<file-stem>-log.md` — every `## Attempts` entry
-where the log keeps one, and every `B` entry in its `## Run Log`. **Nothing an attempt's `ruled-out:` line or a
-`kept back` entry settles is tried again. A `B` entry whose `Resolved:` is filled is a decision already made.**
+where the log keeps one, and every `RL` entry in its `## Run Log`. **Nothing an attempt's `ruled-out:` line or a
+`kept back` entry settles is tried again. An `RL` entry whose `Resolved:` is filled is a decision already made.**
 
 The original `**Baseline:**` stands. On disk, these are the run working, not a reason to stop:
 
@@ -31,5 +31,5 @@ Uncommitted work anywhere else, and anything red no step accounts for, stops the
 | an Open Question is unanswered             | ask it now, write the answer in, then continue                                                                                        |
 | every step is ticked                       | continue at the finish phase — its closing gates ran nowhere yet                                                                      |
 
-**The revert belongs to the skill, never to an agent**, and happens before any agent is spawned. Attempt and `B`
+**The revert belongs to the skill, never to an agent**, and happens before any agent is spawned. Attempt and `RL`
 numbers continue from where each log stopped; nothing is renumbered.

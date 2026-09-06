@@ -38,7 +38,7 @@ function unfilled(v) {
     return 0
 }
 
-# The number inside a D<n>, F<n>, R<n> or A<n> id, for ordering.
+# The number inside a DN<nn>, DF<nn>, RQ<nn> or AC<nn> id, for ordering.
 function idnum(id) {
     sub(/^[A-Za-z]+/, "", id)
     return id + 0
@@ -124,12 +124,12 @@ FILENAME != prevfile {
 
 # ---------------------------------------------------------------- the spec -----------------------
 
-fileidx == 1 && section == "## Requirements" && /^- \*\*R[0-9]+:\*\*/ {
+fileidx == 1 && section == "## Requirements" && /^- \*\*RQ[0-9]+:\*\*/ {
     rid = $0
     sub(/^- \*\*/, "", rid)
     sub(/:\*\*.*$/, "", rid)
     txt = $0
-    sub(/^- \*\*R[0-9]+:\*\*[ \t]*/, "", txt)
+    sub(/^- \*\*RQ[0-9]+:\*\*[ \t]*/, "", txt)
     nreqs++
     reqid[nreqs] = rid
     reqtxt[nreqs] = trim(txt)
@@ -137,7 +137,7 @@ fileidx == 1 && section == "## Requirements" && /^- \*\*R[0-9]+:\*\*/ {
     next
 }
 
-fileidx == 1 && section == "## Acceptance Scenarios" && /^- \*\*A[0-9]+:\*\*/ {
+fileidx == 1 && section == "## Acceptance Scenarios" && /^- \*\*AC[0-9]+:\*\*/ {
     aid = $0
     sub(/^- \*\*/, "", aid)
     sub(/:\*\*.*$/, "", aid)
@@ -157,7 +157,7 @@ fileidx == 1 && cura > 0 && /^[ \t]*- Proves:/ {
     next
 }
 
-fileidx == 1 && /^- \*\*D[0-9]+:\*\*/ {
+fileidx == 1 && /^- \*\*DN[0-9]+:\*\*/ {
     close_entry()
     nent++
     cur = nent
@@ -167,7 +167,7 @@ fileidx == 1 && /^- \*\*D[0-9]+:\*\*/ {
     sub(/:\*\*.*$/, "", id)
 
     q = $0
-    sub(/^- \*\*D[0-9]+:\*\*[ \t]*/, "", q)
+    sub(/^- \*\*DN[0-9]+:\*\*[ \t]*/, "", q)
 
     eid[nent] = id
     question[nent] = trim(q)
@@ -213,7 +213,7 @@ fileidx == 1 && cur > 0 && /^[ \t]*- Basis:/ {
 }
 
 # A findings table left in the spec or the design is the old shape; it belongs to the log now.
-fileidx < 3 && /^\|[ \t]*F[0-9]+[ \t]*\|/ { stray_f = 1 }
+fileidx < 3 && /^\|[ \t]*DF[0-9]+[ \t]*\|/ { stray_f = 1 }
 
 # An entry extends over its own indented lines only; a top-level line that is not a bullet ends it, so
 # `show` never prints the prose that follows the last entry.
@@ -277,7 +277,7 @@ fileidx == 3 && section == "## Concerns" && /^\|/ {
     next
 }
 
-fileidx == 3 && section == "## Findings" && /^\|[ \t]*F[0-9]+[ \t]*\|/ {
+fileidx == 3 && section == "## Findings" && /^\|[ \t]*DF[0-9]+[ \t]*\|/ {
     nrow++
     rowid[nrow] = cell($0, 1)
     rowq[nrow] = cell($0, 2)
@@ -286,12 +286,12 @@ fileidx == 3 && section == "## Findings" && /^\|[ \t]*F[0-9]+[ \t]*\|/ {
     next
 }
 
-fileidx == 3 && section == "## Decision Bases" && /^- \*\*D[0-9]+:\*\*/ {
+fileidx == 3 && section == "## Decision Bases" && /^- \*\*DN[0-9]+:\*\*/ {
     id = $0
     sub(/^- \*\*/, "", id)
     sub(/:\*\*.*$/, "", id)
     txt = $0
-    sub(/^- \*\*D[0-9]+:\*\*[ \t]*/, "", txt)
+    sub(/^- \*\*DN[0-9]+:\*\*[ \t]*/, "", txt)
     nlogbase++
     baseid[nlogbase] = id
     basetxt[nlogbase] = trim(txt)
@@ -332,12 +332,12 @@ END {
         if (specsect[i] == "## Design Findings")
             problem("spec: section '## Design Findings' belongs to the design log now, as '## Findings'")
     if (stray_f)
-        problem("an F<n> table row sits in the spec or the design - findings rows live in the design log")
+        problem("a DF<nn> table row sits in the spec or the design - findings rows live in the design log")
 
     # Requirements and the scenarios that prove them. A requirement nothing proves is a promise with
     # no test behind it; a scenario proving nothing is behaviour nobody asked for.
     if (nreqs == 0)
-        problem("spec: the Requirements section lists no R<n> line - every change promises at least one thing")
+        problem("spec: the Requirements section lists no RQ<nn> line - every change promises at least one thing")
     for (i = 1; i <= nreqs; i++) {
         if (seenr[reqid[i]]) problem("spec: " reqid[i] " is defined twice")
         seenr[reqid[i]] = 1
@@ -352,7 +352,7 @@ END {
         n = split(p, ids, /[ \t]+/)
         for (k = 1; k <= n; k++) {
             if (ids[k] == "") continue
-            if (ids[k] !~ /^R[0-9]+$/) { problem("spec: " sceid[i] " proves '" ids[k] "', which is not an R<n>"); continue }
+            if (ids[k] !~ /^RQ[0-9]+$/) { problem("spec: " sceid[i] " proves '" ids[k] "', which is not an RQ<nn>"); continue }
             if (!seenr[ids[k]]) problem("spec: " sceid[i] " proves " ids[k] ", which the Requirements section does not define")
             proven[ids[k]] = 1
         }
@@ -361,7 +361,7 @@ END {
         if (!proven[reqid[i]]) problem("spec: " reqid[i] " is proved by no scenario")
 
     if (nent == 0)
-        problem("spec: the Decisions section records no D<n> entry - every change makes at least one call")
+        problem("spec: the Decisions section records no DN<nn> entry - every change makes at least one call")
 
     for (i = 1; i <= nent; i++) {
         if (seen[eid[i]]) problem("spec: " eid[i] " is defined twice")

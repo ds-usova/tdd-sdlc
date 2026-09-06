@@ -69,20 +69,20 @@ elsewhere, and untracked leavings that are nobody's work, are named and left alo
   pair goes into `reproduces:`. The `red` step then runs until it has failed twice, giving up at three times that
   run count. The `green` step runs three times the runs the `red` step took, and passes every time.
 - **It does not reproduce here, and could.** Stop, say what was run and what happened, ask for the missing
-  condition. On a run started from a backlog `B` row, the paragraph below decides first.
+  condition. On a run started from a backlog `BB` row, the paragraph below decides first.
 - **It cannot reproduce here at all.** Stop, say what environment or data it needs. Whether to fix it blind is
   the user's call.
 
 **Never write a fix for a bug nobody has seen fail.**
 
-**A run started from a backlog `B` row measures the row, not only the case it quotes** — one pass over the class
+**A run started from a backlog `BB` row measures the row, not only the case it quotes** — one pass over the class
 the row claims ([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**).
 
 - **It holds** — proceed; the reproduction is the measurement.
 - **It holds for fewer cases than it claims** — the diagnosis says what was measured, and `bug.md` scopes to it.
 - **It does not hold** — the class is mostly fine, or the behaviour it calls wrong is what the repository
   promises: say what was measured, set the owning block's `Status` to `withdrawn` with that clause, remove the
-  `B` row from `docs/backlog.md` in the same edit, and stop.
+  `BB` row from `docs/backlog.md` in the same edit, and stop.
 
 **Baseline.** Full build and full suite of every affected module, with the reproduction test disabled or
 reverted. Record the commit and, per module, the total and skipped counts, plus any machine state a skip depends
@@ -100,7 +100,7 @@ test can drive — is how a link is proved. **A probe that failed is an attempt*
 `## Attempts`. A probe the fix needs again becomes a `stabilize` step. Every probe's edits are reverted before
 the files are presented — the disabled reproduction test is the one edit that stays, uncommitted. An effect an
 edit does not undo — a migration run, an offset consumed — is named in the diagnosis, put back by hand where
-possible, and recorded as a `B` entry in the log's Run Log.
+possible, and recorded as an `RL` entry in the log's Run Log.
 
 Then write every `fix.md` with its `fix-log.md`, and run `fix.sh validate <the directory>` until it exits 0.
 
@@ -133,23 +133,23 @@ line — is left where it is, and is reported as closed. The disabled reproducti
 **An agent that returns blocked changes the plan, not the rules.** It returns for one of: three failed attempts
 on a step, a symptom that survives a correct `green` step, a cause in another module, a step whose kind is wrong,
 a test asserting the old behaviour that nobody foresaw, or a refusal from [`applying-a-step.md`](applying-a-step.md).
-The return itself is a `B` entry in that fix's log — the agent wrote it, or `fix.sh block` does — and the
-question it needs answered is a `Q` under the fix file's `## Open Questions`. Wait for the module's agent to
+The return itself is an `RL` entry in that fix's log — the agent wrote it, or `fix.sh block` does — and the
+question it needs answered is an `OQ` under the fix file's `## Open Questions`. Wait for the module's agent to
 return, amend `bug.md` and the fix files — a new `red`/`green` pair moves whole, a struck step keeps its row and
 its checklist bullet with `abandoned — <why>` on the header, an ID is never reused — say what was amended as a
-`B` note in the log, re-run `fix.sh validate`, and **stop for approval again as in Phase 2**. Then re-spawn that
+`RL` note in the log, re-run `fix.sh validate`, and **stop for approval again as in Phase 2**. Then re-spawn that
 module's agent; it starts at its first unticked step. An abandoned step is closed: `fix.sh task` counts it so.
 
 **A fix the user calls off** is reverted step by step, newest first, in the skill and never in an agent, until
 every module's suite is back at its baseline figures. A revert that conflicts stops and reports. The directory
 stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decision lives there alone —
-`bug-log.md`'s Run Log takes a `B` entry for every effect the revert did not undo, and nothing is archived.
+`bug-log.md`'s Run Log takes an `RL` entry for every effect the revert did not undo, and nothing is archived.
 
 ### What Is Never Done
 
 - A test is never deleted or weakened to make a step green. A `stabilize` step may disable one, and a `red` step
   clears it.
-- A second defect found along the way is recorded as a `B` entry in `bug-log.md`'s Run Log and reported, never
+- A second defect found along the way is recorded as an `RL` entry in `bug-log.md`'s Run Log and reported, never
   fixed.
 - Nothing outside the steps is improved because it was nearby.
 - An approach that failed is never dropped in silence.
@@ -177,7 +177,7 @@ stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decisi
    formatting gate. A guardrail that fails blocks the archive.
 6. **`fix.sh attempts docs/<n>-<name>/`** — one line naming every attempt in every log, for the report.
 7. **Close the row this fix came from**, where `Source:` names a findings file, in that file's own form. Its
-   `B` row leaves `docs/backlog.md` in the same edit ([`backlog.md`](../../templates/backlog.md)).
+   `BB` row leaves `docs/backlog.md` in the same edit ([`backlog.md`](../../templates/backlog.md)).
 8. **Archive**: move `docs/<n>-<name>/` into `docs/implemented/`, and commit the move where the conventions
    commit at all.
 9. **What the conventions run over finished work**, in their order, each entry once, each handed the archived

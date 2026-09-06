@@ -103,6 +103,24 @@ take_task() {
     esac
 }
 
+# Every file a script validates carries "**Format:** <n>" in its header, written by the skill that
+# created it. A file with no such line predates format 2 - single-letter ids, D3 and B7 - and is
+# reported as such rather than failing on symptoms. The number is scripts/README.md's, "Formats".
+FORMAT=2
+check_format() {
+    local file="$1" found
+    found="$(sed -n 's/^\*\*Format:\*\*[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$file" | head -1)"
+    if [ -z "$found" ]; then
+        echo "${file#"$repo_root/"}: no **Format:** line - written before format $FORMAT (ids were one letter: D3, B7). Migrate the ids by hand and add \"**Format:** $FORMAT\" under the title, or archive it as it is"
+        return 1
+    fi
+    if [ "$found" != "$FORMAT" ]; then
+        echo "${file#"$repo_root/"}: **Format:** $found, and this plugin reads format $FORMAT"
+        return 1
+    fi
+    return 0
+}
+
 command="${1:-}"
 [ -n "$command" ] || { usage; exit 2; }
 shift
@@ -134,7 +152,10 @@ case "$command" in
             set -- "$@" "$design_file"
             [ -f "$log_file" ] && set -- "$@" "$log_file"
         fi
-        awk -f "$parser" -v mode=validate -v files=$# "$@"
+        rc=0
+        awk -f "$parser" -v mode=validate -v files=$# "$@" || rc=1
+        check_format "$spec_file" || rc=1
+        exit "$rc"
         ;;
 
     status)

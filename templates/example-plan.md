@@ -21,6 +21,7 @@ rules, and this for what they look like when written out.
 
 # Plan: Add Widget Creation
 
+**Format:** 2
 **Affected Modules:** `module-a`
 **Design:** [Add Widget Creation](design.md)
 
@@ -170,7 +171,7 @@ public Settings loadSettings(long userId) {
 
 #### TDD Unit Red Phase
 
-- [ ] RU01 · `CreateWidgetUseCase` · test: `CreateWidgetUseCaseTest` · covers: `createWidget()`, `validateRequest()` · scenarios: A1, A2
+- [ ] RU01 · `CreateWidgetUseCase` · test: `CreateWidgetUseCaseTest` · covers: `createWidget()`, `validateRequest()` · scenarios: AC01, AC02
     - `createWidget()`:
         - given: a valid request
           when: createWidget() is called
@@ -215,7 +216,7 @@ public Settings loadSettings(long userId) {
 #### TDD Integration Red Phase
 
 - [ ] RI01 · `WidgetRepositoryAdapter` · test: `WidgetRepositoryAdapterTest` · covers: `findById()`,
-  `save()` · scenarios: A4, A5
+  `save()` · scenarios: AC04, AC05
     - `findById()`:
         - given: an existing widget
           when: findById() is called
@@ -233,7 +234,7 @@ public Settings loadSettings(long userId) {
         - given: a widget whose name is already taken under the same parent
           when: save() is called
           then: throws DuplicateResourceException
-- [ ] RI02 · `WidgetController` · test: `WidgetControllerTest` · covers: `POST /widgets` · mocks: `CreateWidgetPort` · scenarios: A2, A3
+- [ ] RI02 · `WidgetController` · test: `WidgetControllerTest` · covers: `POST /widgets` · mocks: `CreateWidgetPort` · scenarios: AC02, AC03
     - Happy Path:
         - given: the mocked port returns a created widget
           when: request is made with a valid payload
@@ -252,7 +253,7 @@ public Settings loadSettings(long userId) {
 
 #### TDD System Test Red Phase
 
-- [ ] RS01 · `CreateWidgetTest` · covers: `POST /widgets` · scenarios: A1, A3
+- [ ] RS01 · `CreateWidgetTest` · covers: `POST /widgets` · scenarios: AC01, AC03
     - Happy Path:
         - given: a valid parent resource
           when: request is made with a valid payload
@@ -284,10 +285,10 @@ public Settings loadSettings(long userId) {
 
 #### Manual Request Files
 
-- [ ] P01 · Update `.http` files to reflect the new request shape
+- [ ] PI01 · Update `.http` files to reflect the new request shape
 
 ## Open Questions
 
-- **Q1:** `module-a`'s integration tests need a containerized database; the CI runner has no container runtime
+- **OQ01:** `module-a`'s integration tests need a containerized database; the CI runner has no container runtime
   configured, so `RI01` cannot run there until it does. Run it locally, or configure the runner first?
   - A:

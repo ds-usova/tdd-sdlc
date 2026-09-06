@@ -121,16 +121,16 @@ would reject if the code existed today.
 Read the actual production code and schema the plan describes changing — not just the plan's prose — before judging
 this section.
 
-- **Every acceptance scenario in the spec is covered by at least one step.** The spec numbers them `A1`,
-  `A2`; each Red Phase step names the ones it covers. An `A<n>` no step names is behaviour a person signed off
-  and nothing will test. A step naming an `A<n>` the spec does not carry is the reverse, and just as wrong.
-- **A scenario carries every concrete value its spec entry states.** Naming the `A<n>` is not covering it:
+- **Every acceptance scenario in the spec is covered by at least one step.** The spec numbers them `AC01`,
+  `AC02`; each Red Phase step names the ones it covers. An `AC<nn>` no step names is behaviour a person signed off
+  and nothing will test. A step naming an `AC<nn>` the spec does not carry is the reverse, and just as wrong.
+- **A scenario carries every concrete value its spec entry states.** Naming the `AC<nn>` is not covering it:
   a `then:` that paraphrases the entry into an outcome without its specifics has dropped them, and no test
-  written from it will assert them. Compare each scenario's `then:` with the `A<n>` or `D<n>` in the spec, or
-  the `F<n>` in the design log, it implements, and flag a name, a state, a value, a limit or an attribute the
+  written from it will assert them. Compare each scenario's `then:` with the `AC<nn>` or `DN<nn>` in the spec, or
+  the `DF<nn>` in the design log, it implements, and flag a name, a state, a value, a limit or an attribute the
   entry states and the scenario does not.
 - **Prose under a group is a coverage note or a finding.** A paragraph under a `###` group that says what a
-  branch does or why is behaviour written outside the spec; flag it, `decision`, with the `D` or the design
+  branch does or why is behaviour written outside the spec; flag it, `decision`, with the `DN` or the design
   **Findings** row it should become. An item under any group carrying its own reasoning is flagged
   `mechanical`: cut it to what the item creates or changes.
 - **A Components table repeats nothing the design states.** A row listing a record's fields the design's
@@ -180,7 +180,7 @@ This agent writes nothing. It has no file-writing tools, and the plan file is ed
 spawned it. Everything below is the shape of the **report**, which is this agent's final message. Never touch
 production code or test code either.
 
-Give one block per finding, numbered from `1` for this report alone. Never an `F` number: those belong to the
+Give one block per finding, numbered from `1` for this report alone. Never an `RF` number: those belong to the
 plan file, and the session that owns it assigns them.
 
 ```

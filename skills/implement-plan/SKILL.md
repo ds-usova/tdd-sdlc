@@ -62,11 +62,11 @@ opened. Check every plan in the task directory, `shared/plan.md` included:
   once for the design the plans share, not once per plan. An unsettled decision means step agents will each
   invent their own answer to the same question, in different layers. The script ships with the `design-task`
   skill at `scripts/design/design.sh`.
-- **Open Questions**, in the plan: every `- **Q<n>:**` has a non-empty `- A:`. An unanswered question means a step agent
+- **Open Questions**, in the plan: every `- **OQ<nn>:**` has a non-empty `- A:`. An unanswered question means a step agent
   will hit exactly the ambiguity the planner already flagged.
-- **Run Log**, in the `plan-log.md` beside it: every `B` entry a previous partial run left with a `- Resolved:`
+- **Run Log**, in the `plan-log.md` beside it: every `RL` entry a previous partial run left with a `- Resolved:`
   line has that line filled. An empty one is a step still blocked, and the run would stop there again.
-- **Review Findings**, in the same log: every `- **F<n>:**` has a non-empty `- Action:`. A deliberate "won't fix" counts — the
+- **Review Findings**, in the same log: every `- **RF<nn>:**` has a non-empty `- Action:`. A deliberate "won't fix" counts — the
   point is that it was decided. A `mechanical` finding carrying `Action: applied — …` satisfies the gate on its
   own, since `plan-task` wrote it when it applied the fix. A `decision` finding, and anything marked
   `- Escalated:`, needs the user's answer. A plan whose review found nothing has its "no issues found" line
@@ -183,14 +183,14 @@ When every pipeline has returned:
    Write it before archiving, so the whole directory moves once and the folder is there for the evidence to
    land in.
 
-   **Every bug block, every `R` row and every `D` row it files is appended to `docs/backlog.md`**, one pointer
-   each, in the shape [`backlog.md`](../../templates/backlog.md) gives — a `B` row per bug, a `C` row per
-   candidate, a `T` row per deferred change, each taking the next id in its table, with the link written to the
+   **Every bug block, every `RX` row and every `DX` row it files is appended to `docs/backlog.md`**, one pointer
+   each, in the shape [`backlog.md`](../../templates/backlog.md) gives — a `BB` row per bug, a `BR` row per
+   candidate, a `BT` row per deferred change, each taking the next id in its table, with the link written to the
    archived path, since that is where the file is about to move. The findings file stays the row's owner; the
    backlog is how the row is found once the task directory has left `docs/`.
 
-   **Close the row this task came from.** Where the spec's **Objective** names a backlog `T` row, set the
-   owning findings row's `Status` to `done · task <n>` and remove the `T` row from `docs/backlog.md` in the same
+   **Close the row this task came from.** Where the spec's **Objective** names a backlog `BT` row, set the
+   owning findings row's `Status` to `done · task <n>` and remove the `BT` row from `docs/backlog.md` in the same
    edit.
 3. **Archive**, on exit 0 and on nothing else: move the **whole task directory** — every `plan.md` and its
    `plan-log.md`, the `design.md` they link, the `spec.md` and `design-log.md` beside it, `review/`, and

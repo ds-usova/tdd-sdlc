@@ -41,10 +41,10 @@ Run it with bash, from anywhere inside the project:
 
 ```
 <plugin>/scripts/fix/fix.sh status
-<plugin>/scripts/fix/fix.sh show R01
-<plugin>/scripts/fix/fix.sh start G01 guarding on the persisted request id
-<plugin>/scripts/fix/fix.sh tick S01 R01
-<plugin>/scripts/fix/fix.sh block G01 "the symptom survives a correct fix - a second cause"
+<plugin>/scripts/fix/fix.sh show FR01
+<plugin>/scripts/fix/fix.sh start FG01 guarding on the persisted request id
+<plugin>/scripts/fix/fix.sh tick FS01 FR01
+<plugin>/scripts/fix/fix.sh block FG01 "the symptom survives a correct fix - a second cause"
 <plugin>/scripts/fix/fix.sh validate --file docs/7-double-charge/bug.md
 <plugin>/scripts/fix/fix.sh task docs/7-double-charge/
 <plugin>/scripts/fix/fix.sh attempts docs/7-double-charge/
@@ -56,7 +56,7 @@ Run it with bash, from anywhere inside the project:
 | `show <ID>...`      | One step: its header and everything indented under it. Several print blank-line separated.            |
 | `start <ID> <text>` | Write the log's `**In flight:**` — the step and, in a clause, the approach being tried.               |
 | `tick <ID>...`      | Mark the steps done, empty the log's `**In flight:**`; an already-ticked ID is reported, not ticked.  |
-| `block <ID> <note>` | Leave the step open; record the note as the next `B` entry of the log's **Run Log**.                  |
+| `block <ID> <note>` | Leave the step open; record the note as the next `RL` entry of the log's **Run Log**.                  |
 | `validate`          | See [What `validate` checks](#what-validate-checks).                                                  |
 | `task`              | Every fix file the bug directory holds, its done/total, and whether all of them are done.             |
 | `attempts`          | The attempt IDs every log of the bug holds, as one line.                                              |
@@ -77,10 +77,10 @@ another. `validate` reads both, and `start`, `tick` and `block` write to the log
 agent reads; the log is what happened to it. Log files are never enumerated as files of their own: a directory
 `validate` finds them through the file each sits beside.
 
-**`attempts` prints `bug-log.md · A1–A3, module-a/fix-log.md · A1, module-b/fix-log.md · —`** — a range where a
+**`attempts` prints `bug-log.md · AT01–AT03, module-a/fix-log.md · AT01, module-b/fix-log.md · —`** — a range where a
 log's numbers run without a gap, the list where they do not, an em dash where a log holds none.
 
-A run-log entry is `- **B<n> (<ID>):** <what happened>`, numbered from 1 in the order it was written and never
+A run-log entry is `- **RL<nn> (<ID>):** <what happened>`, numbered from 1 in the order it was written and never
 renumbered; `block` writes one with an empty `- Resolved:` line beneath it, and whoever settles the blocker fills
 that line. An entry recording a fact nobody has to act on — a boundary a step widened, a migration a revert left
 run — carries no `Resolved:` line; whoever writes one creates the `## Run Log` heading after **Attempts** where
@@ -105,8 +105,8 @@ open ones, and `task` counts a fix complete whose every step is ticked or abando
 
 ### Step IDs
 
-A step is `- [ ] <ID> · <kind> · <text>`, the ID being a letter prefix and a number — `S01` for `stabilize`, `R01`
-for `red`, `G01` for `green`. The kinds and the numbering rule belong to the fix format, defined by the `fix-bug`
+A step is `- [ ] <ID> · <kind> · <text>`, the ID being a letter prefix and a number — `FS01` for `stabilize`, `FR01`
+for `red`, `FG01` for `green`. The kinds and the numbering rule belong to the fix format, defined by the `fix-bug`
 skill this ships with.
 
 `files:` and `test-files:` carry their paths as bullets under the label rather than as text beside it, and
@@ -119,7 +119,7 @@ value on its own line.
 |------------------------------------------------------------------------------|-------------------------------------------------------------------------|
 | Duplicate IDs, a step with no ID                                             | a step nothing can address                                              |
 | A kind the format does not define                                            | a typo that silently exempts the step from every rule                   |
-| An ID whose prefix contradicts its kind                                      | a `red` step numbered `G02`, which every report then misreads           |
+| An ID whose prefix contradicts its kind                                      | a `red` step numbered `FG02`, which every report then misreads           |
 | A labelled line the kind does not take                                       | `test-files:` on a `green` step, which is the one thing it may not edit |
 | A labelled line the kind owes and does not carry                             | a `red` step with no `reproduces:`, a failure nobody named              |
 | A `stabilize` step naming neither `files:` nor `test-files:`                 | a step that stabilizes nothing                                          |
@@ -133,15 +133,15 @@ value on its own line.
 | A `fixes:` naming itself, or naming a step that is not a `red` one           | a pairing that proves nothing                                           |
 | A `red` step no `green` step fixes, unless it is `abandoned — <why>`         | a reproduction that would be committed and left failing                 |
 | No log beside the file                                                       | a fix nothing can record against                                        |
-| An `## Attempts` or `## Run Log` section, an `A` or `B` entry, in the file   | the old shape — the log owns those now                                  |
+| An `## Attempts` or `## Run Log` section, an `AT` or `RL` entry, in the file   | the old shape — the log owns those now                                  |
 | A duplicate attempt number                                                   | two entries the log cannot tell apart                                   |
 | An attempt outside the log's `## Attempts` section                           | a log written where nothing reads it                                    |
 | An attempt missing `why:`, `result:`, `evidence:` or `ruled-out:`            | a failure recorded without what it settles                              |
 | An `evidence:` with no fenced block directly under it                        | an attempt whose output nobody kept                                     |
 | An attempt filed under neither `diagnosis` nor a step the file defines       | a log entry attached to a step that was renumbered                      |
-| A `B` entry outside the log's `## Run Log`                                   | a record `block` cannot number after                                    |
-| A `B` entry numbered below the entry above it                                | a record inserted where it did not happen                               |
-| A `B` entry naming no step, or a step the file does not define               | a record nothing can be traced back from                                |
+| An `RL` entry outside the log's `## Run Log`                                   | a record `block` cannot number after                                    |
+| An `RL` entry numbered below the entry above it                                | a record inserted where it did not happen                               |
+| An `RL` entry naming no step, or a step the file does not define               | a record nothing can be traced back from                                |
 | A fenced block that never closes, in either file                             | pasted output whose own fence swallowed the rest of the file            |
 | An Open Question whose `- A:` is empty                                       | a run about to start on a decision nobody made                          |
 
@@ -154,7 +154,7 @@ no steps by design.
 everything below it went unread and half a file answers as confidently as a whole one. `validate` reports it and
 carries on, because reporting is what `validate` is for.
 
-**A duplicate ID's own block is not judged.** The second `R01` is reported and its lines are skipped. A file
+**A duplicate ID's own block is not judged.** The second `FR01` is reported and its lines are skipped. A file
 carrying a duplicate ID or an unrecognized kind is also spared the pairing check. Fix those and run again.
 
 Bullets inside fenced code blocks are skipped, so a fix quoting the step format does not acquire phantom steps

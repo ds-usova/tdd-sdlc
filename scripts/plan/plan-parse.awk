@@ -206,8 +206,8 @@ fenced {
     next
 }
 
-# A review finding: "- **F1:** …", followed by its Resolution and Action lines.
-fileidx == 1 && /^- \*\*F[0-9]+:\*\*/ {
+# A review finding: "- **RF01:** …", followed by its Resolution and Action lines.
+fileidx == 1 && /^- \*\*RF[0-9]+:\*\*/ {
     # Under a findings heading the heading was already reported; a finding elsewhere is its own report.
     if (!in_findings) {
         n_stray++
@@ -217,15 +217,15 @@ fileidx == 1 && /^- \*\*F[0-9]+:\*\*/ {
 }
 
 # A run-log entry in the plan is the old shape, whatever heading it sits under.
-fileidx == 1 && /^- \*\*B[0-9]+/ {
-    match($0, /B[0-9]+/)
+fileidx == 1 && /^- \*\*RL[0-9]+/ {
+    match($0, /RL[0-9]+/)
     n_stray++
     stray[n_stray] = FILENAME ":" FNR ": " substr($0, RSTART, RLENGTH) " sits in the " base " - the log beside it owns the run log"
     next
 }
 
-in_findings && /^- \*\*F[0-9]+:\*\*/ {
-    match($0, /F[0-9]+/)
+in_findings && /^- \*\*RF[0-9]+:\*\*/ {
+    match($0, /RF[0-9]+/)
     cur_f = substr($0, RSTART, RLENGTH)
     n_f++
     f_order[n_f] = cur_f
@@ -233,29 +233,29 @@ in_findings && /^- \*\*F[0-9]+:\*\*/ {
     next
 }
 
-# A run-log entry: "- **B3 (GU07):** …", numbered once and ascending, so a new one is appended
+# A run-log entry: "- **RL03 (GU07):** …", numbered once and ascending, so a new one is appended
 # and never inserted above an older one. One outside the Run Log is reported, and still counted,
 # so the next number never repeats it.
-fileidx != 1 && /^- \*\*B[0-9]+/ {
-    match($0, /B[0-9]+/)
-    b = substr($0, RSTART + 1, RLENGTH - 1) + 0
+fileidx != 1 && /^- \*\*RL[0-9]+/ {
+    match($0, /RL[0-9]+/)
+    b = substr($0, RSTART + 2, RLENGTH - 2) + 0
     n_b++
     if (!in_runlog) {
         n_stray++
-        stray[n_stray] = FILENAME ":" FNR ": B" b " sits outside '## Run Log'"
+        stray[n_stray] = FILENAME ":" FNR ": RL" sprintf("%02d", b) " sits outside '## Run Log'"
     } else if (b <= last_b) {
         n_stray++
-        stray[n_stray] = FILENAME ":" FNR ": B" b " is not above the entry before it - append, never insert"
+        stray[n_stray] = FILENAME ":" FNR ": RL" sprintf("%02d", b) " is not above the entry before it - append, never insert"
     }
     if (b > last_b) last_b = b
     # The item it names is checked at END, once the plan's items are all known.
     if (match($0, /\(([A-Za-z]+[0-9]+)\)/)) {
         n_bref++
         bref_id[n_bref] = substr($0, RSTART + 1, RLENGTH - 2)
-        bref_where[n_bref] = FILENAME ":" FNR ": B" b
+        bref_where[n_bref] = FILENAME ":" FNR ": RL" sprintf("%02d", b)
     } else {
         n_stray++
-        stray[n_stray] = FILENAME ":" FNR ": B" b " names no item - write it as **B" b " (<item ID>):**"
+        stray[n_stray] = FILENAME ":" FNR ": RL" sprintf("%02d", b) " names no item - write it as **B" b " (<item ID>):**"
     }
     next
 }
