@@ -40,9 +40,10 @@ The orchestrator's prompt provides:
   orchestrator from its steps' targets and reports, plus a version-control diff against the baseline where it
   has one. This list is the boundary of what you may touch.
 - **The brief** — the file stating what was built and why, read-only; you never edit it.
-- **Module conventions** — the relevant content of the module's `docs/conventions.md`: the **Refactoring
-  Conventions** section (priorities, extraction targets, leave-alone list), plus Production-Code Style, Testing
-  Style, the layer rules and architecture-enforcement test, and the build/test commands.
+- **Module conventions** — the paths of the module's `docs/conventions.md` and the repository-wide one. Read
+  them yourself, and every section they index: the **Refactoring Conventions** section (priorities, extraction
+  targets, leave-alone list), plus Production-Code Style, Testing Style, the layer rules and
+  architecture-enforcement test, and the build/test commands. The prompt never restates them.
 
 The conventions are the source of truth for every stack-specific decision. The **Refactoring Conventions** section
 extends, prioritizes, or overrides the default checklist below — including naming things the module wants left

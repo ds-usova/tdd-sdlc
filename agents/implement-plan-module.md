@@ -71,9 +71,17 @@ one for deciding work.
    its parent `### <Group>`, and its unchecked `- [ ]` items. The four groups map directly onto the stages below:
    Stabilization → Stage 1, Red Phase → Stage 2, Green Phase → Stage 3, Post-Implementation Steps → Stage 5.
 2. Read `<module>/docs/conventions.md` for the module your plan implements (and the repo-root
-   `docs/conventions.md` if present). The conventions file is the source of truth for the build command, the test
-   commands per layer, the architecture-enforcement test, and file locations. Pass the relevant conventions along in
-   every sub-agent prompt — sub-agents must not guess build commands.
+   `docs/conventions.md` if present), following the index to the sections you need: the build command, the test
+   commands per layer, the architecture-enforcement test, the parallelism cap, the sub-agent models, the version
+   control rules. Those are for **your own** guardrails and scheduling.
+
+   **A sub-agent gets the conventions as paths, never as content.** Every spawn names the two index files (the
+   module's and the repository's) and nothing more about them: which facts a step needs is written in that agent's own
+   file, and it follows the index to wherever the module keeps them. Naming sections here would be this file guessing
+   how a repository is organised. A summary of a conventions file in a prompt is a second copy that drifts in the one
+   place no review looks ([`templates/sub-agents.md`](../templates/sub-agents.md), **Point a sub-agent at the rule**).
+   What a prompt does carry is the step's own context: the `plan.sh show` output, the baseline figures, what the step
+   may not touch.
 
 **Addressing the plan.** Every checklist item carries an ID (`GU07`), and `plan.sh` — which ships with these
 instructions at `scripts/plan/plan.sh`, under `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin and under
@@ -141,7 +149,7 @@ review to confirm it.
 Covers the plan's **Stabilization** group — its **API Contract**, **Database**, and **Interface-First / Build
 Stabilization** sections, in that order. Spawn **one `stabilization-step` agent** for the whole group, on the
 execution model, passing the plan path, every item id in listed order, the ids of the red steps whose scenarios
-the stubs must agree with, the module's baseline figures and the conventions. What it may and may not do is
+the stubs must agree with, the module's baseline figures and the conventions index paths. What it may and may not do is
 `stabilizing.md` in the `templates` directory beside the skills — the agent reads it as its brief; you verify
 against it below.
 
@@ -173,8 +181,8 @@ exist after Stage 1 — so:
   directory beside the skills: bundled by grouping and layer, capped by the conventions, verified by the agent
   alone or by you once per wave, ticked per step ID.
 - Spawn each bundle on the agent matching its layer, passing every one of its steps' context (target class, test
-  class, covered methods, the given/when/then scenarios and the `update:` bullets verbatim) and the module
-  conventions:
+  class, covered methods, the given/when/then scenarios and the `update:` bullets verbatim) and the conventions
+  index paths:
     - unit steps → `tdd-unit-red-phase-step`
     - integration steps → `tdd-integration-red-phase-step`
     - system steps → `tdd-system-red-phase-step`
@@ -222,7 +230,7 @@ implementation lands here.
 
    Each wave runs under `waves.md`, as in Stage 2 — bundled, capped, verified once, ticked per step ID, a blocked
    step's dependents never spawned. Unit items run on `tdd-unit-green-phase-step` and integration items on
-   `tdd-integration-green-phase-step`, each passed its step context and the module conventions.
+   `tdd-integration-green-phase-step`, each passed its step context and the conventions index paths.
 2. Wait until every item in the unit + integration batch is ticked or recorded as blocked. Tick items as they
    succeed; run the module's unit and integration suites once the batch is done and confirm both are fully green
    before proceeding. Once green, commit per the Version Control policy (if its granularity commits per wave —
@@ -258,8 +266,8 @@ pipeline**; another module's pipeline is unaffected and keeps running. Pass it:
   targets plus the file lists in the step agents' reports (and a version-control diff against the pre-plan
   baseline, if one is available);
 - the plan file path (read-only context);
-- the module conventions, including the **Refactoring Conventions** section — a module without that section is
-  fine (the agent falls back to its defaults plus the style sections); pass whatever style sections exist.
+- the conventions index paths, with a note whether the module has a **Refactoring Conventions** section — a
+  module without one is fine (the agent falls back to its defaults plus the style sections it finds).
 
 **Stage guardrail** — verify yourself after the agent reports: the full suite is green with the **same test count**
 as before the stage (a changed count means a test was lost or duplicated), and the architecture-enforcement test

@@ -1,7 +1,7 @@
 ---
 name: tdd-integration-green-phase-step
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
-description: 'Spawned by implement-plan-module, Stage 3. Not for direct use — it needs step context only that orchestrator has. TDD Integration Green Phase step agent: implements one class until every test in its integration test class passes (GREEN phase of TDD). Handles both variants: a class driven directly against real infrastructure, and a class the framework calls with its collaborators mocked. Stack-agnostic; all framework, style, and run-command detail comes from the module conventions passed in by the orchestrator.'
+description: 'Spawned by implement-plan-module, Stage 3. Not for direct use — it needs step context only that orchestrator has. TDD Integration Green Phase step agent: implements one class until every test in its integration test class passes (GREEN phase of TDD). Handles both variants: a class driven directly against real infrastructure, and a class the framework calls with its collaborators mocked. Stack-agnostic; all framework, style, and run-command detail comes from the module conventions the orchestrator points it at.'
 ---
 
 # TDD Integration Green Phase Step Agent
@@ -34,12 +34,14 @@ The orchestrator's prompt provides:
 - **Test class** — the integration test class whose tests must all pass after this step.
 - **Variant context** — the red step's coverage block (`covers:`/`mocks:`). A `mocks:` entry means the framework
   variant, and names what stays mocked.
-- **Module conventions** — the relevant content of the module's `docs/conventions.md`: production-code style
-  (dependency-injection style, null-handling policy, logging, error/exception conventions, import rules,
-  method-decomposition style), the variant-specific idioms — how the module talks to that kind of infrastructure
-  and how it maps between its own types and the dependency's, or the framework's binding, validation and
-  error-mapping mechanism together with the schema those come from — whatever rules the module states about where
-  this class may reach, and the command to compile and run a single test class.
+- **Module conventions** — the paths of the module's `docs/conventions.md` and the repository-wide one. Read them
+  yourself, following the index to wherever the module keeps: production-code style (dependency-injection style,
+  null-handling policy, logging, error/exception conventions, import rules, method-decomposition style), the
+  variant-specific idioms — how the module talks to that kind of infrastructure and how it maps between its own
+  types and the dependency's, or the framework's binding, validation and error-mapping mechanism together with the
+  schema those come from — whatever rules the module states about where this class may reach — and, where you verify
+  your own work rather than the orchestrator verifying the wave, the command to compile and run a single test class.
+  The prompt never restates them.
 
 The conventions are the source of truth for every stack-specific decision. If a decision you need is not covered
 by the conventions or by the existing implementations you read — no mapping style recorded anywhere, say —

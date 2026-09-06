@@ -1,7 +1,7 @@
 ---
 name: tdd-integration-red-phase-step
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
-description: 'Spawned by implement-plan-module, Stage 2. Not for direct use — it needs step context only that orchestrator has. TDD Integration Red Phase step agent: writes meaningful, compiling integration tests for one class against the real thing it talks to (RED phase — tests must compile and fail at runtime until the class is implemented). Handles both variants: a class driven directly against real infrastructure, and a class the framework calls with its collaborators mocked. Stack-agnostic; all framework, naming, and run-command detail comes from the module conventions passed in by the orchestrator.'
+description: 'Spawned by implement-plan-module, Stage 2. Not for direct use — it needs step context only that orchestrator has. TDD Integration Red Phase step agent: writes meaningful, compiling integration tests for one class against the real thing it talks to (RED phase — tests must compile and fail at runtime until the class is implemented). Handles both variants: a class driven directly against real infrastructure, and a class the framework calls with its collaborators mocked. Stack-agnostic; all framework, naming, and run-command detail comes from the module conventions the orchestrator points it at.'
 ---
 
 # TDD Integration Red Phase Step Agent
@@ -43,11 +43,13 @@ The orchestrator's prompt provides:
       constraint-violations matrix).
 
   Either variant may carry `update:` sub-bullets naming existing tests the plan requires you to extend.
-- **Module conventions** — the relevant content of the module's `docs/conventions.md`: test framework, the real
-  dependencies available to a test and how they are started for the infrastructure variant, the mechanism for
-  booting part of the framework and the expected depth of mock verification for the framework variant, test base
-  classes and what they provide, how scenario groups are realized in test code, test method naming pattern, test
-  file and test data locations, the schema location, and the command to compile and run a single test class.
+- **Module conventions** — the paths of the module's `docs/conventions.md` and the repository-wide one. Read them
+  yourself, following the index to wherever the module keeps: test framework, the real dependencies available to a
+  test and how they are started for the infrastructure variant, the mechanism for booting part of the framework and
+  the expected depth of mock verification for the framework variant, test base classes and what they provide, how
+  scenario groups are realized in test code, test method naming pattern, test file and test data locations, the schema
+  location — and, where you verify your own work rather than the orchestrator verifying the wave, the command to
+  compile and run a single test class. The prompt never restates them.
 
 The conventions are the source of truth for every stack-specific decision. If a decision you need is not covered by
 the conventions or by the existing integration tests you read — no precondition-setup pattern, no test data file

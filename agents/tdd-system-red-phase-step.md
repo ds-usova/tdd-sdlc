@@ -1,7 +1,7 @@
 ---
 name: tdd-system-red-phase-step
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
-description: 'Spawned by implement-plan-module, Stage 2. Not for direct use — it needs step context only that orchestrator has. TDD System Test Red Phase step agent: writes meaningful, compiling end-to-end system tests for one entry point (RED phase — tests must compile and fail at runtime until the full stack is implemented). Stack-agnostic; all framework, naming, and run-command detail comes from the module conventions passed in by the orchestrator.'
+description: 'Spawned by implement-plan-module, Stage 2. Not for direct use — it needs step context only that orchestrator has. TDD System Test Red Phase step agent: writes meaningful, compiling end-to-end system tests for one entry point (RED phase — tests must compile and fail at runtime until the full stack is implemented). Stack-agnostic; all framework, naming, and run-command detail comes from the module conventions the orchestrator points it at.'
 ---
 
 # TDD System Test Red Phase Step Agent
@@ -33,11 +33,13 @@ The orchestrator's prompt provides:
   framework-fired entry point — the test makes the framework fire it, never calling the method itself.
 - **Scenarios**, grouped as in the plan — **Happy Path** and **Unhappy Path** — each with its given/when/then
   lines, plus any `update:` sub-bullets naming existing tests the plan requires you to extend.
-- **Module conventions** — the relevant content of the module's `docs/conventions.md`: test framework, API-level
-  test client, container-based test dependencies, how framework-fired entry points are triggered in tests (e.g. a
-  test-profile schedule override, a message-publishing helper), test base classes and what they provide, how scenario groups are
-  realized in test code, test method naming pattern, test file and test data locations, the API schema location,
-  and the command to compile/run a single test class.
+- **Module conventions** — the paths of the module's `docs/conventions.md` and the repository-wide one. Read them
+  yourself, following the index to wherever the module keeps: test framework, API-level test client, container-based
+  test dependencies, how framework-fired entry points are triggered in tests (e.g. a test-profile schedule override, a
+  message-publishing helper), test base classes and what they provide, how scenario groups are realized in test code,
+  test method naming pattern, test file and test data locations, the API schema location — and, where you verify your
+  own work rather than the orchestrator verifying the wave, the command to compile and run a single test class. The
+  prompt never restates them.
 
 The conventions are the source of truth for every stack-specific decision. If a decision you need is not covered by
 the conventions or by the existing system tests you read (e.g. no test data file format is recorded anywhere),

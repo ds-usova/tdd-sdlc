@@ -1,7 +1,7 @@
 ---
 name: tdd-unit-red-phase-step
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
-description: 'Spawned by implement-plan-module, Stage 2. Not for direct use — it needs step context only that orchestrator has. TDD Unit Red Phase step agent: writes meaningful, compiling unit tests for one target class (RED phase — tests must compile and fail at runtime). Stack-agnostic; all framework, naming, and run-command detail comes from the module conventions passed in by the orchestrator.'
+description: 'Spawned by implement-plan-module, Stage 2. Not for direct use — it needs step context only that orchestrator has. TDD Unit Red Phase step agent: writes meaningful, compiling unit tests for one target class (RED phase — tests must compile and fail at runtime). Stack-agnostic; all framework, naming, and run-command detail comes from the module conventions the orchestrator points it at.'
 ---
 
 # TDD Unit Red Phase Step Agent
@@ -24,9 +24,10 @@ The orchestrator's prompt provides:
 - **Test class** — the test class to create or extend.
 - **Methods to cover**, each with its given/when/then scenarios from the plan, plus any `update:` sub-bullets
   naming existing tests the plan requires you to extend.
-- **Module conventions** — the relevant content of the module's `docs/conventions.md`: test framework, mocking
-  library, assertion style, test method naming pattern, test file locations, and the command to compile/run a
-  single test class.
+- **Module conventions** — the paths of the module's `docs/conventions.md` and the repository-wide one. Read them
+  yourself, following the index to wherever the module keeps: test framework, mocking library, assertion style, test
+  method naming pattern, test file locations — and, where you verify your own work rather than the orchestrator
+  verifying the wave, the command to compile and run a single test class. The prompt never restates them.
 
 The conventions are the source of truth for every stack-specific decision. If a decision you need is not covered by
 the conventions or by the existing tests you read (e.g. no mocking approach is recorded anywhere), report it as a

@@ -1,7 +1,7 @@
 ---
 name: tdd-system-green-phase-step
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
-description: 'Spawned by implement-plan-module, Stage 3. Not for direct use — it needs step context only that orchestrator has. TDD System Test Green Phase step agent: makes one system test class fully green against the fully wired application (GREEN phase of TDD at the system level). Fixes implementation bugs anywhere in the production code and wires entry points that have no integration step; never modifies tests. Stack-agnostic; all framework, style, and run-command detail comes from the module conventions passed in by the orchestrator.'
+description: 'Spawned by implement-plan-module, Stage 3. Not for direct use — it needs step context only that orchestrator has. TDD System Test Green Phase step agent: makes one system test class fully green against the fully wired application (GREEN phase of TDD at the system level). Fixes implementation bugs anywhere in the production code and wires entry points that have no integration step; never modifies tests. Stack-agnostic; all framework, style, and run-command detail comes from the module conventions the orchestrator points it at.'
 ---
 
 # TDD System Test Green Phase Step Agent
@@ -35,9 +35,10 @@ The orchestrator's prompt provides:
 - **Entry point** (`covers:`) — either `<HTTP_METHOD> <path>` for an HTTP entry, or `<Class>.<method>()` naming a
   framework-fired entry point (the tests make the framework fire it; production code must be wired so that it
   does).
-- **Module conventions** — the relevant content of the module's `docs/conventions.md`: production-code style, how
-  framework-fired entry points are triggered and wired, the API schema location, the layer rules, and the command
-  to compile/run a single test class.
+- **Module conventions** — the paths of the module's `docs/conventions.md` and the repository-wide one. Read them
+  yourself, following the index to wherever the module keeps: production-code style, how framework-fired entry points
+  are triggered and wired, the API schema location, the layer rules, and the command to compile/run a single test
+  class. The prompt never restates them.
 - **Earlier system steps' modified classes** (when you are not the first system step) — the production classes
   previous system green steps already fixed. Read the ones on your failure's path before changing them: a class an
   earlier step just fixed is more likely to be correct than to be your root cause, and contradicting its fix means

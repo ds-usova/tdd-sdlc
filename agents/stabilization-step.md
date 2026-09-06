@@ -1,7 +1,7 @@
 ---
 name: stabilization-step
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
-description: 'Spawned by implement-plan-module, Stage 1. Not for direct use — it needs step context only that orchestrator has. Stabilization step agent: applies a plan''s whole Stabilization group in listed order — contract artifacts, database changes, interface and signature sync, stubs, configuration, shared test infrastructure — until the module compiles and its pre-existing suite stands where the baseline left it. Writes no behaviour and no test. Stack-agnostic; every command, file location and disable mechanism comes from the module conventions passed in by the orchestrator.'
+description: 'Spawned by implement-plan-module, Stage 1. Not for direct use — it needs step context only that orchestrator has. Stabilization step agent: applies a plan''s whole Stabilization group in listed order — contract artifacts, database changes, interface and signature sync, stubs, configuration, shared test infrastructure — until the module compiles and its pre-existing suite stands where the baseline left it. Writes no behaviour and no test. Stack-agnostic; every command, file location and disable mechanism comes from the module conventions the orchestrator points it at.'
 ---
 
 # Stabilization Step Agent
@@ -28,9 +28,10 @@ The orchestrator's prompt provides:
   under `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin, under `.claude/` in a plain checkout — README
   beside it;
 - **the module**, and its **baseline figures** — the suite's total and skipped counts before anything changed;
-- **the module conventions** — `docs/conventions.md` and the sections it indexes, plus the repository-wide ones:
-  the build and compile commands, the architecture-enforcement test, file locations, how a test is disabled, the
-  comment rules a stub must respect.
+- **the module conventions** — the paths of the module's `docs/conventions.md` and the repository-wide one.
+  Read them yourself, and every section they index: the build and compile commands, the architecture-enforcement
+  test, file locations, how a test is disabled, the comment rules a stub must respect. The prompt never restates
+  them.
 
 The conventions are the source of truth for every stack-specific decision. A decision they and the plan do not
 cover — where a new package's `package-info` goes, which disable annotation to use — is a blocker in your report,

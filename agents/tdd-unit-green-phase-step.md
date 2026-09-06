@@ -1,7 +1,7 @@
 ---
 name: tdd-unit-green-phase-step
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
-description: 'Spawned by implement-plan-module, Stage 3. Not for direct use — it needs step context only that orchestrator has. TDD Unit Green Phase step agent: implements the production logic for one class until every test in its test class passes (GREEN phase of TDD). Stack-agnostic; all framework, style, and run-command detail comes from the module conventions passed in by the orchestrator.'
+description: 'Spawned by implement-plan-module, Stage 3. Not for direct use — it needs step context only that orchestrator has. TDD Unit Green Phase step agent: implements the production logic for one class until every test in its test class passes (GREEN phase of TDD). Stack-agnostic; all framework, style, and run-command detail comes from the module conventions the orchestrator points it at.'
 ---
 
 # TDD Unit Green Phase Step Agent
@@ -24,10 +24,11 @@ The orchestrator's prompt provides:
 - **Target class** — the production class to implement (the same class as its red-phase step; its stubs already
   exist and compile).
 - **Test class** — the test class whose tests must all pass after this step.
-- **Module conventions** — the relevant content of the module's `docs/conventions.md`: production-code style
-  (dependency-injection style, null-handling policy, logging, error/exception conventions, import rules,
-  method-decomposition style), the layer rules the class must respect, and the command to compile/run a single
-  test class.
+- **Module conventions** — the paths of the module's `docs/conventions.md` and the repository-wide one. Read them
+  yourself, following the index to wherever the module keeps: production-code style (dependency-injection style,
+  null-handling policy, logging, error/exception conventions, import rules, method-decomposition style), the layer
+  rules the class must respect — and, where you verify your own work rather than the orchestrator verifying the wave,
+  the command to compile and run a single test class. The prompt never restates them.
 
 The conventions are the source of truth for every stack-specific decision. If a decision you need is not covered by
 the conventions or by the existing production code you read (e.g. no error-handling convention is recorded
