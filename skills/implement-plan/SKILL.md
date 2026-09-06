@@ -188,10 +188,14 @@ When every pipeline has returned:
    Write it before archiving, so the whole directory moves once and the folder is there for the evidence to
    land in.
 
-   **Every bug block, every `RX` row and every `DX` row it files is appended to `docs/backlog.md`**, one pointer
-   each, in the shape [`backlog.md`](../../templates/backlog.md) gives — a `BB` row per bug, a `BR` row per
-   candidate, a `BT` row per deferred change, each taking the next id in its table, with the link written to the
-   archived path, since that is where the file is about to move. The findings file stays the row's owner; the
+   **A bug block is a reproduction the pipelines reported** ([`reproducing.md`](../../templates/reproducing.md)).
+   Nothing else becomes one.
+
+   **Every critical block, bug block, `RX` row and `DX` row it files is appended to `docs/backlog.md`**, one
+   pointer each, in the shape [`backlog.md`](../../templates/backlog.md) gives — a `BC` row per critical
+   block, a `BB` row per bug, a `BR` row per candidate, a `BT` row per deferred change, each taking the next
+   id in its table, with the link written to the archived path, since that is where the file is about to
+   move. The findings file stays the row's owner; the
    backlog is how the row is found once the task directory has left `docs/`.
 
    **Close the row this task came from.** Where the spec's **Objective** names a backlog `BT` row, set the

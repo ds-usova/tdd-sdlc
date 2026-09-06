@@ -106,6 +106,11 @@ not write it.
 4. Do **not** "fix" runtime failures caused by stub return values or missing implementation — those failures are
    the expected RED state. Leave them exactly as they are.
 
+## A Reproduction Brief
+
+Sometimes the orchestrator hands you a case instead of plan steps. Then your whole job is one test, done the
+way `templates/reproducing.md`, **The reproduction**, says. Read it before writing the test.
+
 ## Scope Guardrails
 
 - Only create/modify your own test class, and within it only the listed scenarios, the `update:` sub-bullets as
@@ -125,6 +130,8 @@ End with a short, structured report the orchestrator can act on — the only cha
 - `added:` — every mechanical case written that no scenario listed, one line each;
 - compile status, and RED confirmation: which tests fail as expected, plus any negative-assertion tests listed as
   expected passes;
+- a defect you hit outside your step, as a case in the shape `templates/reproducing.md` gives: given, the
+  call, expected, actual;
 - any coverage gaps or unlisted existing-test updates you noticed but, by design, did not implement — each as a
   hypothesis, in that section's form;
 - any blockers (missing conventions entry, ambiguous intent comment, scenario impossible to express at unit level)

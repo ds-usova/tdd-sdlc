@@ -50,6 +50,9 @@ same defect: a test nothing will ever re-enable. The skip list is then the
 list of what is owed, and the total and skipped counts stay readable against the baseline: the total falls only
 where an item names a file to delete, and the skipped count is exactly what was disabled here.
 
+**One other test is disabled on purpose: a reproduction of a bug the run found.** What it is, who writes it
+and how the skipped count accounts for it is [`reproducing.md`](reproducing.md).
+
 **Stabilizing disables; the step that owns the rework deletes.** A test that is obsolete rather than owed a rework
 is removed by the step whose text names it — an `update: … — delete` bullet, a `disables:` line — never here on
 the stabilizer's own judgement.

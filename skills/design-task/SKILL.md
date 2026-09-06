@@ -75,6 +75,13 @@ locations the **Context** table is written in terms of.
 If a module has no conventions file, record a `must-decide` decision asking the user to run `init-conventions`.
 Never silently guess a module's conventions.
 
+**An open critical row in an affected module is asked about once, here.** Read the **Critical** table of
+`docs/backlog.md`. Keep the rows whose `Module` names an affected module. Where any remain, ask the user in one
+`AskUserQuestion`: take those rows first, or go on with this task. One question, whatever the count. Going on
+is not recorded anywhere. A row in a module this task does not touch is not asked about. A task started from a
+`BC` row is started the way its `Kind` says: `fix-bug` for a bug, `rework` for a refactoring candidate, this
+skill for a deferred change.
+
 ## 3. Read What Already Exists
 
 Before writing anything, read the closest existing feature end to end — its domain types, its usecase, its
@@ -442,6 +449,11 @@ Read the spec's **Decisions** section back after the grill has run and act on it
   alternative, the reasoning and the files in the log's **Decision Bases**. The chat answer is not the record; the
   files are. Anything the user's answer invalidates elsewhere — a sequence diagram branch, a paragraph of the
   solution, a concern's verdict — is corrected in the same edit.
+
+**An answer that rules something out of scope files it now.** Where the user's answer says a change is real
+and belongs to a later task, append a `BT` row to `docs/backlog.md` in the same edit. Its owner is the
+`deferred` **Findings** row this answer produces, and the `Where` column links to the design log
+([`backlog.md`](../../templates/backlog.md)).
 
 **An answer that adds a subject sends the task back through step 7 before step 9.** Picking between the options
 offered needs no second grill. Answering with something the design did not contain — another migration, another

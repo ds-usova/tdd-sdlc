@@ -112,6 +112,10 @@ Present the files and stop. Nothing touches a source file until the user asks fo
 where the fix settles a decision worth an ADR under the Follow-Up conventions. Ask them in one batch via
 `AskUserQuestion` and write each answer in as `- A:`.
 
+**A change the user rules out of scope here is filed now.** Append a `BT` row to `docs/backlog.md`. Its owner
+is the answered `OQ` that records the decision ([`backlog.md`](../../templates/backlog.md)). Nothing else is
+written about it.
+
 **A fix turned down here** gets `**Closed:** <why>` in `bug.md`'s header — who decided and on what, in that one
 line — is left where it is, and is reported as closed. The disabled reproduction test is reverted.
 
@@ -149,8 +153,8 @@ stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decisi
 
 - A test is never deleted or weakened to make a step green. A `stabilize` step may disable one, and a `red` step
   clears it.
-- A second defect found along the way is recorded as an `RL` entry in `bug-log.md`'s Run Log and reported, never
-  fixed.
+- A second defect found along the way is never fixed here. It is reported as a case and reproduced at Phase 4
+  ([`reproducing.md`](../../templates/reproducing.md)).
 - Nothing outside the steps is improved because it was nearby.
 - An approach that failed is never dropped in silence.
 
@@ -163,7 +167,8 @@ stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decisi
    named. A test changed under no step is a defect whatever the suite says. Remove what a minimal green left
    behind in the same read: a stale intent comment, a dead stub branch, an unused import, a fixture duplicated
    from a neighbouring class, a step reference in a comment or a test name. **Nothing in `disables:` is still off**, and the skipped count is back to phase
-   0's — apart from a machine state the baseline recorded, restored where it can be.
+   0's — apart from a machine state the baseline recorded, restored where it can be, and apart from the
+   reproductions step 7 adds.
 3. **A refactor round per module whose diff touches more than one production file or created one.** A diff
    inside one existing class gets none; step 2 read it. One `tdd-refactor-phase` agent per such module, on the
    model the module's conventions name for the refactor pass, the session's model where they name none. It gets
@@ -176,11 +181,16 @@ stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decisi
 5. **Whatever else the modules' build conventions require of a finished change** — a coverage guardrail, a
    formatting gate. A guardrail that fails blocks the archive.
 6. **`fix.sh attempts docs/<n>-<name>/`** — one line naming every attempt in every log, for the report.
-7. **Close the row this fix came from**, where `Source:` names a findings file, in that file's own form. Its
-   `BB` row leaves `docs/backlog.md` in the same edit ([`backlog.md`](../../templates/backlog.md)).
-8. **Archive**: move `docs/<n>-<name>/` into `docs/implemented/`, and commit the move where the conventions
+7. **Write `review/findings.md`**, in the shape [`findings.md`](../../templates/findings.md) gives. A fix
+   files **Critical**, **Bug** and **Manual test** only. Every case the module agents reported is reproduced here, as
+   [`reproducing.md`](../../templates/reproducing.md) says. A fix with nothing open still gets the file.
+   **Every critical block and every bug block is appended to `docs/backlog.md`** — a `BC` or a `BB` row, the
+   next id in its table, the link written to the archived path.
+8. **Close the row this fix came from**, where `Source:` names a findings file, in that file's own form. Its
+   `BB` or `BC` row leaves `docs/backlog.md` in the same edit ([`backlog.md`](../../templates/backlog.md)).
+9. **Archive**: move `docs/<n>-<name>/` into `docs/implemented/`, and commit the move where the conventions
    commit at all.
-9. **What the conventions run over finished work**, in their order, each entry once, each handed the archived
+10. **What the conventions run over finished work**, in their order, each entry once, each handed the archived
    `bug.md`.
 
 ## Version Control

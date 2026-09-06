@@ -116,6 +116,8 @@ End with a short, structured report the orchestrator can act on — the only cha
 - confirmation the full test class is green, with the passing-test count;
 - every production class modified, with a one-line reason each — plus any entry-point wiring performed;
 - confirmation that the owned test classes of every fixed class were re-run and stayed green;
+- a defect you hit outside your step, as a case in the shape `templates/reproducing.md` gives: given, the
+  call, expected, actual;
 - any gaps or suspect tests you noticed but, by design, did not act on — each as a hypothesis, in that section's
   form;
 - any blockers (specification conflict between test levels, missing conventions entry, contract gap, test

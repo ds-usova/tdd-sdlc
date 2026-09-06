@@ -1,6 +1,8 @@
 # Developing the plugin
 
 - `claude --plugin-dir <path-to-tdd-sdlc>` runs a session on the working tree.
+- Before editing anything the plugin ships, read `.claude/skills/editing-the-framework/SKILL.md`. It is a project
+  skill: `/editing-the-framework` loads it in a session on this repository.
 - An edit to a `SKILL.md` takes effect immediately. A change under `agents/` or `hooks/` needs `/reload-plugins`.
 - `claude plugin validate .` before every tag. Consumers receive a new copy only when `version` in
   `.claude-plugin/plugin.json` changes.

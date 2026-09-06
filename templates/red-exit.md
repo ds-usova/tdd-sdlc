@@ -10,10 +10,12 @@ must fail in **exactly the expected places**:
   passes, and is not listed as a negative-assertion expected pass, asserts nothing real; re-delegate it as a
   defect;
 - **the reported expected passes pass**, and nothing else about the new tests deviates from the reports;
-- **the skipped count is back to the baseline** — every test stabilization disabled has been reworked by the
-  step named in its reason. A test still skipped here is a step that silently skipped its own `update:` bullets.
-  Compare against the baseline's number rather than against zero: a module whose infrastructure skips on its own
-  (no container runtime, say) starts above zero and must return there, not below it;
+- **the skipped count is back to the baseline, plus the reproductions the Run Log names** — every test
+  stabilization disabled has been reworked by the step named in its reason. A test still skipped here is a
+  step that silently skipped its own `update:` bullets. The reproductions the Run Log names by class and
+  method are the only skips allowed above the baseline. Compare against
+  the baseline's number rather than against zero: a module whose infrastructure skips on its own (no container
+  runtime, say) starts above zero and must return there, not below it;
 - **nothing left the tree that no bullet authorized** — the total is the baseline, plus what the red steps added,
   less exactly the methods an `update: … — delete` bullet named, less every method a class under
   `update: every test in this class — delete` held at the baseline — that count is read from the baseline's

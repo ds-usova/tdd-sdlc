@@ -146,6 +146,19 @@ start. Editing it afterwards triggers no second pass, not even when a mid-run bl
 step agent reports a plan defect, record it in the **Run Log** and fix the plan text in place. Do not spawn a
 review to confirm it.
 
+## At Every Stage Boundary — Reproduce What the Stage Reported
+
+A step report may carry a defect as a case. Deal with it as soon as the stage's guardrail holds, before the
+stage's commit. What to decide, what to spawn and what to record is `reproducing.md` in the `templates` directory beside the skills. Two things are yours: this task's
+own defect is a scenario added to the owning red step, or a new red/green pair where no step owns the class;
+and every reproduction is recorded in the Run Log before the stage commits.
+
+**A scope gap is not a finding.** A step report may say a requirement of this task reaches files the plan never
+named. Check it against the spec. Where a requirement covers it, the plan is short. Write the missing items
+into the plan as the next ids in their group, in the same formats. Record the gap in the Run Log. Run them
+under the stage their group maps to, with its guardrail; a stage already passed is reopened for them. Where no
+requirement covers it, report it as a case or a hypothesis like anything else.
+
 ## Stage 1 — Stabilization
 
 Covers the plan's **Stabilization** group — its **API Contract**, **Database**, and **Interface-First / Build
@@ -312,7 +325,9 @@ plan, written for this task.
    is a plan defect — a method stabilized and never planned — recorded in the **Run Log** and implemented by a
    step agent against the intent comment, or reported as a blocker; the archive hook will refuse the task
    otherwise.
-3. Commit per the Version Control policy, then **report your plan complete**. Leave the task directory exactly
+3. **Hand up what was reproduced.** Every reproduction the Run Log names, with its class and method and the
+   case behind it, goes into your report. The level above files it.
+4. Commit per the Version Control policy, then **report your plan complete**. Leave the task directory exactly
    where it is. Whether the task as a whole is finished is a fact only the level above can see, and archiving on
    the first plan to finish would move the directory out from under a run still writing to it.
 

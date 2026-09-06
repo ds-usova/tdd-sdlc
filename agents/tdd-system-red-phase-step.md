@@ -131,6 +131,11 @@ meaningful gap the plan missed, record it in your report instead of filling it y
 4. Do **not** "fix" runtime failures caused by the missing implementation — those failures are the expected RED
    state. Leave them exactly as they are.
 
+## A Reproduction Brief
+
+Sometimes the orchestrator hands you a case instead of plan steps. Then your whole job is one test, done the
+way `templates/reproducing.md`, **The reproduction**, says. Read it before writing the test.
+
 ## Scope Guardrails
 
 - Only create/modify your own test class and its test data files, and within them only the listed scenarios and
@@ -149,6 +154,8 @@ End with a short, structured report the orchestrator can act on — the only cha
   whose body did not meet it, with the reason;
 - compile status, and RED confirmation: which tests fail as expected, plus any negative-assertion tests listed as
   expected passes;
+- a defect you hit outside your step, as a case in the shape `templates/reproducing.md` gives: given, the
+  call, expected, actual;
 - any coverage gaps or unlisted existing-test updates you noticed but, by design, did not implement — each as a
   hypothesis, in that section's form;
 - any blockers (missing conventions entry, schema/plan mismatch, a precondition impossible to reach through any

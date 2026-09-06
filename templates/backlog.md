@@ -1,9 +1,13 @@
 # The backlog
 
-`docs/backlog.md`, at the repository root of `docs/`: every bug still unfixed, every refactoring candidate and
-every deferred change still open across every archived task and rework, in three tables. A person opens it to
-learn what the repository owes itself without opening a task's `review/findings.md`; a `fix-bug` starts from a
-row in the first table, a `rework` from a row in the second, a `design-task` from a row in the third.
+`docs/backlog.md`, at the repository root of `docs/`: every critical entry, every bug still unfixed, every
+refactoring candidate and every deferred change still open, across every archived task, fix, rework and
+upgrade, in four tables. A person opens it to learn what the repository owes itself without opening a
+`review/findings.md`. A `fix-bug` starts from a bug row, a `rework` from a candidate row, a `design-task` from
+a deferred-change row. A critical row starts whichever of the three its kind says.
+
+**A record, not an offer.** A run that files a row says "recorded, not started" and stops. It never proposes
+to take the row next.
 
 **Every row is measured work.** A row is appended only from an entry whose findings file measured what it claims
 — [`findings.md`](findings.md)'s **Measured, Not Noticed**. An observation a run merely reported gets no row
@@ -13,24 +17,37 @@ here and no id.
 tree that has moved since, by the only reader who did not write the row. What does not hold is reported, its
 owner's status set to `withdrawn`, and the row removed — never worked.
 
-**It holds pointers, never a second copy.** The task's `findings.md` owns the row — its text, its status, its
-reasoning. The backlog carries one clause and a link, and a row leaves the backlog when the owner closes it.
+**It holds pointers, never a second copy.** The owner holds the text, the status and the reasoning. The
+backlog carries one clause and a link. A row leaves the backlog when the owner closes it, by `done`,
+`withdrawn` or `wontfix`.
+
+**The owner is usually a `review/findings.md`, and not always.** A deferred change decided mid-run is filed
+the moment the user decides it. Its owner is where the decision was written: a `deferred` `DF` row in a
+design log, an answered `OQ` in a rework or fix file, a `DN` entry. The `Where` column links there.
+
+**No backlog id is written into the tree.** The rule and its reason are [`reproducing.md`](reproducing.md).
 
 **The backlog assigns the id.** A findings file numbers its candidates `RX01` upward and its deferred changes `DX01`
-upward within itself and gives a bug no number at all, so none of them names a row across the repository. The
-backlog gives every row one id on append — `BB<nn>` for a bug, `BR<nn>` for a refactoring candidate, `BT<nn>` for a
-deferred change, each counted from 1 and never reused — and that id is what a fix, a rework or a design is
-started from.
+upward within itself and gives a bug or a critical entry no number at all, so none of them names a row across
+the repository. The backlog gives every row one id on append — `BC<nn>` for a critical entry, `BB<nn>` for a
+bug, `BR<nn>` for a refactoring candidate, `BT<nn>` for a deferred change — each counted from 1 and never
+reused. That id is what a fix, a rework or a design is started from.
 
 Shape:
 
 ```
 # Backlog
 
-Work still open from reviews: one row per bug not yet fixed, one row per `RX` row and one per `DX` row whose
-owner still says `open`. The owning `review/findings.md` holds the finding; this file only points at it. The
-`#` column is the id to name when starting a bug fix, a rework or a design — `BB<nn>` for a bug, `BR<nn>` for a
-refactoring candidate, `BT<nn>` for a deferred change — and it never changes once given.
+Work still open: one row per critical entry, one per bug not yet fixed, one per `RX` row and one per `DX`
+row whose owner still says `open`. The owner holds the finding; this file only points at it. The `#` column is
+the id to name when starting a fix, a rework or a design — `BC<nn>` critical, `BB<nn>` bug, `BR<nn>`
+refactoring candidate, `BT<nn>` deferred change — and it never changes once given.
+
+## Critical
+
+| #    | Raised by | Module     | Kind     | What                                   | Where                                                 |
+|------|-----------|------------|----------|----------------------------------------|-------------------------------------------------------|
+| BC01 | task <n>  | `<module>` | <kind>   | <the block's heading, cut to a clause> | [findings](implemented/<n>-<task>/review/findings.md) |
 
 ## Bugs
 
@@ -51,8 +68,10 @@ refactoring candidate, `BT<nn>` for a deferred change — and it never changes o
 | BT01 | task <n>  | `<module>` | <the row's what, cut to a clause> | [findings](implemented/<n>-<task>/review/findings.md) |
 ```
 
-- **#** — the backlog's own id, `BB<nn>`, `BR<nn>` or `BT<nn>`, one more than the highest in its table.
-- **Raised by** — `task <n>` or `rework <n>`, the directory's number.
+- **#** — the backlog's own id, `BC<nn>`, `BB<nn>`, `BR<nn>` or `BT<nn>`, one more than the highest in its table.
+- **Raised by** — `task <n>`, `fix <n>`, `rework <n>` or `upgrade <n>`, the directory's number.
+- **Kind** — critical rows only: `bug`, `deferred change` or `refactoring candidate`. It says which skill takes
+  the row.
 - **Module** — the module the finding names; several, comma-separated, where it names several.
 - **What** — one clause: a bug's heading cut to a line, a candidate's or a deferred change's *what* cut to a
   line; the case and the *why* stay with the owner.
@@ -70,5 +89,5 @@ Who writes it:
 | a fix closes the bug it came from                  | `fix-bug`, phase 7        | removes that `BB` row                                                                    |
 | a rework closes the row it came from               | `rework`, phase 4         | removes that `BR` row; leaves it if the owner's status stays `open`                      |
 | a task closes the row its design came from         | `implement-plan`, phase 3 | removes that `BT` row and sets the owner's status to `done · task <n>`                   |
-| a person closes a row directly (`done · directly`) | whoever set the status    | removes the row                                                                         |
+| a person closes a row directly (`done · directly`, `wontfix`) | whoever set the status | removes the row                                                                  |
 | a run's opening measurement withdraws its row      | `fix-bug` and `rework`, phase 0; `design-task`, §1 | removes that row and sets the owner's status to `withdrawn` |

@@ -84,6 +84,9 @@ into the file as its `- A:`.
 **Do not touch a source file until the user asks for the steps to be applied.** A step whose kind the user
 disputes is re-classified in the file first.
 
+**A change the user rules out of scope here is filed now.** Append a `BT` row to `docs/backlog.md`. Its owner
+is the answered `OQ` that records the decision ([`backlog.md`](../../templates/backlog.md)).
+
 **A rework that settles a decision worth recording asks here whether to record it**, as a numbered Open Question
 like any other. An answered `yes` is what authorizes the archiving pass to write it down. Most reworks settle
 none and ask nothing.
@@ -131,13 +134,16 @@ follows, and the commit is provisional: the closing full run proves the whole.
    [`findings.md`](../../templates/findings.md) gives: **Critical**, **Bug**, and **Manual test** where the
    change needs a person to look. **What the module agents reported is measured before it is filed**
    (**Measured, Not Noticed**): a defect an agent noticed and did not reproduce is reproduced here or left in
-   the log, never turned into a block on its say-so. Where the rework touched one module, the section's opening
+   the log, never turned into a block on its say-so. Reproducing is
+   [`reproducing.md`](../../templates/reproducing.md). **Critical** takes what the refactor round measured as
+   growing with every task on top, a copied block this rework touched in every copy included. Where the rework touched one module, the section's opening
    line names it instead of the module-first rule. **A rework files no refactoring candidates**; something worth doing later
    goes in the report, and the user decides whether it becomes a rework. **It may file a Deferred change**: a
    behaviour the code should have that this rework, being behaviour-preserving, could not add. A rework with
-   nothing open still gets the file. **Every bug block and every `DX` row it files is appended to
-   `docs/backlog.md`** — a `BB` row per bug, a `BT` row per deferred change, each taking the next id in its table,
-   in the shape [`backlog.md`](../../templates/backlog.md) gives, with the link written to the archived path.
+   nothing open still gets the file. **Every critical block, bug block and `DX` row it files is appended to
+   `docs/backlog.md`** — a `BC` row per critical block, a `BB` row per bug, a `BT` row per deferred change,
+   each taking the next id in its table, in the shape [`backlog.md`](../../templates/backlog.md) gives, with
+   the link written to the archived path.
 4. **Close the row this rework came from.** Where `Source:` names a findings file and a row, set the row's
    `Status`: `done · <this rework's number>`, or leave it `open` with one clause naming what remains. A row set
    to `done` leaves `docs/backlog.md` in the same edit — its `BR` row is removed, never

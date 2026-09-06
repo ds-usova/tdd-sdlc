@@ -20,16 +20,24 @@ Sections are these five, in this order, and a section with nothing in it is left
 
 | Section                   | Holds                                             | Shape                                    |
 |---------------------------|---------------------------------------------------|------------------------------------------|
-| **Critical**              | fix before the next task starts                   | one block per defect, in the form below  |
-| **Bug**                   | real, and it can wait                             | one block per defect, in the form below  |
+| **Critical**              | a risk that grows with every task landed on top   | one block per entry, in the form below   |
+| **Bug**                   | real, reproduced, and it can wait                 | one block per defect, in the form below  |
 | **Refactoring candidate** | nothing behaves wrong, and nothing should change  | table — # · Status · module · what · why |
 | **Deferred change**       | nothing is wrong, but the behaviour should differ | table — # · Status · module · what · why |
 | **Manual test**           | what no test can see, so a person must look       | one block per check, in the form below   |
 
+**Who may file what.** 
+- A bug: any agent, once it is reproduced. 
+- A refactoring candidate: the refactor pass, which read the whole diff, or the user. Never a step agent, which read one class. 
+- A deferred change: the run, or a decision the user made mid-run. 
+- A critical entry: whoever measured it. A manual test: the run.
+
 **A candidate and a deferred change are numbered and carry a status**, because they outlive the work that raised
 them. `#` is `RX01` upward for a candidate and `DX01` upward for a deferred change, assigned once and never reused.
 `Status` is `open`, `done · <the rework or task that closed it>`, `done · directly` where it was taken without
-one, or `withdrawn · <what the measurement found>` where a later reading showed the entry did not hold. The
+one, `withdrawn · <what the measurement found>` where a later reading showed the entry did not hold, or
+`wontfix · <why>` where the entry holds and the user decided against it. A `wontfix` closes the entry. Its
+backlog row is removed like any other closed row. The
 opening count line says how many are still open, so the first line of the file answers what is left without
 reading the table, and a status changed after the file was written re-emits it.
 
@@ -45,8 +53,8 @@ changes behaviour, so a rework may not do it; it becomes a task of its own throu
 between the two tables is the suite: a candidate leaves every test's assertion as it is, a deferred change adds
 or alters one. A row that is really a request the run merely thought of belongs in neither table.
 
-**A defect is reported as a case, not as a description.** Whoever picks it up reproduces it before fixing it,
-and a paragraph about a class does not tell them how:
+**A bug is filed only once it is reproduced as a disabled test**, the way [`reproducing.md`](reproducing.md)
+says. The block names that test. A defect nobody could reproduce is not a block.
 
 ```
 **`<module>` — <the symptom, in one line>**
@@ -55,12 +63,34 @@ and a paragraph about a class does not tell them how:
 - **When** <what happens>
 - **Then** <what should follow>
 - **Actual** <what follows instead>
+- **Test** `<TestClass#method>`, disabled
 - **Fix** <the proposal> · `<class or file>`
 ```
+
+**A critical entry is a bug, a deferred change or a refactoring candidate whose cost grows with every task
+landed on top** — duplicated data, a contract two modules read differently, an invariant nothing enforces, one
+block copied into ten files and this task added to all ten. It is the one place a refactoring candidate may
+carry a severity. The block:
+
+```
+**`<module>` — <the risk, in one line>**
+
+- **Kind** bug | deferred change | refactoring candidate
+- **Measured** <what was counted, over what — "11 tables hold `customer_name`; 3 spellings">
+- **Grows because** <what every task landed on top adds>
+- **Breaks as** <what a person will hit, and when>
+- **Test** `<TestClass#method>`, disabled — only where Kind is bug
+- **Fix** <the proposal> · `<class or file>`
+```
+
+A critical entry is closed like a bug block: a `Status` line after `Fix`. Its backlog row is a `BC`.
 
 **A defect block that is closed gains one line after `Fix`** — `- **Status** done · <the fix>`, or
 `withdrawn · <what the measurement found>` where a later reading showed the defect did not hold. A block without
 one is open; that is why a bug is never numbered.
+
+**In scope but unplanned is not a finding.** Where a requirement of this task covers it, it goes back into
+the plan (`implement-plan-module`, **A scope gap is not a finding**). Only what no requirement covers is filed here.
 
 **Four of those lines are observations; `Fix` is not.** `Given`, `When`, `Then` and `Actual` are what the run
 saw. The fix is a proposal, and whoever picks it up implements it as written — so where this run did not

@@ -14,6 +14,8 @@ that names a step's deviation is an `RL` entry there first.
   survived.
 - Steps re-classified or abandoned, and why — the `abandoned — <why>` headers and their `RL` entries.
 - Defects found and not fixed — each an `RL` entry.
+- **What was filed**: each backlog row by id and one clause, as [`backlog.md`](../../templates/backlog.md)'s
+  **a record, not an offer** says.
 - **Every `RL` entry still without a `Resolved:`**, and what it waits on.
 - **What the conventions' finished-work list did**, per entry — the pages rewritten from the `docs:` lines, and
   any page a step named that the pass left alone.

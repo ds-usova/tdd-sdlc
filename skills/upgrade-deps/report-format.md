@@ -12,4 +12,6 @@ What a finished upgrade tells the user, once phase 4 is done.
 - **Every vulnerability still open**, and why: not offered, kept back, no fix released.
 - **Every deprecation a guide announced that this run left in the code.**
 - Every test that asserted the old behaviour, and what the user decided.
+- **What was filed**: each backlog row by id and one clause, as [`backlog.md`](../../templates/backlog.md)'s
+  **a record, not an offer** says.
 - **What the conventions' finished-work list did**, per entry.

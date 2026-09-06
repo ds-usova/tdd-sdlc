@@ -71,6 +71,9 @@ hypothesis and carries the check that would settle it, in one form: `hypothesis:
 pass over the data>`. Never soften one into a finding to make the report read as more finished; the orchestrator
 files what it is handed, and the wrong one becomes a task.
 
+**A defect is reported as a case with the exact call**, in the shape [`reproducing.md`](reproducing.md)
+gives. The orchestrator turns it into a test; the reporting agent does not.
+
 **The report is the only channel back.** End the turn with a short, structured report the orchestrator can act
 on. The orchestrator is not addressable by name — never send it a message; anything you would have asked goes in
 the report as a blocker. A message arriving from the orchestrator mid-task resumes you: answer it the same way,

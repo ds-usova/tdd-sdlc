@@ -127,6 +127,8 @@ End with a short, structured report the orchestrator can act on — the only cha
 - confirmation the full test class is green, with the passing-test count — per scenario group in the framework
   variant — and which tests were already green on arrival;
 - the methods implemented, and any uncovered stubs left untouched;
+- a defect you hit outside your step, as a case in the shape `templates/reproducing.md` gives: given, the
+  call, expected, actual;
 - any gaps or suspect tests you noticed but, by design, did not act on — each as a hypothesis, in that section's
   form;
 - any blockers (test-vs-intent conflict, missing conventions entry, contract gap — a missing migration or schema
