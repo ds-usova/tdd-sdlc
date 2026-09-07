@@ -1,5 +1,5 @@
 ---
-description: Translate a settled spec and design into a step-by-step implementation plan before starting to code. Use when starting a new complex feature, refactoring, or when the user explicitly asks for a plan.
+description: Translate a settled spec and design into a step-by-step implementation plan before starting to code. Use on a task design-task has settled, or when the user explicitly asks for a plan. A refactoring is rework, not a plan.
 argument-hint: [ task directory, or a description of the feature to plan ]
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *)
 ---
