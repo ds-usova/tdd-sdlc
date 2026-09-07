@@ -34,6 +34,8 @@ Usage:
   <plugin>/scripts/plan/plan.sh validate [--file <plan>] [--log <log>]
   <plugin>/scripts/plan/plan.sh stub     [<path>...] [--marker <token>] [--file <plan>] [--log <log>]
   <plugin>/scripts/plan/plan.sh stubs    [--file <plan>] [--log <log>]
+  <plugin>/scripts/plan/plan.sh suite    record --stage <s> --total <n> --skipped <n> --verdict green|red <path>... [--file <plan>]
+  <plugin>/scripts/plan/plan.sh suite    check [--file <plan>] [--log <log>]
   <plugin>/scripts/plan/plan.sh task     [<task directory> | <plan>]
 
 Commands:
@@ -58,6 +60,10 @@ Commands:
             recorded relative to the repository root.
   stubs     Every recorded file still carrying the marker, file:line each. Exit 1 while any does.
             tick refuses a green item whose target class's recorded file still carries it.
+  suite     record: append a full suite run to the log's Suite Runs section - the stage, the figures,
+            the verdict, and a hash of the tree under the paths given. check: rehash the paths the last
+            entry names; exit 0 and print its figures when the tree is unchanged, exit 1 when it moved.
+            No commit is made: the hash is git write-tree over a throwaway index.
   task      Every plan the task holds, its done/total, and whether all of them are finished.
             Takes the task directory, or nothing when only one task is in flight. A plan works
             too, for a caller that has one and not the directory. Exit 0 means nothing is open
@@ -222,6 +228,38 @@ stubs_remaining() {
     done < <(stubs_files)
 }
 
+# A hash of the working tree under the given paths, as git would store it: the paths are staged into
+# a throwaway index and write-tree prints the tree id. No commit, no ref, the real index untouched,
+# ignored files left out. Two calls over an unchanged tree print the same id.
+tree_hash() {
+    # The temp index must not exist yet: git refuses an empty index file. It lives in the git dir, so
+    # the path needs no translation on Windows.
+    local gitdir idx rc
+    gitdir="$(cd "$repo_root" && git rev-parse --git-dir 2>/dev/null)" || return 1
+    case "$gitdir" in /*|?:*) ;; *) gitdir="$repo_root/$gitdir" ;; esac
+    idx="$gitdir/index.plan-tmp.$$"
+    rm -f "$idx"
+    (
+        cd "$repo_root" || exit 1
+        GIT_INDEX_FILE="$idx" git add -A -- "$@" >/dev/null 2>&1 && GIT_INDEX_FILE="$idx" git write-tree
+    )
+    rc=$?
+    rm -f "$idx"
+    return $rc
+}
+
+suite_section_range() {
+    awk '/^## Suite Runs/ { s = NR; next } s && /^## / { print s, NR - 1; e = 1; exit } END { if (s && !e) print s, NR }' "$log_file"
+}
+
+# The last entry: "- <stage> · tree <hash> · total <n> · skipped <n> · <verdict> · paths: a, b"
+suite_last() {
+    local range
+    range="$(suite_section_range)"
+    [ -n "$range" ] || return 1
+    sed -n "${range% *},${range#* }p" "$log_file" | grep '^- ' | tail -1
+}
+
 # The target class of an item: the first backticked name after the ID on the header line.
 item_target_class() {
     sed -n "${1}p" "$plan_file" | sed -n 's/^- \[[ xX]\] [A-Za-z]*[0-9]* · `\([^`]*\)`.*/\1/p'
@@ -237,6 +275,7 @@ shift
 args=()
 verbose=0
 marker=""
+stage=""; total=""; skipped=""; verdict=""
 group_filter=""
 section_filter=""
 while [ $# -gt 0 ]; do
@@ -249,6 +288,10 @@ while [ $# -gt 0 ]; do
         --section) section_filter="${section_filter:+$section_filter,}${2:-}"; shift 2 ;;
         --all)     verbose=1; shift ;;
         --marker)  marker="${2:-}"; shift 2 ;;
+        --stage)   stage="${2:-}"; shift 2 ;;
+        --total)   total="${2:-}"; shift 2 ;;
+        --skipped) skipped="${2:-}"; shift 2 ;;
+        --verdict) verdict="${2:-}"; shift 2 ;;
         -h|--help) usage; exit 0 ;;
         # A bare plan path is accepted wherever --file is, on every subcommand. Without this the
         # ID-taking ones read it as an ID and fail with "no item docs/x.md in docs/x.md". block's
@@ -257,8 +300,8 @@ while [ $# -gt 0 ]; do
             if [ "$command" = "block" ] && [ "${#args[@]}" -lt 2 ]; then
                 args+=("$1"); shift; continue
             fi
-            # stub's arguments are source paths; only --file names its plan.
-            if [ "$command" = "stub" ]; then
+            # stub's and suite's arguments are source paths; only --file names their plan.
+            if [ "$command" = "stub" ] || [ "$command" = "suite" ]; then
                 args+=("$1"); shift; continue
             fi
             [ -z "$plan_file" ] || die "plan file given twice: $plan_file and $1"
@@ -471,6 +514,61 @@ case "$command" in
         fi
         echo "no stub marker remains in the $n_files recorded file(s)"
         exit 0
+        ;;
+
+    suite)
+        sub="${args[0]:-}"
+        [ "$sub" = "record" ] || [ "$sub" = "check" ] || die "suite takes record or check"
+        resolve_plan
+        resolve_log
+        [ -f "$log_file" ] || die "no plan log at ${log_file#"$repo_root/"} - plan-task writes it beside the file"
+        if [ "$sub" = "record" ]; then
+            [ -n "$stage" ] && [ -n "$total" ] && [ -n "$skipped" ] && [ -n "$verdict" ] \
+                || die "record needs --stage, --total, --skipped and --verdict"
+            case "$verdict" in green|red) ;; *) die "--verdict is green or red" ;; esac
+            [ "${#args[@]}" -gt 1 ] || die "record needs at least one path to hash"
+            rels=()
+            for f in "${args[@]:1}"; do
+                [ -e "$f" ] || die "no such path: $f"
+                abs="$(cd "$(dirname "$f")" && pwd)/$(basename "$f")"
+                case "$abs" in
+                    "$repo_root_abs"/*) rels+=("${abs#"$repo_root_abs/"}") ;;
+                    "$repo_root_abs") rels+=(".") ;;
+                    *) die "$f is outside the repository" ;;
+                esac
+            done
+            hash="$(tree_hash "${rels[@]}")" || die "could not hash the tree - is this a git repository?"
+            if [ -z "$(suite_section_range)" ]; then
+                rewrite_file "$log_file" awk '{ print } END { print ""; print "## Suite Runs"; print "" }' "$log_file"
+            fi
+            range="$(suite_section_range)"
+            paths_joined="$(IFS=', '; echo "${rels[*]}")"
+            entry="- $stage · tree $hash · total $total · skipped $skipped · $verdict · paths: $paths_joined" \
+                rewrite_file "$log_file" awk -v n="${range#* }" '{ print } NR == n { print ENVIRON["entry"] }' "$log_file"
+            echo "recorded: $stage · tree ${hash:0:12} · total $total · skipped $skipped · $verdict"
+        else
+            last="$(suite_last)" || die "no Suite Runs section in ${log_file#"$repo_root/"} - nothing recorded to compare" 1
+            [ -n "$last" ] || die "the Suite Runs section is empty" 1
+            l_stage="$(printf '%s' "$last" | sed 's/^- \(.*\) · tree .*/\1/')"
+            l_hash="$(printf '%s' "$last" | sed 's/.* · tree \([0-9a-f]*\) .*/\1/')"
+            l_total="$(printf '%s' "$last" | sed 's/.* · total \([0-9]*\) .*/\1/')"
+            l_skipped="$(printf '%s' "$last" | sed 's/.* · skipped \([0-9]*\) .*/\1/')"
+            l_verdict="$(printf '%s' "$last" | sed 's/.* · skipped [0-9]* · \([a-z]*\) .*/\1/')"
+            l_paths="$(printf '%s' "$last" | sed 's/.* · paths: //')"
+            rels=()
+            IFS=',' read -r -a parts <<< "$l_paths"
+            for p in "${parts[@]}"; do
+                p="${p# }"; p="${p% }"
+                [ -n "$p" ] && rels+=("$p")
+            done
+            now="$(tree_hash "${rels[@]}")" || die "could not hash the tree"
+            if [ "$now" = "$l_hash" ]; then
+                echo "unchanged since $l_stage: total $l_total, skipped $l_skipped, $l_verdict"
+                exit 0
+            fi
+            echo "moved since $l_stage - run the suite"
+            exit 1
+        fi
         ;;
 
     task)

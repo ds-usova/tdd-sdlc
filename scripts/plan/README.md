@@ -49,6 +49,8 @@ resolves every ID before it writes any, and a name nothing defines ticks none of
 | `validate`          | See [What `validate` checks](#what-validate-checks).                                                            |
 | `stub [<path>...]`  | Record files stabilization stubbed in the log's **Stubs** section; `--marker` sets the token on first use.      |
 | `stubs`             | Recorded files still carrying the marker, `file:line` each; exit 1 while any does. See [Stubs](#stubs).        |
+| `suite record …`    | Append a full suite run to the log's **Suite Runs**: stage, figures, verdict, tree hash. See [Suite runs](#suite-runs). |
+| `suite check`       | Rehash the last entry's paths; exit 0 with its figures when unchanged, exit 1 when the tree moved.             |
 | `task [<path>]`     | Every plan the task holds, its done/total, and whether all are finished. Exit 0 means nothing is open.          |
 
 Exit codes: **0** done, **1** no such item, `validate` found problems, or `task` found something open,
@@ -140,6 +142,25 @@ the defect the check exists to catch.
 The same check runs as a **hook** when a task directory is moved into `docs/implemented/`
 (`scripts/hooks/deny-archive-with-stubs.sh`): it calls `stubs` on every plan log the directory holds and denies
 the move while any reports a marker. A hook fires whether or not the run remembered to check.
+
+### Suite runs
+
+A full suite run is a measurement of one tree. Recording it with the tree's hash lets a later guardrail reuse
+the figures when nothing moved, and forces a rerun when something did.
+
+```
+<plugin>/scripts/plan/plan.sh suite record --stage baseline --total 412 --skipped 3 --verdict green module-a
+<plugin>/scripts/plan/plan.sh suite check
+```
+
+`record` appends one line to the log's `## Suite Runs`: the stage name, the tree id, the total and skipped
+counts, the verdict, and the paths hashed. The hash is `git write-tree` over a throwaway index holding the
+paths given, so no commit is made, no ref moves, the real index is untouched and ignored files stay out. Name
+the module's paths, never the repository: a sibling pipeline writing into its own module must not move this
+module's hash.
+
+`check` rehashes the paths the last entry names. Unchanged: it prints that entry's figures and exits 0, and the
+guardrail reads them instead of running. Moved: exit 1, and the guardrail runs the suite and records it.
 
 ### What `validate` checks
 

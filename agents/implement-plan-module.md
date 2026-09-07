@@ -54,11 +54,11 @@ is [`templates/sub-agents.md`](../templates/sub-agents.md), read before the firs
 so its **hand the wave back** shape is yours. Started a suite? Read its verdict before you return. Blocked and
 needing a decision? That is a result — return, and say what you need.
 
-**A measurement is not repeated over an unchanged tree.** Where the last run was the module's full suite and
-nothing has been written since — a wave's verification followed by the stage's exit check, the refactor
-guardrail followed by the whole-plan guardrail with no post-implementation change between — that run answers the
-next guardrail: read its output again rather than re-running it. A run filtered to some classes, or a tree any
-agent has written to since, answers nothing.
+**A measurement is not repeated over an unchanged tree.** Before any guardrail that runs the module's full
+suite, ask `plan.sh suite check docs/<plan>.md`. Exit 0: read the figures it prints and go on. Exit 1: run the
+suite, then record it with `plan.sh suite record --stage <stage> --total <n> --skipped <n> --verdict <green|red>
+<module paths> docs/<plan>.md`. A run filtered to some classes is never recorded. Where the script is refused or
+absent, run the suite.
 
 **A step agent's model** is the one the module conventions name for executing work; the refactor agent's is the
 one for deciding work.

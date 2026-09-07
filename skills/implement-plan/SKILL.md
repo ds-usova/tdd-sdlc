@@ -92,18 +92,16 @@ of every module the task's plans name. Use the commands from each module's conve
 - **Anything already red**: stop immediately, before a file is touched. Report the failures — test name, error,
   suspected cause — and wait. Do not fix them: they predate the task, and fixing them is not its scope.
 
-Keep the **total and skipped counts** of each module's suite. They are the figures every later guardrail compares
-against, and each pipeline is handed its own module's.
+Record each module's run: `plan.sh suite record --stage baseline --total <n> --skipped <n> --verdict green
+<module paths> <plan>`, on every plan that module has. The total and skipped counts are the figures every
+later guardrail compares against, and each pipeline is handed its own module's.
 
 **No pipeline repeats either gate.** By the time one starts, phase 1 has changed the tree.
 
-**These figures are a measurement, not a formality, and a measurement is not repeated over an unchanged tree.**
-A guardrail that would run a module's suite when nothing under that module has been written since the last full
-run of it reads that run's figures instead. The condition is checkable: whoever is about to run knows what it
-has written. This narrows nothing and skips no stage — a guardrail still gates the commit that follows it, and
-still runs the whole suite the moment that module's files have moved. What it stops is the same suite answering
-the same question twice, which on a module whose run takes minutes and starts a container is the largest
-avoidable cost in a task.
+**A measurement is not repeated over an unchanged tree.** Before a guardrail runs a module's full suite, it
+asks `plan.sh suite check <plan>`. Exit 0: the tree matches the last recorded run; read its figures and go on.
+Exit 1: run the suite, then `plan.sh suite record` it. A guardrail still gates the commit that follows it. Where
+the script is refused or absent, run the suite.
 
 ## Phase 1 — The Seam, Alone
 
