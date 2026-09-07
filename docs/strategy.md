@@ -101,4 +101,5 @@ format number every file carries, and what changed between formats, is
 - One fact, one owner: a plan does not restate the design, a prompt restates neither.
 - A gate is run by whoever is accountable for the stage, on real command output.
 - Nothing is filed as work until it is measured; what a run only noticed is a hypothesis.
-- Nothing is archived while anything is open.
+- Nothing is archived while any step is open. What a run leaves open for a person is filed, never left in the
+  directory.
