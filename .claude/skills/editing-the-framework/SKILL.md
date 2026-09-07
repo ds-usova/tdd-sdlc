@@ -40,6 +40,20 @@ Read this before changing any file the plugin ships. Then edit. Then run the che
 - **Every script change runs on a fixture before it is reported.** Build a scratch repository, run every
   subcommand the change touches, and show the output. A syntax check alone is not a run.
 
+## Diagrams
+
+`docs/diagrams/*.puml` draw what the prose says. A change to any of these updates the matching diagram in the
+same edit, then re-renders it with `docs/diagrams/render.sh`:
+
+| Changed                                                        | Diagram                                          |
+|----------------------------------------------------------------|--------------------------------------------------|
+| which agent spawns which, or a new agent                       | `agents.puml`                                    |
+| a pipeline stage, its gate, or the wave rules                  | `implement-plan-pipeline.puml`                   |
+| a task-level gate, the seam, or what happens after the plans   | `implement-plan-task.puml`                       |
+| which skill writes which file, or the skill order              | `workflow.puml`, `hero.puml`                     |
+
+Check the rendered SVG before reporting. A diagram that still shows the old shape is a second copy of the rule.
+
 ## Before reporting done
 
 1. `grep` the tree for every phrase the change replaced. Nothing old remains.
@@ -47,3 +61,4 @@ Read this before changing any file the plugin ships. Then edit. Then run the che
 3. Every added sentence is a condition, an action or a check. Cut the rest.
 4. No line over 120 characters outside a `description:`.
 5. Scripts and hooks changed ran on a fixture; the output is in the report.
+6. Every diagram the change touches is updated and re-rendered.

@@ -44,7 +44,8 @@ back.
 - **One bundle in a module this wave** — the sub-agent verifies itself and reports the result.
 - **More than one** — the sub-agents **do not run tests at all**. Say so in the prompt: write the files, report,
   verify nothing. The orchestrator runs the module's suite **once** when the wave is done, maps each failure back
-  to a step by its test class name, and re-delegates only what actually failed.
+  to a step by its test class name, and re-delegates only what actually failed. Each re-delegation is an attempt
+against that step's budget ([`sub-agents.md`](sub-agents.md), **Budget and escalation**).
 
 Never let an agent wait out or work around a compile error in a file it does not own. That is the other agent's
 work in progress, and the wave's single verification is where it resolves.

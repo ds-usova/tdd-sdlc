@@ -1,0 +1,80 @@
+@startuml agents
+skinparam defaultFontName Helvetica
+skinparam shadowing false
+skinparam ArrowColor #444
+skinparam rectangle {
+  BackgroundColor #F4F6F8
+  BorderColor #888
+}
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #888
+}
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #BBB
+}
+left to right direction
+
+package "Skills (run in the session)" {
+  rectangle "init-conventions" as IC
+  rectangle "design-task" as DT
+  rectangle "plan-task" as PT
+  rectangle "implement-plan" as IP
+  rectangle "fix-bug" as FB
+  rectangle "rework" as RW
+  rectangle "upgrade-deps" as UD
+}
+
+package "Review agents (write nothing)" {
+  component "grill-design" as GD
+  component "grill-frontend" as GF
+  component "review-plan" as RP
+}
+
+package "Orchestrating agents (one per plan or file)" {
+  component "implement-plan-module" as IPM
+  component "fix-bug-module" as FBM
+  component "rework-module" as RWM
+  component "upgrade-deps-module" as UDM
+}
+
+package "Step agents (one class, one pass)" {
+  component "stabilization-step" as ST
+  component "tdd-*-red-phase-step\n(unit, integration, system)" as RED
+  component "tdd-*-green-phase-step\n(unit, integration, system)" as GREEN
+  component "tdd-refactor-phase" as RF
+}
+
+component "survey agent\n(general purpose)" as SV
+component "post-implementation\nsection agent\n(general purpose)" as PI
+
+IC --> SV : one per module
+DT --> GD : API, store, message
+DT --> GF : user interface
+PT --> RP : once, after the plan is written
+IP --> RP : offered re-review\nafter a plan edit
+IP --> IPM : one per plan,\nshared/plan.md first
+IPM --> ST : one, Stage 1
+IPM --> RED : waves, Stage 2
+IPM --> GREEN : waves, Stage 3;\nsystem one at a time
+IPM --> RF : one, Stage 4
+IPM --> PI : Stage 5
+IPM --> RED : reproduction brief,\nstage boundary
+FB --> FBM : one per fix.md,\nshared/fix.md first
+FB --> RF : one per module, finish
+FB --> RED : reproduction brief, finish
+RW --> RWM : one per steps file,\nshared/steps.md first
+RW --> RF : one per module, finish
+RW --> RED : reproduction brief, finish
+UD --> UDM : one per steps file,\nshared/steps.md first
+UD --> RED : reproduction brief, finish
+
+note bottom of RED
+  A reproduction brief is templates/reproducing.md.
+  A step agent, a module agent and the refactor pass
+  spawn nothing. An exhausted budget re-spawns the
+  same type once on the deciding model
+  (templates/sub-agents.md, Budget and escalation).
+end note
+@enduml

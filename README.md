@@ -102,6 +102,7 @@ What the files look like: [a spec](skills/design-task/example-spec.md),
 [its design](skills/design-task/example-design.md), [its log](skills/design-task/example-design-log.md),
 [a plan](templates/example-plan.md), [its log](templates/example-plan-log.md).
 What happens when the plan runs — levels, gates, waves: [`docs/implement-plan.md`](docs/implement-plan.md).
+Which agent spawns which: [`docs/agents.md`](docs/agents.md).
 
 <hr>
 

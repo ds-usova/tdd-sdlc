@@ -109,6 +109,11 @@ editing the test.
       property, and only a plan change can touch it.
 5. Run only the focused test class — stage-wide and suite-wide verification belongs to the orchestrator.
 
+## Giving Up
+
+Your attempt budget, what to revert and what to report are `templates/sub-agents.md`, **Budget and
+escalation**. Where the orchestrator verifies the wave, you make one pass and return; the budget is its.
+
 ## Scope Guardrails
 
 - Only modify the target class. Every collaborator the plan wants exists as a stabilization stub — a missing

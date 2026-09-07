@@ -99,6 +99,11 @@ assertion**:
     - if a test cannot be satisfied within those limits, stop and report a blocker — the test is red-phase
       property, and only a plan change can touch it.
 
+## Giving Up
+
+Your attempt budget, what to revert and what to report are `templates/sub-agents.md`, **Budget and
+escalation**. Where the orchestrator verifies the wave, you make one pass and return; the budget is its.
+
 ## Scope Guardrails
 
 - Modify only production code, and only what the failing tests require — minimal, root-cause fixes.

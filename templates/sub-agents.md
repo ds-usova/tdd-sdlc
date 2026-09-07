@@ -63,6 +63,29 @@ everything else.
 kept — a fix to work it just reported. It never sends one to ask a question the agent should have put in its
 report, and it never leaves the message unanswered.
 
+## Budget and escalation
+
+**Attempts are counted by whoever verifies.**
+
+- **An agent that verifies its own work** counts its runs. Three runs of its test class that end the same way,
+  on the same cause, are its budget. After the third it stops. It reverts its own files to the last state that
+  compiled: a red agent removes or restores its test class, a green agent puts the stub back with its intent
+  comment. It reports `budget exhausted`, with one line per attempt: what it tried, how the run ended.
+- **An orchestrator that verifies a wave** counts re-delegations. Each wave verification that fails on a step
+  is one attempt on that step. The orchestrator re-delegates the step with the failure output. The third
+  failure exhausts the budget.
+
+**An exhausted budget is escalated once, never blocked at once.** The orchestrator spawns the same agent type
+again, fresh, on the deciding model the conventions' **Sub-Agent Models** name. Where they name none, on the
+same model. Its input is the step as before, plus every attempt line so far. The spawn is recorded in the Run
+Log as an `RL` note without `Resolved:`: the step, the model, the cause.
+
+**The escalated agent's exhausted budget is the block.** `block` the step with every attempt line as the
+reason, six at most. Nothing is tried after that.
+
+This applies to every step agent and the stabilization agent in a pipeline, and to the module agents of a fix,
+a rework and an upgrade. A module agent's **Attempts** section is the log the escalated agent reads.
+
 ## Reporting back
 
 **What you ran and what you noticed are two lists, and the report keeps them apart.** Everything you exercised —

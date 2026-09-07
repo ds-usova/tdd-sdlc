@@ -103,7 +103,9 @@ after any answer or re-classification written in Phase 2.
 2. **One `rework-module` agent per steps file, concurrently**, spawned and waited for as
    [`templates/sub-agents.md`](../../templates/sub-agents.md) says, each handed its file's path, its module, its
    baseline figures, what the shared file disabled in its module, and `rework.md`. It applies its steps in ID
-   order and returns finished or blocked. A blocked agent's question is written into its steps file's
+   order and returns finished or blocked. An agent returning on an exhausted budget is escalated once before
+   its return counts as blocked ([`templates/sub-agents.md`](../../templates/sub-agents.md), **Budget and
+   escalation**). A blocked agent's question is written into its steps file's
    `## Open Questions` and the return itself is an `RL` entry in the log's Run Log; answer the question there,
    fill the entry's `Resolved:`, and spawn the agent again.
 

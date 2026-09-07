@@ -1,7 +1,7 @@
 ---
 name: tdd-integration-red-phase-step
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
-description: 'Spawned by implement-plan-module, Stage 2. Not for direct use — it needs step context only that orchestrator has. TDD Integration Red Phase step agent: writes meaningful, compiling integration tests for one class against the real thing it talks to (RED phase — tests must compile and fail at runtime until the class is implemented). Handles both variants: a class driven directly against real infrastructure, and a class the framework calls with its collaborators mocked. Stack-agnostic; all framework, naming, and run-command detail comes from the module conventions the orchestrator points it at.'
+description: 'Spawned by implement-plan-module, Stage 2, with plan steps; or by any skill or pipeline with a reproduction brief (templates/reproducing.md). Not for direct use — it needs step context only an orchestrator has. TDD Integration Red Phase step agent: writes meaningful, compiling integration tests for one class against the real thing it talks to (RED phase — tests must compile and fail at runtime until the class is implemented). Handles both variants: a class driven directly against real infrastructure, and a class the framework calls with its collaborators mocked. Stack-agnostic; all framework, naming, and run-command detail comes from the module conventions the orchestrator points it at.'
 ---
 
 # TDD Integration Red Phase Step Agent
@@ -166,6 +166,11 @@ scenario or design decision covers is a gap: record it in your report and do not
 
 Sometimes the orchestrator hands you a case instead of plan steps. Then your whole job is one test, done the
 way `templates/reproducing.md`, **The reproduction**, says. Read it before writing the test.
+
+## Giving Up
+
+Your attempt budget, what to revert and what to report are `templates/sub-agents.md`, **Budget and
+escalation**. Where the orchestrator verifies the wave, you make one pass and return; the budget is its.
 
 ## Scope Guardrails
 

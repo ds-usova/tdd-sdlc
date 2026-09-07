@@ -147,7 +147,9 @@ answer written in Phase 2.
 
 **A migration that cannot be finished is kept back, not forced.** A guide can ask for a class that carries a
 bug of its own, a setting the module's framework does not yet honour, an API the module's other dependencies
-still bind. After three failed attempts on one change, the agent stops on it: the version stays at the target
+still bind. After three failed attempts on one change the agent returns, and the change is escalated once
+([`templates/sub-agents.md`](../../templates/sub-agents.md), **Budget and escalation**). Where the escalated
+agent fails too, it stops on it: the version stays at the target
 where the module compiles and is green on the old API — the guide's change written into the log's `## Run Log`
 as a `kept back` entry with what was tried and what would unblock it. Where the module is not green on the old
 API either, the version goes back to where it was, the step is `abandoned — <why>`, an `RL` entry in the log says

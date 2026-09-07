@@ -57,6 +57,11 @@ not a pattern you introduce.
 A check that fails for a reason your items caused is fixed. One that fails for a reason unrelated to the plan is
 reported as such, with the failure verbatim, and left alone.
 
+## Giving Up
+
+Your attempt budget, what to revert and what to report are `templates/sub-agents.md`, **Budget and
+escalation**. Where the orchestrator verifies the wave, you make one pass and return; the budget is its.
+
 ## Scope Guardrails
 
 - Only the files the items name or break. No refactor, rename or formatting sweep beyond what the module's

@@ -134,8 +134,13 @@ line — is left where it is, and is reported as closed. The disabled reproducti
 3. **What happens inside an agent is its own** — its steps, its guardrails, its log, its ticks. Never edit a file
    or a log an agent owns while it runs. Report per module as each returns.
 
-**An agent that returns blocked changes the plan, not the rules.** It returns for one of: three failed attempts
-on a step, a symptom that survives a correct `green` step, a cause in another module, a step whose kind is wrong,
+**An agent that returns on an exhausted budget is escalated once before anything is amended**
+([`templates/sub-agents.md`](../../templates/sub-agents.md), **Budget and escalation**): re-spawn that module's
+agent on the deciding model; it reads the log's **Attempts** and starts at that step. Only its exhausted
+budget is a blocked return.
+
+**An agent that returns blocked changes the plan, not the rules.** It returns for one of: an exhausted budget
+after escalation, a symptom that survives a correct `green` step, a cause in another module, a step whose kind is wrong,
 a test asserting the old behaviour that nobody foresaw, or a refusal from [`applying-a-step.md`](applying-a-step.md).
 The return itself is an `RL` entry in that fix's log — the agent wrote it, or `fix.sh block` does — and the
 question it needs answered is an `OQ` under the fix file's `## Open Questions`. Wait for the module's agent to

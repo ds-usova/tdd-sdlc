@@ -106,6 +106,10 @@ current one is fully ticked; scoped, `every item in scope is ticked` is the stag
 Refer to items by ID in every sub-agent prompt and ask for the ID back in the report, so a tick is never matched
 against wording that may have changed mid-run.
 
+**Budget.** A step agent that returns `budget exhausted`, or a step the wave's verification has failed on
+three times, is escalated once before it is blocked ([`templates/sub-agents.md`](../templates/sub-agents.md),
+**Budget and escalation**). Spawn the escalation on the deciding model. Block only after its budget is gone.
+
 **Tick policy.** Tick with `plan.sh tick <ID>` and record blockers with `plan.sh block <ID> "<reason>"`; never
 hand-edit a checkbox. Completed and verified in this run → `- [x]`; not done or blocked → keep `- [ ]`. An item
 with several sub-tasks is ticked only when all are done. Never tick on a sub-agent's claim alone if the stage
