@@ -223,7 +223,7 @@ ran.
 ## 4. Re-Reviews
 
 Nothing triggers a re-review by itself; a session spawns this agent again when the user asks for one after a
-material edit. The session says so when it spawns or resumes this agent, and the plan log's **Review Findings**
+material edit, or when `plan-task` re-plans a task that already had a plan. The session says so when it spawns or resumes this agent, and the plan log's **Review Findings**
 section shows what the last pass settled. On a re-review:
 
 - Judge the plan **as it now stands**. A finding already answered with a decision stands as decided; do not

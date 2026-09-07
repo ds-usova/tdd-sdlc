@@ -39,14 +39,16 @@ Run it with bash, from anywhere inside the project:
 <plugin>/scripts/design/design.sh show DN04 DN07
 ```
 
-| Command        | Effect                                                                                  |
-|----------------|-----------------------------------------------------------------------------------------|
-| `settled`      | Exit 0 when nothing is still `must-decide`; exit 1 and list what is.                    |
-| `status`       | How many decisions rest on each basis.                                                  |
-| `show <ID>...` | One decision: its question, `Answer:` and `Basis:`. Several print blank-line separated. |
-| `validate`     | See [What `validate` checks](#what-validate-checks).                                    |
+| Command         | Effect                                                                                                                                    |
+|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| `settled`       | Exit 0 when nothing is still `must-decide`; exit 1 and list what is.                                                            |
+| `approved`      | Exit 0 when `**Approved:**` carries the hash of the spec as it stands; exit 1 and say whether it is missing or stale.           |
+| `approve <who>` | Write or rewrite `**Approved:** <who>, <date>, <hash>` under `**Format:**`. The hash is the spec from its first `## ` heading down.       |
+| `status`        | How many decisions rest on each basis.                                                                                                    |
+| `show <ID>...`  | One decision: its question, `Answer:` and `Basis:`. Several print blank-line separated.                                                   |
+| `validate`      | See [What `validate` checks](#what-validate-checks).                                                                                      |
 
-Exit codes: **0** done, **1** no such entry, not settled, or `validate` found problems, **2** bad usage.
+Exit codes: **0** done, **1** no such entry, not settled, not approved, or `validate` found problems, **2** bad usage.
 
 A task is addressed by its directory or by any one of its files — `spec.md`, `design.md`, `design-log.md` — and
 the others are found beside it; `--file` is accepted for either. Without one, the single `docs/<n>-<task>/` in
@@ -65,39 +67,40 @@ An entry in the spec is three lines — the question, the answer, and who chose:
 
 `DN<nn>` is assigned once and never renumbered. Only `decided` and `must-decide` are entries; the reasoning behind a
 decided one is a **Decision Bases** line in the log, under the same number. The four bases and what each obliges
-are defined in the `design-task` skill this ships with (`skills/design-task/SKILL.md`, **Decisions**); worked examples are at
+are defined in the `design-task` skill this ships with (`skills/design-task/SKILL.md`, **Decisions**); worked examples
+are at
 `skills/design-task/example-spec.md`, `example-design.md` and `example-design-log.md` under the plugin root.
 
 ### What `validate` checks
 
 The spec:
 
-| Check                                                                  | Catches                                                                 |
-|------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| Every required section, in order                                       | a spec a plan cannot be written from                                    |
-| A `Requirements` line no scenario proves, a scenario proving no `RQ`    | a promise with no test behind it, behaviour nobody asked for            |
-| Duplicate `DN`, `RQ` or `AC` IDs, an entry outside the Decisions section  | a decision nothing can address                                          |
-| A missing or repeated `Answer:` / `Basis:`                             | an entry no gate can classify                                           |
-| A basis that is not `decided` or `must-decide`, or with nothing after  | an assumption in the user's section — it belongs in the log             |
-| A `must-decide` carrying an answer, or a `decided` carrying none       | an entry whose two halves disagree                                      |
-| A `Design Findings` section or a `DF` row outside the log              | the old shape — the log owns those now                                  |
+| Check                                                                    | Catches                                                      |
+|--------------------------------------------------------------------------|--------------------------------------------------------------|
+| Every required section, in order                                         | a spec a plan cannot be written from                         |
+| A `Requirements` line no scenario proves, a scenario proving no `RQ`     | a promise with no test behind it, behaviour nobody asked for |
+| Duplicate `DN`, `RQ` or `AC` IDs, an entry outside the Decisions section | a decision nothing can address                               |
+| A missing or repeated `Answer:` / `Basis:`                               | an entry no gate can classify                                |
+| A basis that is not `decided` or `must-decide`, or with nothing after    | an assumption in the user's section — it belongs in the log  |
+| A `must-decide` carrying an answer, or a `decided` carrying none         | an entry whose two halves disagree                           |
+| A `Design Findings` section or a `DF` row outside the log                | the old shape — the log owns those now                       |
 
 The design:
 
-| Check                                                                  | Catches                                                                 |
-|------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| No `design.md` beside the spec                                         | a spec with nothing that says how                                       |
-| The `**Affected Modules:**` line, and every required section, in order | a design missing the context the plan reads it for                      |
-| A source file named under **Proposed Solution**, as a token or a link  | a plan-level fact in the design — it reads the same in any language     |
+| Check                                                                  | Catches                                                             |
+|------------------------------------------------------------------------|---------------------------------------------------------------------|
+| No `design.md` beside the spec                                         | a spec with nothing that says how                                   |
+| The `**Affected Modules:**` line, and every required section, in order | a design missing the context the plan reads it for                  |
+| A source file named under **Proposed Solution**, as a token or a link  | a plan-level fact in the design — it reads the same in any language |
 
 The log:
 
-| Check                                                                  | Catches                                                                 |
-|------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| No log beside the spec, or no `Grilled (<date>): <grill>` line         | a design the grill never saw                                            |
-| A concern the named grill owns with no row, or a row with no why       | a concern nobody can tell was examined                                  |
-| A `DF` row numbered below the row above it, or with an empty cell      | a row inserted at the wrong line, or a claim with no evidence           |
-| A `decided` entry with no **Decision Bases** line, or one for no entry | a decision whose reasoning was never written down                       |
+| Check                                                                  | Catches                                                       |
+|------------------------------------------------------------------------|---------------------------------------------------------------|
+| No log beside the spec, or no `Grilled (<date>): <grill>` line         | a design the grill never saw                                  |
+| A concern the named grill owns with no row, or a row with no why       | a concern nobody can tell was examined                        |
+| A `DF` row numbered below the row above it, or with an empty cell      | a row inserted at the wrong line, or a claim with no evidence |
+| A `decided` entry with no **Decision Bases** line, or one for no entry | a decision whose reasoning was never written down             |
 
 A `must-decide` entry is **not** a problem here: a spec in flight is expected to have them, and that is exactly
 what `settled` is for. `validate` asks whether the files are well-formed; `settled` asks whether the spec is

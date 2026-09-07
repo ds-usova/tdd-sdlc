@@ -95,9 +95,11 @@ shape, decompiling it from the dependency if the source is not at hand.
 
 ## 4. The Spec
 
-`spec.md` opens with the title and `**Format:** 2` on the line beneath it - the file-format number
-`design.sh validate` checks ([`scripts/README.md`](../../scripts/README.md), **Formats**) - and MUST contain
-these sections, in this order.
+`spec.md` opens with the title, then `**Format:** 2` - the file-format number `design.sh validate` checks
+([`scripts/README.md`](../../scripts/README.md), **Formats**). This skill writes nothing else in the header.
+`plan-task` later adds `**Approved:** <who>, <date>, <hash>` beneath it
+([`scripts/design/README.md`](../../scripts/design/README.md)). The spec MUST contain these sections, in this
+order.
 
 ### Objective
 

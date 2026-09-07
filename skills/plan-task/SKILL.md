@@ -43,14 +43,20 @@ Cite a decision or a finding by its clause, never by its number alone — "DN02,
 
 - **No spec or design for this task** — stop and say so. Do not write the plan and do not reconstruct either
   inline. Point the user at `design-task`.
-- **`design.sh settled` exits non-zero** — stop and repeat what it printed. Those entries decide what the steps are.
+- **`design.sh settled` exits non-zero** — stop and repeat what it printed. Those entries decide what the
+  steps are.
+- **`design.sh approved` exits non-zero** — the user starting this skill on the spec is the approval. Run `design.sh approve "<who>" <task>` with `<who>` the
+  output of `git config user.name`, or `the user` where that is empty. Then `approved` again, and go on. Say in
+  step 7 that the spec was marked approved.
   The script ships with the `design-task` skill at `scripts/design/design.sh` — under `${CLAUDE_PLUGIN_ROOT}` when
   installed as a plugin, under `.claude/` in a plain checkout. Refused or absent is not non-zero: tell the user
   once as [`scripts/README.md`](../../scripts/README.md) says, then read the spec's `Basis:` lines yourself.
 
-A design gap found *while* planning — a case neither **Decisions** nor the log's **Findings** covers — is amended
-where it belongs: a **Findings** row in the log where the repository answers it, a new `DN` entry in the spec
-escalated to the user where nothing does. It is never absorbed into the plan.
+**A design gap found while planning goes back to the design, never into the plan.** A gap is a case neither
+the spec's **Decisions** nor the log's **Findings** covers. Where the repository answers it, write a
+**Findings** row in the design log with the file that answers it. Where nothing does, write a `DN` entry in
+the spec with `Basis: must-decide` and ask the user in step 7. Once the answer is written into the spec, run
+`design.sh approve` again with the same `<who>` as step 1.
 
 ## 2. Create a Plan File per Module
 
@@ -140,6 +146,30 @@ plus each listed module's build section, and needs no layer or test mapping — 
 > whole directory** from `docs/` into `docs/implemented/<n>-<task-name>/`. In-progress work lives in `docs/`. Never
 > archive a plan because one section is complete; archive it only when no unchecked `- [ ]` item is left anywhere in
 > the file.
+
+### Re-planning
+
+A task directory that already holds a plan is re-planned. The input is the spec and the design as they now
+stand, and the tree as it now is. The old plan is not an input. Which case applies is read off the plan,
+never asked:
+
+| The plan is                          | Do                                                                              |
+|--------------------------------------|---------------------------------------------------------------------------------|
+| under `docs/implemented/`            | nothing. A change to an archived task is a new task.                            |
+| in `docs/`, no item ticked           | rewrite `plan.md` from the spec and design                                      |
+| in `docs/`, some items ticked        | keep every ticked item as it is; delete every open item; write the rest anew   |
+
+**Ticked items are a record, not a plan.** They say what is in the tree. They are never unticked and never
+edited. New items take the next ids in their group. Where the spec no longer wants what a ticked item built,
+a Stabilization item removes or moves it. A deleted item's id stays unused.
+
+**The log stays.** Its **Review Findings** keep their numbers and the new review continues past the highest.
+An **Open Question** keeps its number and its answer where the question still applies; one that no longer
+applies keeps its number and gains `- A: withdrawn — <why>`.
+
+**Then the rest of this skill runs as for a new plan**: the review (step 5, in re-review mode), the mechanical
+findings (step 6), the hand-over (step 7). Before handing over, append one `RL` note to the log's Run Log:
+`re-planned from the spec approved <hash>`, with the ids removed and the ids added.
 
 ## 3. Read Module Conventions
 
@@ -495,6 +525,7 @@ How to apply them:
 ## 7. Review Only — Do NOT Implement
 
 - Present the generated plan file to the user.
+- **Say that the spec was marked approved**, where step 1 wrote the line.
 - **Report what step 6 applied** — the findings' IDs and a clause each, in one short list. An automatic edit the
   user cannot see is an automatic edit the user cannot catch.
 - **Ask what is still open, in one batch, via `AskUserQuestion`** — every unanswered Open Question, every `decision`

@@ -33,6 +33,7 @@ PT -> IP
 IC --> CV
 DT --> D
 PT --> P
+PT --> D : Approved line
 IP --> C
 CV -[hidden]> D
 D -[hidden]> P

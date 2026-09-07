@@ -58,10 +58,12 @@ names a script then has the same fallback: read the file and answer the question
 **Gate 1 — every plan is ready.** A plan is ready only when the user has closed the loops the planning phase
 opened. Check every plan in the task directory, `shared/plan.md` included:
 
-- **The spec** beside the design the plan's `**Design:**` header links: `design.sh settled <design>` exits 0. Run it
-  once for the design the plans share, not once per plan. An unsettled decision means step agents will each
-  invent their own answer to the same question, in different layers. The script ships with the `design-task`
-  skill at `scripts/design/design.sh`.
+- **The spec** beside the design the plan's `**Design:**` header links. `design.sh settled <design>` exits 0:
+  no decision is still `must-decide`. `design.sh approved <design>` exits 0: the spec carries an `Approved`
+  line whose hash matches the spec as it stands. Run both once for the design the plans share, not once per
+  plan. Where `approved` fails, the line is missing or the spec changed after it was written. Either way: stop,
+  and say to run `plan-task` on the task again. The script ships with the `design-task` skill at
+  `scripts/design/design.sh`.
 - **Open Questions**, in the plan: every `- **OQ<nn>:**` has a non-empty `- A:`. An unanswered question means a step agent
   will hit exactly the ambiguity the planner already flagged.
 - **Run Log**, in the `plan-log.md` beside it: every `RL` entry a previous partial run left with a `- Resolved:`

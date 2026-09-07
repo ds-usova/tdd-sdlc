@@ -28,13 +28,20 @@ usage() {
     cat <<'EOF'
 Usage:
   <plugin>/scripts/design/design.sh settled  [<task>]
+  <plugin>/scripts/design/design.sh approved [<task>]
+  <plugin>/scripts/design/design.sh approve  <who> [<task>]
   <plugin>/scripts/design/design.sh status   [<task>]
   <plugin>/scripts/design/design.sh show     <ID>... [<task>]
   <plugin>/scripts/design/design.sh validate [<task>] [--spec <f>] [--design <f>] [--log <f>]
 
 Commands:
-  settled   The gate. Exit 0 when no decision is still must-decide; exit 1 and list the open ones
-            when any is. What plan-task and implement-plan check before they run.
+  settled   Exit 0 when no decision is still must-decide; exit 1 and list the open ones when any is.
+  approved  Exit 0 when the spec's **Approved:** line carries the hash of the spec as it stands; exit 1
+            and say whether the line is missing or predates an edit. plan-task and implement-plan
+            check both settled and approved before they run.
+  approve   Write or rewrite "**Approved:** <who>, <date>, <hash>" under the spec's **Format:** line.
+            The hash is of the spec from its first "## " heading to the end, so a later edit to
+            the spec makes the approval stale.
   status    How many decisions rest on each basis.
   show      One decision: its question, Answer and Basis. Several IDs print in order, separated by
             a blank line.
@@ -121,6 +128,30 @@ check_format() {
     return 0
 }
 
+# In-place editing goes through a sibling temp file rather than `sed -i`, whose spelling differs
+# between GNU and BSD.
+rewrite_file() {
+    local target="$1"
+    shift
+    local tmp="${target}.design-tmp.$$"
+    if "$@" > "$tmp" && mv "$tmp" "$target"; then
+        return 0
+    fi
+    rm -f "$tmp"
+    die "could not write $target"
+}
+
+# The spec from its first "## " heading to the end, carriage returns stripped, hashed by git, which
+# is already required; sha1sum is not on every platform. The header lines above it - the title,
+# Format, Approved - are not part of what was approved.
+spec_hash() {
+    awk 'BEGIN { on = 0 } /^## / { on = 1 } on { sub(/\r$/, ""); print }' "$1" | git hash-object --stdin | cut -c1-12
+}
+
+approved_line() {
+    sed -n 's/^\*\*Approved:\*\*[[:space:]]*\(.*[^[:space:]]\)[[:space:]]*$/\1/p' "$1" | head -1
+}
+
 command="${1:-}"
 [ -n "$command" ] || { usage; exit 2; }
 shift
@@ -175,6 +206,40 @@ case "$command" in
             echo "$open" | sed 's/^/  /'
         } >&2
         exit 1
+        ;;
+
+    approved)
+        resolve_task
+        approved="$(approved_line "$spec_file")"
+        if [ -z "$approved" ]; then
+            echo "not approved - the spec carries no **Approved:** line; plan-task writes it when started on the spec" >&2
+            exit 1
+        fi
+        recorded="${approved##*, }"
+        current="$(spec_hash "$spec_file")"
+        if [ "$recorded" != "$current" ]; then
+            echo "approval predates an edit - the spec changed since **Approved:** was written; run plan-task on it again" >&2
+            exit 1
+        fi
+        echo "approved by ${approved%, *}"
+        exit 0
+        ;;
+
+    approve)
+        who="${args[0]:-}"
+        [ -n "$who" ] || die "approve needs who approved"
+        resolve_task
+        hash="$(spec_hash "$spec_file")"
+        [ -n "$hash" ] || die "could not hash the spec - is git on PATH?"
+        line="**Approved:** $who, $(date +%Y-%m-%d), $hash"
+        if grep -q '^\*\*Approved:\*\*' "$spec_file"; then
+            line="$line" rewrite_file "$spec_file" awk '/^\*\*Approved:\*\*/ { print ENVIRON["line"]; next } { print }' "$spec_file"
+        elif grep -q '^\*\*Format:\*\*' "$spec_file"; then
+            line="$line" rewrite_file "$spec_file" awk '{ print } /^\*\*Format:\*\*/ { print ENVIRON["line"] }' "$spec_file"
+        else
+            die "the spec has no **Format:** line to write the approval under"
+        fi
+        echo "$line"
         ;;
 
     show)

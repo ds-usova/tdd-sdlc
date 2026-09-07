@@ -16,7 +16,8 @@ activityDiagram {
 </style>
 
 start
-:Gate: designs settled,
+:Gate: designs settled
+and approved,
 findings actioned;<<gate>>
 :Gate: every module green,
 baseline counts kept;<<gate>>
