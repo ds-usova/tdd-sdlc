@@ -138,6 +138,9 @@ scenario or design decision covers is a gap: record it in your report and do not
 
 ### Phase 3 — Verify RED
 
+**Skip this phase when the orchestrator said the wave is verified once, above you.** Then write, report what
+you wrote, and return; the orchestrator runs the suite and re-delegates what failed.
+
 1. Compile the test sources and fix every compilation error (wrong imports, missing types, wrong signatures) using
    the build/run commands from the conventions.
 2. Run the test class with the focused run command from the conventions and read its results.
