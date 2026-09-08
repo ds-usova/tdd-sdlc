@@ -1,7 +1,7 @@
 ---
 description: Implement a planned task end to end. Checks every plan is ready and every module is green, lands whatever crosses between the modules, then runs one pipeline agent per plan — concurrently — and finishes the task when the last one lands. Given a single plan, runs it the same way, as a task of one.
 argument-hint: [ a task directory, or a single plan file ] [ optional section name ]
-allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *)
 ---
 
 # Implement Plan
@@ -187,6 +187,8 @@ When every pipeline has returned:
 
    Write it before archiving, so the whole directory moves once and the folder is there for the evidence to
    land in.
+
+   **Run `cost.sh report docs/<n>-<name>/` before archiving.** Refused or absent: say so and go on.
 
    **A bug block is a reproduction the pipelines reported** ([`reproducing.md`](../../templates/reproducing.md)).
    Nothing else becomes one.

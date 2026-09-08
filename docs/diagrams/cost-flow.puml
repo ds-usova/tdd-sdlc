@@ -1,0 +1,41 @@
+@startuml cost-flow
+skinparam defaultFontName Helvetica
+skinparam shadowing false
+skinparam ArrowColor #444
+skinparam sequenceMessageAlign center
+skinparam participant {
+  BackgroundColor #F4F6F8
+  BorderColor #888
+}
+skinparam database {
+  BackgroundColor #FFFFFF
+  BorderColor #888
+}
+skinparam note {
+  BackgroundColor #FFF6DD
+  BorderColor #B8860B
+}
+
+participant "skill\n(session)" as S
+participant "PreToolUse hook\n(Bash)" as PRE
+database ".git/tdd-sdlc/\nsessions/<session>" as MAP
+participant "sub-agent" as A
+participant "SubagentStop hook" as STOP
+database "docs/<n>-<task>/\nreview/cost.jsonl" as JSONL
+participant "cost.sh report" as REP
+database "docs/<n>-<task>/\nreview/cost.md" as MD
+
+S -> PRE : plan.sh status docs/7-x/plan.md
+PRE -> MAP : session -> docs/7-x
+note right of PRE
+  any framework script call
+  naming a task directory
+end note
+S -> A : spawn, prompt names\ndocs/7-x/module-a/plan.md
+A -> STOP : agent ends
+STOP -> STOP : type is a framework agent?\npath in the prompt, else the mapping
+STOP -> JSONL : one line: time, session, type,\nmodel, tokens, wall time, plan
+S -> REP : at the task's finish
+REP -> JSONL : read
+REP -> MD : per session, per plan,\nper agent type
+@enduml

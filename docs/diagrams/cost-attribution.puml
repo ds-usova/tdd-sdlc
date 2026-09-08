@@ -1,0 +1,34 @@
+@startuml cost-attribution
+skinparam defaultFontName Helvetica
+skinparam shadowing false
+skinparam ActivityBackgroundColor #F4F6F8
+skinparam ActivityBorderColor #888
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #888
+skinparam ArrowColor #444
+
+start
+:a sub-agent ends;
+if (its type is one of agents/*.md?) then (no)
+  :skip;
+  stop
+else (yes)
+endif
+if (its prompt names docs/<n>-<task>/…?) then (yes)
+  :task = that directory;
+  :plan = the plan path
+  in the prompt, if any;
+else (no)
+  if (sessions/<session> exists?) then (no)
+    :skip: not a framework session;
+    stop
+  else (yes)
+    :task = the mapping;
+    :plan = none;
+  endif
+endif
+:sum usage over the transcript;
+:append one line to
+docs/<task>/review/cost.jsonl;
+stop
+@enduml

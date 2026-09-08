@@ -81,7 +81,7 @@ one for deciding work.
    how a repository is organised. A summary of a conventions file in a prompt is a second copy that drifts in the one
    place no review looks ([`templates/sub-agents.md`](../templates/sub-agents.md), **Point a sub-agent at the rule**).
    What a prompt does carry is the step's own context: the `plan.sh show` output, the baseline figures, what the step
-   may not touch.
+   may not touch. **Every spawn also names your plan's path.**
 
 **Addressing the plan.** Every checklist item carries an ID (`GU07`), and `plan.sh` — which ships with these
 instructions at `scripts/plan/plan.sh`, under `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin and under

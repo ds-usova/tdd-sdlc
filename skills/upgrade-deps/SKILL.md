@@ -1,7 +1,7 @@
 ---
 description: Bring a module's dependencies up to date, one module by default or several on request. Reads the manifest, finds what is behind and what is vulnerable with whatever the conventions name, reads each release's migration guide, writes an upgrade file with one step per dependency, stops for approval, then applies them — one agent per module, concurrently — with the suite that is already green as the guardrail. A migration that cannot be finished is kept back and written down, never forced.
 argument-hint: [ a module, several modules, a dependency name, or the path of an existing upgrade.md ]
-allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh *)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *)
 ---
 
 # Upgrade Dependencies
@@ -185,14 +185,15 @@ starts at its first unticked step.
    outcome written back into `upgrade.md` rather than the log, because the survey is what a reader opens.
 4. **Whatever the modules' build conventions require of a finished change** — a coverage guardrail, a formatting
    gate. A guardrail that fails blocks the archive.
-5. **Write `review/findings.md`** in the shape [`findings.md`](../../templates/findings.md) gives — a
-   deprecation the guide announced that this run did not act on, every `kept back` entry lifted from the logs'
-   Run Log with what would unblock it, a manual check where a bump changes runtime behaviour no test reaches. An
-   upgrade with nothing open still gets the file. Each entry is read off the manifest, the guide or the logs,
-   never off a module agent's closing observation on its own (**Measured, Not Noticed**). A bug a module agent
-   hit is reproduced first ([`reproducing.md`](../../templates/reproducing.md)). **Every critical block, bug
-   block and `DX` row it files is appended to `docs/backlog.md`** — a `BC`, a `BB` or a `BT` row, the next id
-   in its table, the link written to the archived path ([`backlog.md`](../../templates/backlog.md)).
+5. **Write `review/findings.md`** in the shape [`findings.md`](../../templates/findings.md) gives — a deprecation the
+   guide announced that this run did not act on, every `kept back` entry lifted from the logs' Run Log with what
+   would unblock it, a manual check where a bump changes runtime behaviour no test reaches. An upgrade with nothing
+   open still gets the file. Each entry is read off the manifest, the guide or the logs, never off a module agent's
+   closing observation on its own (**Measured, Not Noticed**). A bug a module agent hit is reproduced first
+   ([`reproducing.md`](../../templates/reproducing.md)). **Every critical block, bug block and `DX` row it files is
+   appended to `docs/backlog.md`** — a `BC`, a `BB` or a `BT` row, the next id in its table, the link written to the
+   archived path ([`backlog.md`](../../templates/backlog.md)). **Run `cost.sh report docs/<n>-<name>/`.** Refused or
+   absent: say so and go on.
 6. **Archive** once `upgrade.sh status` reports no open step in any steps file: move `docs/<n>-<name>/`, logs
    included, into `docs/implemented/`, and commit the move where the conventions commit at all. A steps file
    with an `abandoned` step or a log with a `kept back` entry still archives; what it left is in

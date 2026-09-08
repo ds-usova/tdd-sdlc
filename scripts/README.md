@@ -1,8 +1,9 @@
 # The scripts
 
 One script per file format the plugin writes, each in its own directory with a README beside it: `design/`,
-`plan/`, `fix/`, `rework/`, `upgrade/`. A skill names the one it uses, and every module agent that skill spawns
-uses the same one.
+`plan/`, `fix/`, `rework/`, `upgrade/`, and `cost/` for the report the two cost hooks feed
+([`docs/cost-recording.md`](../docs/cost-recording.md)). A skill names the one it uses, and every module agent
+that skill spawns uses the same one.
 
 ## What they are for
 

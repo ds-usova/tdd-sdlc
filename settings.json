@@ -10,7 +10,9 @@
       "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh:*)",
       "Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh:*)",
       "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh:*)",
-      "Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh:*)"
+      "Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh:*)",
+      "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh:*)",
+      "Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh:*)"
     ]
   }
 }

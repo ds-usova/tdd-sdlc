@@ -1,7 +1,7 @@
 ---
 description: Restructure code that already exists without changing what it does. Reads the code, writes a rework file with the edits at code level, stops for approval, then applies them — one agent per module, concurrently — against the suite that is already green.
 argument-hint: [ a findings entry, a file or class, a description of what to change, or the path of an existing rework.md ]
-allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/rework/rework.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/rework/rework.sh *)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/rework/rework.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/rework/rework.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *)
 ---
 
 # Rework
@@ -133,19 +133,19 @@ follows, and the commit is provisional: the closing full run proves the whole.
    over this same tree**; the build conventions name it, and its verdict is this one. A red run belongs to the
    step or refactor that edited what failed.
 3. **Write `review/findings.md`** into the rework's directory, in the shape
-   [`findings.md`](../../templates/findings.md) gives: **Critical**, **Bug**, and **Manual test** where the
-   change needs a person to look. **What the module agents reported is measured before it is filed**
-   (**Measured, Not Noticed**): a defect an agent noticed and did not reproduce is reproduced here or left in
-   the log, never turned into a block on its say-so. Reproducing is
-   [`reproducing.md`](../../templates/reproducing.md). **Critical** takes what the refactor round measured as
-   growing with every task on top, a copied block this rework touched in every copy included. Where the rework touched one module, the section's opening
-   line names it instead of the module-first rule. **A rework files no refactoring candidates**; something worth doing later
-   goes in the report, and the user decides whether it becomes a rework. **It may file a Deferred change**: a
-   behaviour the code should have that this rework, being behaviour-preserving, could not add. A rework with
-   nothing open still gets the file. **Every critical block, bug block and `DX` row it files is appended to
-   `docs/backlog.md`** — a `BC` row per critical block, a `BB` row per bug, a `BT` row per deferred change,
-   each taking the next id in its table, in the shape [`backlog.md`](../../templates/backlog.md) gives, with
-   the link written to the archived path.
+   [`findings.md`](../../templates/findings.md) gives: **Critical**, **Bug**, and **Manual test** where the change
+   needs a person to look. **What the module agents reported is measured before it is filed** (**Measured, Not
+   Noticed**): a defect an agent noticed and did not reproduce is reproduced here or left in the log, never turned
+   into a block on its say-so. Reproducing is [`reproducing.md`](../../templates/reproducing.md). **Critical** takes
+   what the refactor round measured as growing with every task on top, a copied block this rework touched in every
+   copy included. Where the rework touched one module, the section's opening line names it instead of the
+   module-first rule. **A rework files no refactoring candidates**; something worth doing later goes in the report,
+   and the user decides whether it becomes a rework. **It may file a Deferred change**: a behaviour the code should
+   have that this rework, being behaviour-preserving, could not add. A rework with nothing open still gets the file.
+   **Every critical block, bug block and `DX` row it files is appended to `docs/backlog.md`** — a `BC` row per
+   critical block, a `BB` row per bug, a `BT` row per deferred change, each taking the next id in its table, in the
+   shape [`backlog.md`](../../templates/backlog.md) gives, with the link written to the archived path. **Run `cost.sh
+   report docs/<n>-<name>/`.** Refused or absent: say so and go on.
 4. **Close the row this rework came from.** Where `Source:` names a findings file and a row, set the row's
    `Status`: `done · <this rework's number>`, or leave it `open` with one clause naming what remains. A row set
    to `done` leaves `docs/backlog.md` in the same edit — its `BR` row is removed, never

@@ -1,7 +1,7 @@
 ---
 description: Fix a bug that already exists, across one module or several. Reproduces it with a test, diagnoses it, writes a fix file per module, stops for approval, then applies them — one sub-agent per module, concurrently — logging every approach that failed and why. Given an existing bug.md, resumes it without retrying what its log rules out.
 argument-hint: [ a bug report, a failing test, a stack trace, a findings row, or the path of an existing bug.md ]
-allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh *)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *)
 ---
 
 # Fix Bug
@@ -186,11 +186,12 @@ stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decisi
 5. **Whatever else the modules' build conventions require of a finished change** — a coverage guardrail, a
    formatting gate. A guardrail that fails blocks the archive.
 6. **`fix.sh attempts docs/<n>-<name>/`** — one line naming every attempt in every log, for the report.
-7. **Write `review/findings.md`**, in the shape [`findings.md`](../../templates/findings.md) gives. A fix
-   files **Critical**, **Bug** and **Manual test** only. Every case the module agents reported is reproduced here, as
-   [`reproducing.md`](../../templates/reproducing.md) says. A fix with nothing open still gets the file.
-   **Every critical block and every bug block is appended to `docs/backlog.md`** — a `BC` or a `BB` row, the
-   next id in its table, the link written to the archived path.
+7. **Write `review/findings.md`**, in the shape [`findings.md`](../../templates/findings.md) gives. A fix files
+   **Critical**, **Bug** and **Manual test** only. Every case the module agents reported is reproduced here, as
+   [`reproducing.md`](../../templates/reproducing.md) says. A fix with nothing open still gets the file. **Every
+   critical block and every bug block is appended to `docs/backlog.md`** — a `BC` or a `BB` row, the next id in its
+   table, the link written to the archived path. **Run `cost.sh report docs/<n>-<name>/`.** Refused or absent: say so
+   and go on.
 8. **Close the row this fix came from**, where `Source:` names a findings file, in that file's own form. Its
    `BB` or `BC` row leaves `docs/backlog.md` in the same edit ([`backlog.md`](../../templates/backlog.md)).
 9. **Archive**: move `docs/<n>-<name>/` into `docs/implemented/`, and commit the move where the conventions

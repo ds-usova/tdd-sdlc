@@ -16,6 +16,8 @@ Four kinds of agent, read left to right.
 Two general-purpose agents carry no file of their own: the survey agent `init-conventions` runs per module, and
 the agent `implement-plan-module` spawns per post-implementation section.
 
+What each agent cost: [`cost-recording.md`](cost-recording.md).
+
 **Escalation** spawns the same type once more, on the deciding model
 ([`templates/sub-agents.md`](../templates/sub-agents.md), **Budget and escalation**). It adds no edge.
 

@@ -61,13 +61,13 @@ can tell the task is finished.
 
 ## Where the plugin stops
 
-The feature workflow ends at `implement-plan`: the task directory moves to `docs/implemented/`, and whatever
-your conventions list as running after a change is run. What a run could not finish — a bug it found, a
-refactoring it declined to do inside a feature, a behaviour the design never asked for — gets one row in
-`docs/backlog.md`, which outlives the archived task and feeds the next `fix-bug`, `rework` or `design-task`
-run. A task directory still under `docs/` is itself the record of unfinished work. Documentation, release
-notes, and everything else that outlives the plan are your repository's job, in whatever form it already keeps
-them.
+The feature workflow ends at `implement-plan`: the task directory moves to `docs/implemented/`, and whatever your
+conventions list as running after a change is run. What a run could not finish — a bug it found, a refactoring it
+declined to do inside a feature, a behaviour the design never asked for — gets one row in `docs/backlog.md`, which
+outlives the archived task and feeds the next `fix-bug`, `rework` or `design-task` run. A task directory still under
+`docs/` is itself the record of unfinished work. What the run cost, per agent and per model, is `review/cost.md`
+beside the findings ([`cost-recording.md`](cost-recording.md)). Documentation, release notes, and everything else that
+outlives the plan are your repository's job, in whatever form it already keeps them.
 
 ## The ids
 
