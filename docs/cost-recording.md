@@ -218,7 +218,8 @@ report are not documented, and were measured. If an update changes them, recordi
 
 1. **`SubagentStop` stdin** carries `session_id`, `transcript_path` (the session's), `cwd`, `agent_id`,
    `agent_type`, `agent_transcript_path`, `last_assistant_message`, `hook_event_name`, `stop_hook_active`. An
-   internal helper agent stops with an empty `agent_type`; the type filter skips it.
+   `agent_type`, `agent_transcript_path`, `last_assistant_message`, `hook_event_name`, `stop_hook_active`. A
+   plugin agent arrives as `<plugin>:<type>`, such as `tdd-sdlc:rework-module`; the hook strips the prefix.
 2. **The transcript** is JSON lines. A line with `"type": "assistant"` carries `timestamp`, and `message.model`
    and `message.usage` with `input_tokens`, `output_tokens`, `cache_creation_input_tokens`,
    `cache_read_input_tokens`. The first line with `"type": "user"` is the prompt. Beside every sub-agent

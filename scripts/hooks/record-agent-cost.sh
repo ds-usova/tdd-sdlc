@@ -30,14 +30,15 @@ transcript="$(posix "${transcript:-}")"
 cwd="$(posix "${cwd:-}")"
 [ -f "$transcript" ] || exit 0
 
-# Only framework agents are recorded: the type is one of the files under agents/. The plugin root is
-# two levels above this script.
+# Only framework agents are recorded: the type, with any leading `<plugin>:` stripped, is one of the
+# files under agents/. The bare name is what gets recorded. The plugin root is two levels above this
+# script.
 plugin_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." 2>/dev/null && pwd)" || exit 0
 known=0
 for f in "$plugin_root"/agents/*.md; do
     [ -f "$f" ] || continue
     b="$(basename "$f" .md)"
-    [ "$b" = "$agent_type" ] && known=1 && break
+    [ "$b" = "$agent_type" ] || [ "$b" = "${agent_type#*:}" ] && known=1 && agent_type="$b" && break
 done
 [ "$known" -eq 1 ] || exit 0
 
