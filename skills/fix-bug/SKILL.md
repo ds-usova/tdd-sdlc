@@ -45,8 +45,8 @@ and edit the files by hand.
 
 Read the repository-wide conventions and `<module>/docs/conventions.md` for every module the bug reaches. They
 answer the build and test commands, the test types and what each may fake, the layering check, how a test is
-disabled, parallelism, sub-agent models, what runs before a commit, the commit policy, and what runs over
-finished work. Every tier binds a step.
+disabled, the cap on concurrent agents, the models, what runs before a commit, the commit policy, and what runs
+over finished work. Every tier binds a step.
 
 ## Phase 0 — Reproduce and Baseline
 
@@ -59,12 +59,10 @@ elsewhere, and untracked leavings that are nobody's work, are named and left alo
 
 - **It fails every time** — run it twice to know that. Record the exact output; `reproduces:` is written against
   it.
-- **There is nothing to run yet.** Write the test that shows the symptom and take its failure as the
-  reproduction. Then disable it, in the form the module's conventions give for a disabled test, so it stays in
-  the tree — uncommitted — and the baseline is green. The `red` step names it in `test-files:` and its work is to
-  enable it. Where the conventions give no way to disable it, revert it and let the `red` step write it again
-  from `## How it reproduces`. Take the cheapest test type that fails for the bug's own reason, and say in the
-  diagnosis why a cheaper one does not.
+- **There is nothing to run yet.** Write the test that shows the symptom and take its failure as the reproduction.
+  Then disable it, as [`disabling-a-test.md`](../../templates/disabling-a-test.md) says, so it stays in the tree —
+  uncommitted — and the baseline is green. The `red` step names it in `test-files:` and its work is to enable it. Take
+  the cheapest test type that fails for the bug's own reason, and say in the diagnosis why a cheaper one does not.
 - **It fails some runs and not others.** Run until it has failed twice and record `<failures> in <runs>`; that
   pair goes into `reproduces:`. The `red` step then runs until it has failed twice, giving up at three times that
   run count. The `green` step runs three times the runs the `red` step took, and passes every time.
@@ -129,8 +127,8 @@ line — is left where it is, and is reported as closed. The disabled reproducti
    [`templates/sub-agents.md`](../../templates/sub-agents.md) says. Each gets its file path and its log's,
    `bug.md`, its module's phase-0 figures, the conventions its module names, and what the shared fix disabled in
    that module.
-   Cap the number running at once, and pick the model, by what the conventions say about parallelism and
-   sub-agent models.
+   Cap the number running at once, and pick the model, by what the conventions say about the cap on concurrent
+   agents and the models; where they state no cap, the default in `templates/sub-agents.md` applies.
 3. **What happens inside an agent is its own** — its steps, its guardrails, its log, its ticks. Never edit a file
    or a log an agent owns while it runs. Report per module as each returns.
 
@@ -201,7 +199,7 @@ stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decisi
 
 ## Version Control
 
-Whether and how this run commits is the conventions' **Version Control** rules, at the tier that binds every
+Whether and how this run commits is the conventions' commit policy, at the tier that binds every
 module. Missing or silent means no commits. Several module agents commit into one history at once; follow what
 the rules say about scoping and about a concurrent commit, and report a refusal they do not cover.
 

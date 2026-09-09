@@ -33,9 +33,9 @@ survey to it. **A path to an existing `upgrade.md` resumes it** under
 [`resuming.md`](../../templates/resuming.md), which replaces Phase 0 and Phase 1: it re-reads nothing the
 logs' `## Attempts` and `## Run Log` already settle.
 
-Read the repository-wide conventions and `<module>/docs/conventions.md` for every module named. Beyond the build
-and test commands, the parallelism and the commit policy, they answer four questions this skill has no default
-for. Where they answer, the answer binds; where they are silent, the fallback in the table applies and the
+Read the repository-wide conventions and `<module>/docs/conventions.md` for every module named. Beyond the build and
+test commands, the cap on concurrent agents and the commit policy, they answer four questions this skill has no
+default for. Where they answer, the answer binds; where they are silent, the fallback in the table applies and the
 closing report says so.
 
 | Question                       | The conventions may say                                        | Fallback where silent                                                          |
@@ -139,7 +139,8 @@ answer written in Phase 2.
 2. **One `upgrade-deps-module` agent per steps file, concurrently**, spawned and waited for as
    [`templates/sub-agents.md`](../../templates/sub-agents.md) says. Each gets its file path, its module, its
    phase-0 figures, `upgrade.md`, and the conventions by name. Cap the count and pick the model by what the
-   conventions say about parallelism and sub-agent models.
+   conventions say about the cap on concurrent agents and the models; where they state no cap, the default in
+   `templates/sub-agents.md` applies.
 3. **What happens inside an agent is its own** — its steps, its ticks, its log's attempts and run-log
    entries. Never edit a file an agent owns while it runs.
 
@@ -203,7 +204,7 @@ starts at its first unticked step.
 
 ## Version Control
 
-Whether and how this run commits is the conventions' **Version Control** rules. Missing or silent means no
+Whether and how this run commits is the conventions' commit policy. Missing or silent means no
 commits. Several module agents commit into one history at once; follow what the rules say about scoping and a
 concurrent commit.
 

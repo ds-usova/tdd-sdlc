@@ -81,7 +81,8 @@ Write **one test per given/when/then scenario** listed in the input — do not s
 premise, and to no other. **The premise governs, not its wording.** A test the sentence seems to reach but whose
 body does not meet the premise is left as it is and named in the report — never reshaped so that it fits. Place
 each test in the scenario group the plan assigns it to, realized the way the conventions describe, and derive each
-test method name from its scenario using the naming pattern in the conventions. Do **not** write tests beyond what
+test method name from its scenario using the naming pattern in the conventions, or the one the neighbouring tests
+follow where the conventions name none. Do **not** write tests beyond what
 is listed: a system suite is a thin slice, and every case in it was chosen by the plan. If you identify a
 meaningful gap the plan missed, record it in your report instead of filling it yourself.
 

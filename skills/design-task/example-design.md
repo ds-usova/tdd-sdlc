@@ -33,7 +33,7 @@ required — and answering a `Widget` with its generated id. A widget belongs to
 
 ### Diagrams
 
-`module-a` names no **Diagram Format** in its conventions, so these use the assumed default. There is no component
+`module-a`'s conventions name no diagram language, so these use the assumed default. There is no component
 diagram: classes belong to the plan.
 
 ```plantuml

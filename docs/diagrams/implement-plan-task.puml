@@ -31,7 +31,8 @@ fork
   :pipeline for plan 1;
   note right
     at most as many at once
-    as your **agent.md** allows
+    as your conventions allow;
+    two, where they say nothing
   end note
 fork again
   :pipeline for plan 2;

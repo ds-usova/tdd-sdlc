@@ -27,10 +27,10 @@ The orchestrator spawns the red agent of the type the module's conventions give 
 hands the case as a **reproduction brief** instead of plan steps. One agent per case, one at a time, never in a
 wave. When: at a stage boundary in a pipeline; at the finish of a fix, a rework or an upgrade.
 
-The red agent does one thing. It writes one test in the class the conventions put it in. It runs it. The test
-must fail, and fail for the symptom's reason. Then it disables the test with the mechanism the conventions
-give. It reports the class and the method. A test that passes, or fails for another reason, is not a
-reproduction; the agent says so and changes nothing.
+The red agent does one thing. It writes one test in the class the conventions put it in. It runs it. The test must
+fail, and fail for the symptom's reason. Then it disables the test as `disabling-a-test.md` says. It reports the class
+and the method. A test that passes, or fails for another reason, is not a reproduction; the agent says so and changes
+nothing.
 
 **The disabled reason is the symptom in words.** Never a backlog id, a task number or a step id. The findings
 block names the test; the backlog row points at the block.

@@ -35,7 +35,7 @@ build on one. The one place a step id belongs is a disabled test's reason.
 ## Tests that stop compiling or would now fail
 
 **A test method never disappears from the run.** Whatever is done to it, the runner still reports it —
-**disabled**, by the mechanism the module's testing conventions give, so it counts as *skipped* rather than
+**disabled**, as [`disabling-a-test.md`](disabling-a-test.md) says, so it counts as *skipped* rather than
 vanishing:
 
 - **it compiles but would now fail** — disable it where it stands, body intact;

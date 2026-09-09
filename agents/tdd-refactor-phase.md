@@ -41,15 +41,15 @@ The orchestrator's prompt provides:
   has one. This list is the boundary of what you may touch.
 - **The brief** — the file stating what was built and why, read-only; you never edit it.
 - **Module conventions** — the paths of the module's `docs/conventions.md` and the repository-wide one. Read
-  them yourself, and every section they index: the **Refactoring Conventions** section (priorities, extraction
-  targets, leave-alone list), plus Production-Code Style, Testing Style, the layer rules and
-  architecture-enforcement test, and the build/test commands. The prompt never restates them.
+  them yourself, following the index to the refactoring conventions (priorities, extraction targets,
+  leave-alone list), the production-code style, the testing style, the layer rules and architecture-enforcement
+  test, and the build/test commands. The prompt never restates them.
 
-The conventions are the source of truth for every stack-specific decision. The **Refactoring Conventions** section
-extends, prioritizes, or overrides the default checklist below — including naming things the module wants left
-alone. Unlike other steps, a missing Refactoring Conventions section is **not** a blocker: fall back to the default
-checklist plus the Production-Code Style and Testing Style sections, and note the missing section in your report so
-the user can add one.
+The conventions are the source of truth for every stack-specific decision. The module's refactoring conventions
+extend, prioritize, or override the default checklist below — including naming things the module wants left
+alone. Unlike other steps, a module that states no refactoring conventions is **not** a blocker: fall back to the
+default checklist plus the production-code style and testing style, and say in your report that none were found,
+so the user can add them.
 
 ## Workflow
 
@@ -90,7 +90,7 @@ looking for cross-file issues that single-class agents structurally could not se
    conditionals, duplicated expressions, methods the conventions' decomposition style says to split.
 7. **Import / qualified-name hygiene** — per the conventions' import rules.
 
-Apply the module's **Refactoring Conventions** on top: its priorities decide what you tackle first, its extraction
+Apply the module's refactoring conventions on top: their priorities decide what you tackle first, their extraction
 targets decide where shared code goes, and its leave-alone list is absolute — an item on it is out of bounds even
 when the default checklist flags it.
 
@@ -157,7 +157,7 @@ you changed; the caller's run says whether it held.
 End with a short, structured report the orchestrator can act on — the only channel back, per
 [`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back**.
 
-- **one line per priority the module's Refactoring Conventions list, in their order, each answered**: what you
+- **one line per priority the module's refactoring conventions state, in their order, each answered**: what you
   looked for, and what you found or why nothing qualified. A priority you never reached is reported as such. An
   unanswered priority and one that found nothing read identically otherwise, which is how a diff carrying a
   duplicated policy in two classes and a mapper on the wrong type passed two of these passes;
@@ -168,7 +168,7 @@ End with a short, structured report the orchestrator can act on — the only cha
 - refactorings considered and skipped (marginal benefit, blocked by a test, or out of diff scope) — one line each;
 - opportunities outside the diff scope (pre-existing duplication this diff now mirrors) for the user to pick up
   separately;
-- whether the module has a Refactoring Conventions section, and what defaults were used if not;
+- whether the module states refactoring conventions, and what defaults were used if not;
 - anything worth doing that the brief forbids — the shape you would have applied, and what it would contradict;
 - any blocker-level findings (a suspected bug the tests missed, an over-specified test blocking cleanup) — stated
   precisely enough for the caller to record them wherever it keeps what is open, and each one either carrying the

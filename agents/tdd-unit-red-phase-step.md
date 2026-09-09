@@ -63,7 +63,8 @@ Write **one test per given/when/then scenario** listed in the input — do not s
 `update:` sub-bullet: a per-method one exactly as written; a premise one to each test whose body meets the
 premise, and to no other. **The premise governs, not its wording.** A test the sentence seems to reach but whose
 body does not meet the premise is left as it is and named in the report — never reshaped so that it fits. Derive
-each test method name from its scenario using the naming pattern in the conventions.
+each test method name from its scenario using the naming pattern in the conventions, or the one the neighbouring
+tests follow where the conventions name none.
 
 Do **not** write tests beyond what is listed, with one exception. A **mechanical** case the plan omitted on a
 method already under test here — a boundary value, a null or empty argument, a mapping detail — may be added and

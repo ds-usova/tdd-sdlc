@@ -34,8 +34,8 @@ The orchestrator's prompt provides:
   them.
 
 The conventions are the source of truth for every stack-specific decision. A decision they and the plan do not
-cover — where a new package's `package-info` goes, which disable annotation to use — is a blocker in your report,
-not a pattern you introduce.
+cover — where a new package's `package-info` goes, which file a new configuration property belongs in — is a
+blocker in your report, not a pattern you introduce.
 
 ## Workflow
 

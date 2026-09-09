@@ -19,8 +19,9 @@ third; the bundle gives that third one owner.
 
 ## The cap
 
-The module conventions' **Parallelism** section sets how many step agents run at once. Spawn up to the cap and
-queue the rest, launching a queued bundle as a running one finishes. A missing or silent section means no cap.
+The module conventions set how many step agents run at once. Spawn up to the cap and
+queue the rest, launching a queued bundle as a running one finishes. Where they state no cap, the default in
+[`sub-agents.md`](sub-agents.md) applies.
 
 **When the cap forces a choice, keep one grouping in one wave.** Two eligible bundles from the same grouping and
 different layers write beside each other; take bundles from different groupings first, and put the second of a

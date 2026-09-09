@@ -49,9 +49,13 @@ Where the level above sees an agent return with children in flight, it resumes t
 they finish; the harness's task-notification is the signal, and it arrives at that level. A grandchild's report
 arrives there too, so the level above relays it rather than expecting the middle agent to have seen it.
 
-**Every spawn passes `model`**, from the module conventions' **Sub-Agent Models** section — the executing model
-for step work, the deciding model for planning, review and the refactor pass. Only a module with no such section
-falls back to the default.
+**Every spawn passes `model`**, from the module conventions — the executing model for step work, the deciding
+model for planning, review and the refactor pass. Only a module whose conventions name no model falls back to
+the default.
+
+**Every spawning level caps how many run at once**, by what the conventions say about the cap. Where they
+state no cap: four step agents at once within a module, and two module-level agents — pipelines, module agents
+— at once across modules. A cap the conventions state, at either tier, replaces the default at that tier.
 
 **Point a sub-agent at the rule; do not restate it.** A rule the repository writes down is passed as the file that
 owns it, named so the agent reads it there — never as a remembered version, which is a second copy that can drift
@@ -76,7 +80,7 @@ report, and it never leaves the message unanswered.
   failure exhausts the budget.
 
 **An exhausted budget is escalated once, never blocked at once.** The orchestrator spawns the same agent type
-again, fresh, on the deciding model the conventions' **Sub-Agent Models** name. Where they name none, on the
+again, fresh, on the deciding model the conventions name. Where they name none, on the
 same model. Its input is the step as before, plus every attempt line so far. The spawn is recorded in the Run
 Log as an `RL` note without `Resolved:`: the step, the model, the cause.
 

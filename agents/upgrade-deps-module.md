@@ -56,8 +56,8 @@ you.
 
 **After every step**: whatever the conventions require before a commit, tick the step, and — where the
 conventions commit — commit the steps file with the paths that step named. Another module's agent is committing
-into the same history at the same time; follow what the Version Control rules say about scoping and a concurrent
-commit, and report a refusal they do not cover rather than retrying.
+into the same history at the same time; follow what the commit policy says about scoping and a concurrent
+commit, and report a refusal it does not cover rather than retrying.
 
 **After the last step**: the module's whole suite is green, at the baseline's total and skipped counts.
 

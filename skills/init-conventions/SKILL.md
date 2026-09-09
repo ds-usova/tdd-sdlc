@@ -76,7 +76,7 @@ A single-module repository keeps the build facts in the module tier, and may hav
 | `code-style.md`   | production-code idioms, and what a refactoring pass prioritizes and must leave alone       | green and refactor phases    |
 | `build.md`        | this module's exact compile, single-test, full-suite and architecture-test commands        | every phase                  |
 | `follow-up.md`    | what runs once a change is complete, and what documents it earns                           | the last stage, archiving    |
-| `agent.md`        | commit behaviour, sub-agent models, this module's own parallelism caps                     | the orchestrating skills     |
+| `agent.md`        | commit behaviour, the models, this module's own cap on concurrent agents                    | the orchestrating skills     |
 
 **Every agent-only fact belongs in `agent.md`** and nowhere else. The other files are documentation for a person
 who happens to also be read by an agent: they describe the module, never a workflow, and never mention agents.
@@ -88,6 +88,11 @@ model does not survive, and belongs in `agent.md`.
 The `conventions/` templates — under `${CLAUDE_PLUGIN_ROOT}/templates/` when this framework is installed as a
 plugin, under `.claude/templates/` in a plain checkout — are the module tier as blank files, one per row above
 plus the index. Their placeholders are the questions to answer; the survey supplies the answers.
+
+The split above is the default shape, not a requirement. What the other skills read is the list of facts in
+`conventions-contract.md`, under `docs/` at the same root as those templates — the plugin's `docs/`, not this
+repository's. An existing conventions layout that
+the index leads to holds those facts wherever it likes.
 
 ## 3. Write the Files
 
@@ -133,5 +138,8 @@ than guessed.
   wrong reading before the rest of the framework inherits it.
 - List every remaining `TBD` as a numbered list — file, what to confirm, the options — never as prose. Each one was
   asked in step 4; a TBD that was not asked is a step-4 defect, not a hand-over item.
+- **List every fact from `docs/conventions-contract.md` the written files do not state**, with what happens when
+  a run meets the gap, as that page gives it. Read the files, not the template headings: a fact stated under any
+  heading counts. Where a gap survives because the user declined to answer, say so.
 - **Stop.** Do not change code, reformat existing sources to match a rule just written, or run build commands
   beyond what the survey needed.

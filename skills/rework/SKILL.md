@@ -38,9 +38,10 @@ starting point; the scope comes from reading the code. **A path to an existing `
 [`resuming.md`](../../templates/resuming.md), which replaces Phase 0 and Phase 1.
 
 Read the repository-wide conventions and `<module>/docs/conventions.md` for every module the change reaches.
-They answer the build and test commands, the layering rule and what checks it, the diagram format, how a test is
-disabled, what runs before a commit, the commit policy, and **what this repository says about refactoring** — its
-priorities, where extracted code goes, what it will not have touched. All of it binds a step.
+They answer the build and test commands, the layering rule and what checks it, the diagram language, how a test
+is disabled, what runs before a commit, the commit policy, the cap on concurrent agents, the models, and **what
+this repository says about refactoring** — its priorities, where extracted code goes, what it will not have
+touched. All of it binds a step.
 
 ## Phase 0 — Baseline
 
@@ -101,7 +102,9 @@ after any answer or re-classification written in Phase 2.
    stands where phase 0 left it apart from exactly what its `disables:` turned off. A blocked shared file stops
    the run there.
 2. **One `rework-module` agent per steps file, concurrently**, spawned and waited for as
-   [`templates/sub-agents.md`](../../templates/sub-agents.md) says, each handed its file's path, its module, its
+   [`templates/sub-agents.md`](../../templates/sub-agents.md) says, capped and given its model by what the
+   conventions say about the cap on concurrent agents and the models, the default there where they say
+   nothing; each handed its file's path, its module, its
    baseline figures, what the shared file disabled in its module, and `rework.md`. It applies its steps in ID
    order and returns finished or blocked. An agent returning on an exhausted budget is escalated once before
    its return counts as blocked ([`templates/sub-agents.md`](../../templates/sub-agents.md), **Budget and
@@ -111,7 +114,7 @@ after any answer or re-classification written in Phase 2.
 
 **A step reaches a sub-agent as `rework.sh show <ID> --file <steps>`**, never as a prompt retelling it.
 
-**Whether anything is committed is the conventions' Version Control rules.** A repository silent on it gets no
+**Whether anything is committed is the conventions' commit policy.** A repository silent on it gets no
 commits anywhere in this skill. Where they do commit, the step's own green run is the guardrail the commit
 follows, and the commit is provisional: the closing full run proves the whole.
 

@@ -145,9 +145,9 @@ figures, and the section name if the user narrowed the run to one.
   pipeline that spawned it never saw it. Relay what it says in the message that resumes the pipeline, rather than
   waiting for a report that has already been delivered to the wrong level.
 - **How many start at once is the repository tier's answer.** One machine runs every module, and a module's own
-  conventions cannot see what a sibling is doing. Read the **Parallelism** rules at the level that binds all the
-  modules and start no more pipelines than they allow, starting the next as a running one finishes. If no such
-  rules exist, start them all.
+  conventions cannot see what a sibling is doing. Read the cap on concurrent agents at the level that binds all the
+  modules and start no more pipelines than it allows, starting the next as a running one finishes. If no cap is
+  stated, the default in [`templates/sub-agents.md`](../../templates/sub-agents.md) applies.
 - **What happens inside a pipeline is its own.** Its module's cap, its stage order, its guardrails, its ticks.
   You reconcile nothing about a step and never edit a plan a pipeline owns.
 - **Report per plan as each returns.** One finishing does not wait for another.
@@ -207,7 +207,7 @@ When every pipeline has returned:
    `plan-log.md`, the `design.md` they link, the `spec.md` and `design-log.md` beside it, `review/`, and
    anything else the task accumulated — into `docs/implemented/`. Moving the directory rather than the files
    keeps every link inside it working.
-4. **Commit** per the Version Control policy. This is where its **squash-before-archiving** setting applies.
+4. **Commit** per the commit policy. This is where its **squash-before-archiving** setting applies.
 5. **What the conventions run over finished work.** Every affected module's conventions say what happens once a
    change is complete — a measurement, a documentation pass. Follow the conventions index to wherever they say
    it, and run that list in its order, passing each entry the archived plan. An entry listed by several affected
@@ -218,8 +218,8 @@ nor collect what the other plans left open, nor hand an archived plan to a step 
 
 ## Version Control
 
-Whether this run commits at all, and how, is the conventions' **Version Control** rules. A repository has one
-history however many modules it has, so expect them at the level that binds all of them.
+Whether this run commits at all, and how, is the conventions' commit policy. A repository has one
+history however many modules it has, so expect it at the level that binds all of them.
 
 **Missing or silent means no commits.** Never invent a commit policy — an uninvited commit is exactly the kind of
 change a user managing their own history does not want.

@@ -67,7 +67,7 @@ you.
 **After every step**: whatever the conventions require before a commit, `fix.sh tick <ID>`, and — where the
 conventions commit — commit the fix file with the paths that step named. **A `red` step's commit carries test
 files and nothing else.** Another module's agent is committing into the same history at the same time; follow
-what the Version Control rules say about scoping and about a concurrent commit, and report a refusal they do not
+what the commit policy says about scoping and about a concurrent commit, and report a refusal it does not
 cover rather than retrying.
 
 ## What You Write

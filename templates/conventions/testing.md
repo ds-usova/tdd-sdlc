@@ -36,6 +36,8 @@ package name, and that guess is wrong exactly where the module differs from the 
   e.g. @WebMvcTest with MockMvc and @MockitoBean>`
 - Firing non-HTTP entry points in system tests: `<how a test makes the framework fire a scheduled or message-driven
   entry point as in production; or "none — the module has no non-HTTP entry points">`
+- Disabling a test: `<the mechanism, and the reason it must carry — e.g. @Disabled("<reason>") on the method;
+  or "never — a failing test is fixed or deleted">`
 
 ## Naming Conventions
 

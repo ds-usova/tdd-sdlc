@@ -72,8 +72,8 @@ one for deciding work.
    Stabilization → Stage 1, Red Phase → Stage 2, Green Phase → Stage 3, Post-Implementation Steps → Stage 5.
 2. Read `<module>/docs/conventions.md` for the module your plan implements (and the repo-root
    `docs/conventions.md` if present), following the index to the sections you need: the build command, the test
-   commands per layer, the architecture-enforcement test, the parallelism cap, the sub-agent models, the version
-   control rules. Those are for **your own** guardrails and scheduling.
+   commands per layer, the architecture-enforcement test, the cap on concurrent agents, the models, what runs
+   before a commit, the commit policy. Those are for **your own** guardrails and scheduling.
 
    **A sub-agent gets the conventions as paths, never as content.** Every spawn names the two index files (the
    module's and the repository's) and nothing more about them: which facts a step needs is written in that agent's own
@@ -131,10 +131,10 @@ spawned you has already told the user.
 
 ## Version Control
 
-Whether this run commits at all, and how, is the conventions' **Version Control** rules — read them with the
-other conventions in step 2 above, following the conventions index to wherever they live. A repository has one
-history however many modules it has, so expect them at the level that binds all of them. Where a stage below says
-"commit per the Version Control policy," those rules are what it means.
+Whether this run commits at all, and how, is the conventions' commit policy — read it with the
+other conventions in step 2 above, following the conventions index to wherever it lives. A repository has one
+history however many modules it has, so expect it at the level that binds all of them. Where a stage below says
+"commit per the commit policy," that policy is what it means.
 
 **Missing or silent means no commits.** Never invent a commit policy.
 
@@ -194,7 +194,7 @@ Log**. The checks:
 If any check fails for a reason caused by this plan's changes, re-delegate to `stabilization-step` until it holds.
 If it fails for a reason **unrelated to the plan**, apply the [Unrelated Failures](#unrelated-failures--report-dont-fail) rule.
 
-Once the guardrail holds, commit per the Version Control policy.
+Once the guardrail holds, commit per the commit policy.
 
 ## Stage 2 — RED Phase (parallel)
 
@@ -227,7 +227,7 @@ in this stage.
 **Stage guardrail — RED exit check**: once every item is ticked or recorded as blocked, run `red-exit.md` in the
 `templates` directory yourself. Do not start Stage 3 until it holds for every non-blocked item.
 
-Once the check holds, commit per the Version Control policy.
+Once the check holds, commit per the commit policy.
 
 ## Stage 3 — GREEN Phase (unit + integration parallel, system last)
 
@@ -259,7 +259,7 @@ implementation lands here.
    `tdd-integration-green-phase-step`, each passed its step context and the conventions index paths.
 2. Wait until every item in the unit + integration batch is ticked or recorded as blocked. Tick items as they
    succeed; run the module's unit and integration suites once the batch is done and confirm both are fully green
-   before proceeding. Once green, commit per the Version Control policy (if its granularity commits per wave —
+   before proceeding. Once green, commit per the commit policy (if its granularity commits per wave —
    otherwise this checkpoint is a no-op and the commit happens at stage end).
 3. Only then run the **TDD System Test Green Phase** steps — **sequentially, one sub-agent at a time, in plan
    order**, on `tdd-system-green-phase-step`. These fix remaining production bugs until the
@@ -292,8 +292,8 @@ pipeline**; another module's pipeline is unaffected and keeps running. Pass it:
   targets plus the file lists in the step agents' reports (and a version-control diff against the pre-plan
   baseline, if one is available);
 - the plan file path (read-only context);
-- the conventions index paths, with a note whether the module has a **Refactoring Conventions** section — a
-  module without one is fine (the agent falls back to its defaults plus the style sections it finds).
+- the conventions index paths, with a note whether the module states refactoring conventions — a module
+  without them is fine (the agent falls back to its defaults plus the style rules it finds).
 
 **Stage guardrail** — verify yourself after the agent reports: the full suite is green with the **same test count**
 as before the stage (a changed count means a test was lost or duplicated), and the architecture-enforcement test
@@ -301,7 +301,7 @@ passes (extractions may have created or moved files). This stage changes no beha
 the agent reports blocker-level findings (a suspected bug the tests missed, an over-specified test), record them
 in the **Run Log**.
 
-Once the guardrail holds, commit per the Version Control policy.
+Once the guardrail holds, commit per the commit policy.
 
 ## Stage 5 — Wrap-Up and Whole-Plan Guardrail
 
@@ -331,7 +331,7 @@ plan, written for this task.
    otherwise.
 3. **Hand up what was reproduced.** Every reproduction the Run Log names, with its class and method and the
    case behind it, goes into your report. The level above files it.
-4. Commit per the Version Control policy, then **report your plan complete**. Leave the task directory exactly
+4. Commit per the commit policy, then **report your plan complete**. Leave the task directory exactly
    where it is. Whether the task as a whole is finished is a fact only the level above can see, and archiving on
    the first plan to finish would move the directory out from under a run still writing to it.
 

@@ -234,10 +234,10 @@ or shared one.
 The classes this module gets, and how they connect. One component diagram (C4 level 3), plus a table of what a box
 cannot carry.
 
-**What to write it in comes from the module's conventions file** — its **Diagram Format** entry names the language
-and any preamble. Where a module names none, use PlantUML with the bundled C4-PlantUML standard library: a fenced
-` ```plantuml ` block and `!include <C4/C4_Component>`. Angle brackets, no `.puml` extension. Where a renderer
-predates the bundled stdlib, fall back to
+**What to write it in comes from the module's conventions**: the diagram language and any preamble. Where a
+module names none, use PlantUML with the bundled C4-PlantUML standard library: a fenced ` ```plantuml ` block
+and `!include <C4/C4_Component>`. Angle brackets, no `.puml` extension. Where a renderer predates the bundled
+stdlib, fall back to
 `https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml`.
 
 - **Every new or changed class**, grouped into the boundaries the module's conventions name. Where those conventions
@@ -458,8 +458,8 @@ equivalent) — its presence must be consistent across every log, clean or not.
 ## 5. Invoke the Review Subagent
 
 Once every section in **4. Plan Structure** is written, spawn the **`review-plan` agent** against the just-created
-plan file, on the model the module conventions' **Sub-Agent Models** section names for deciding work (reviewing a
-plan is exactly that); without such a section, the default model.
+plan file, on the model the module conventions name for deciding work (reviewing a
+plan is exactly that); where they name none, the default model.
 
 Never review the plan in this context instead — the reviewer must verify the plan's claims against the repository
 unbiased by the reasoning that produced them, and this session holds that reasoning.

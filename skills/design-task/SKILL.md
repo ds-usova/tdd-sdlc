@@ -287,8 +287,8 @@ Tables by default. Prose only where a table cannot hold the reason, and then two
 
 Include diagrams whenever the change introduces new behaviour or a new flow; a one-line stub change needs none.
 
-**What to write them in comes from the module's conventions file** — its **Diagram Format** entry names the
-language, the fenced block's language tag, and any preamble a diagram needs. Where a module names none, use
+**What to write them in comes from the module's conventions**: the diagram language, the fenced block's
+language tag, and any preamble a diagram needs. Where a module names none, use
 PlantUML with the bundled C4-PlantUML standard library: fenced ` ```plantuml ` blocks, and `!include
 <C4/C4_Container>` for a C2. Angle brackets, no `.puml` extension: that resolves against PlantUML's own bundled
 stdlib, needing neither a network fetch nor a relative path. Where a renderer's PlantUML predates the bundled
@@ -387,7 +387,7 @@ check by reading the files.
 ## 7. Invoke the Grill Subagent
 
 Once the spec and the design are written, spawn a grill against the task directory. Use the model the module
-conventions' **Sub-Agent Models** section names for deciding work; without such a section, the default model.
+conventions name for deciding work; where they name none, the default model.
 
 **Which grill depends on what the change touches**, read from each affected module's conventions:
 

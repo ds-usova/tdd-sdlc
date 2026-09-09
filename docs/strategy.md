@@ -11,10 +11,12 @@ models, the commit policy — and never supplies the value. Every value lives in
 `docs/conventions.md` for the repository and `<module>/docs/conventions.md` per module, written by
 `init-conventions` from what the repository already does.
 
-A rule paraphrased into a prompt is a second copy that drifts where no review looks. So a skill names the file
-that owns a rule and lets the agent read it. Where your repository says nothing, the skill has a default —
-PlantUML with C4, the session's model, generic layer names — and the run continues on the default instead of
-stopping.
+A rule paraphrased into a prompt is a second copy that drifts where no review looks. So a skill names the fact
+it needs and lets the agent follow the conventions index to it. The facts, who reads each, and the default when
+one is absent: [`conventions-contract.md`](conventions-contract.md). Where your repository says nothing, the
+skill has a default — PlantUML with C4, the session's model, generic layer names — and the run continues on the
+default instead of stopping. The two facts with no default, the build commands and the test-type mapping, stop
+it.
 
 ## Files are the contract between steps
 

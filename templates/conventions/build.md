@@ -13,6 +13,10 @@ runs from.
 - Run the architecture-enforcement check: `<e.g. ./gradlew :widget-service:test --tests "com.example.architecture.*">`
 - Format: `<e.g. ./gradlew :widget-service:spotlessApply; or "none — no formatter configured">`
 - Contract codegen: `<e.g. ./gradlew :widget-service:openApiGenerate; or "n/a">`
+- Coverage guardrail: `<the command and the minimum it enforces — e.g.
+  ./gradlew :widget-service:jacocoTestCoverageVerification, 80% line coverage; or "none">`
+- Before a commit: `<what runs over the tree before any commit, in order — e.g. the formatter, then the linter;
+  or "nothing">`
 
 ## Reading a Run
 

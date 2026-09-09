@@ -40,7 +40,7 @@ Which model each kind of delegated work runs on. Naming none means everything ru
 
 How many agents and test runs may run at once **in this module**. Concurrent runs share build caches, a container
 runtime, and this machine's memory; too many at once produces failures that look like broken tests and are
-resource contention. A silent section means no known cap.
+resource contention. A silent section states no cap; an agent then applies its own default.
 
 **What the machine allows across every module at once belongs to the root tier.** One machine runs them all, and
 a module file cannot state a limit it has no way to see. Where the repository has such a file, this section links

@@ -1,7 +1,7 @@
 # Recording what a run costs
 
 Your conventions assign a model to each kind of agent the plugin spawns
-([`templates/conventions/agent.md`](../templates/conventions/agent.md), **Sub-Agent Models**). This page says
+([`conventions-contract.md`](conventions-contract.md)). This page says
 what those choices cost. After every `implement-plan`, `fix-bug`, `rework` or `upgrade-deps` run, the task
 directory holds `review/cost.md`: what each agent cost in tokens and time, and a timeline of when everything
 ran. Nothing has to be switched on.
@@ -124,7 +124,7 @@ tdd-unit-red-phase-step module-a     15:38  15:40  ··············�
 
 ### What to do with it
 
-- **Set the models.** The **Sub-Agent Models** section of your conventions names an executing model for step
+- **Set the models.** Your conventions name an executing model for step
   work and a deciding model for review and refactoring. The per-type rows say what each choice costs.
 - **Find the long tail.** A single agent far above its type's average is one that looped. The budget rule
   stops that after three attempts and escalates once to the deciding model

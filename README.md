@@ -45,7 +45,8 @@ any line that makes it pass.
 </td>
 <td valign="top" width="50%">
 <b>Parallel across modules</b><br>
-<i>One design for the whole change, one agent per module it touches, all running concurrently.</i>
+<i>One design for the whole change, one agent per module it touches, running concurrently up to the cap your
+conventions set.</i>
 </td>
 </tr>
 <tr>
@@ -160,7 +161,9 @@ Everything the plugin does in your repository, it does because a conventions fil
 - **They outlive the plugin.** Conventions describe your project, not tdd-sdlc. Drop the plugin and they still
   brief any model or any newcomer.
 
-Templates and the section-by-section reference: [`templates/conventions/`](templates/conventions/README.md).
+Which facts the agents read, who reads each, and what happens when one is absent:
+[`docs/conventions-contract.md`](docs/conventions-contract.md). The layout `init-conventions` writes:
+[`templates/conventions/`](templates/conventions/README.md).
 
 <hr>
 
