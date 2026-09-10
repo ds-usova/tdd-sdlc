@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Stands in for curl on PATH so a fetch is answered from tests/fixtures/cost/pages/ and never from the
+# network. COST_FAKE_PAGES names that directory; every URL asked for is appended to COST_FAKE_CALLS, so
+# a case can see which fetches happened. Any URL but the two cost.sh fetches fails the way a 404 does.
+set -u
+pages="${COST_FAKE_PAGES:?COST_FAKE_PAGES must name the pages directory}"
+calls="${COST_FAKE_CALLS:-/dev/null}"
+
+url=""; out=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --max-time | --connect-timeout | -m) shift 2 ;;
+    -o | --output) out="$2"; shift 2 ;;
+    -*) shift ;;
+    *) url="$1"; shift ;;
+  esac
+done
+
+case "$url" in
+  */about-claude/pricing.md) src="$pages/pricing.md" ;;
+  */models/overview.md) src="$pages/models.md" ;;
+  *) echo "curl: (22) The requested URL returned error: 404" >&2; exit 22 ;;
+esac
+
+printf '%s\n' "$url" >> "$calls"
+if [ -n "$out" ]; then cat "$src" > "$out"; else cat "$src"; fi

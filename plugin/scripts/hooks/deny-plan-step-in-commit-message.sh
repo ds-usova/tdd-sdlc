@@ -27,12 +27,13 @@ add_messages() {
 }
 
 # -m / --message with a single- or double-quoted value, with or without a space before the quote.
+# -m may sit at the end of a run of short flags, as in -am.
 add_messages < <(printf '%s' "$command_text" | awk '
     {
         s = $0
-        while (match(s, /(-m|--message)[ \t]*=?[ \t]*'"'"'[^'"'"']*'"'"'/)) {
+        while (match(s, /(-[a-zA-Z]*m|--message)[ \t]*=?[ \t]*'"'"'[^'"'"']*'"'"'/)) {
             seg = substr(s, RSTART, RLENGTH)
-            sub(/^(-m|--message)[ \t]*=?[ \t]*'"'"'/, "", seg)
+            sub(/^(-[a-zA-Z]*m|--message)[ \t]*=?[ \t]*'"'"'/, "", seg)
             sub(/'"'"'$/, "", seg)
             print seg
             s = substr(s, RSTART + RLENGTH)
@@ -41,9 +42,9 @@ add_messages < <(printf '%s' "$command_text" | awk '
 add_messages < <(printf '%s' "$command_text" | awk '
     {
         s = $0
-        while (match(s, /(-m|--message)[ \t]*=?[ \t]*"[^"]*"/)) {
+        while (match(s, /(-[a-zA-Z]*m|--message)[ \t]*=?[ \t]*"[^"]*"/)) {
             seg = substr(s, RSTART, RLENGTH)
-            sub(/^(-m|--message)[ \t]*=?[ \t]*"/, "", seg)
+            sub(/^(-[a-zA-Z]*m|--message)[ \t]*=?[ \t]*"/, "", seg)
             sub(/"$/, "", seg)
             print seg
             s = substr(s, RSTART + RLENGTH)
@@ -53,9 +54,9 @@ add_messages < <(printf '%s' "$command_text" | awk '
 add_messages < <(printf '%s' "$command_text" | awk '
     {
         s = $0
-        while (match(s, /(-m|--message=)[ \t]*[^ \t"'"'"'-][^ \t]*/)) {
+        while (match(s, /(-[a-zA-Z]*m|--message=)[ \t]*[^ \t"'"'"'-][^ \t]*/)) {
             seg = substr(s, RSTART, RLENGTH)
-            sub(/^(-m|--message=)[ \t]*/, "", seg)
+            sub(/^(-[a-zA-Z]*m|--message=)[ \t]*/, "", seg)
             print seg
             s = substr(s, RSTART + RLENGTH)
         }
@@ -90,7 +91,9 @@ fi
 # nothing else. Plan steps: ST RU RI RS GU GI GS PI. Spec: RQ AC DN. Design log: DF. Plan: OQ. Plan
 # log: RF. Every log: RL AT. Findings file: RX DX. Backlog: BB BR BT. Fix steps: FS FR FG. Rework
 # steps: WK. Upgrade steps: UP. Case-sensitive on purpose: "rq01" is not an id.
-pattern='(^|[^A-Za-z0-9_])(ST|RU|RI|RS|GU|GI|GS|PI|RQ|AC|DN|DF|OQ|RF|RL|AT|RX|DX|BB|BR|BT|FS|FR|FG|WK|UP)[0-9]{2,}([^A-Za-z0-9_]|$)'
+# The message is split into words at every character an id cannot contain, so two ids one space
+# apart are both seen.
+pattern='^(ST|RU|RI|RS|GU|GI|GS|PI|RQ|AC|DN|DF|OQ|RF|RL|AT|RX|DX|BB|BR|BT|FS|FR|FG|WK|UP)[0-9]{2,}$'
 found=()
 for message in "${messages[@]}"; do
     while IFS= read -r hit; do
@@ -100,14 +103,15 @@ for message in "${messages[@]}"; do
             [ "$f" = "$hit" ] && already=1 && break
         done
         [ "$already" -eq 0 ] && found+=("$hit")
-    done < <(printf '%s' "$message" | grep -Eo "$pattern" | sed -E 's/^[^A-Z]*//; s/[^0-9]*$//')
+    done < <(printf '%s' "$message" | tr -c 'A-Za-z0-9_' '\n' | grep -E "$pattern")
 done
 
 if [ ${#found[@]} -eq 0 ]; then
     exit 0
 fi
 
-names="$(IFS=', '; echo "${found[*]}")"
+names="$(printf '%s, ' "${found[@]}")"
+names="${names%, }"
 
 reason="A commit message names no plan step, design entry, finding or backlog row, and this one names ${names}. An id belongs to a document that is archived once the work lands, so the message stops resolving the moment it would be read. Say what the commit does instead. See skills/plan-task/SKILL.md, 'An ID never leaves those places'."
 

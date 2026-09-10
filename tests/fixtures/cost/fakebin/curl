@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Stands in for curl on PATH so the report is rendered offline: fails the way an unresolved host does.
+# Every URL asked for is appended to COST_FAKE_CALLS first, so a case can tell a fetch that was tried
+# and failed from one that was never tried at all.
+set -u
+for a in "$@"; do case "$a" in http*) printf '%s\n' "$a" >> "${COST_FAKE_CALLS:-/dev/null}" ;; esac; done
+echo "curl: (6) Could not resolve host: platform.claude.com" >&2
+exit 6

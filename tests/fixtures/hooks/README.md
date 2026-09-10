@@ -1,0 +1,3 @@
+- `good/` — a task with one stabilization stub whose `stub-intent:` marker is still in `src/Widget.java`; `plan-log.md` has no Stubs section because `plan.sh stub` writing it is part of the test.
+- `clean/` — the same `src/Widget.java` with the marker gone; overlaid on `good/` to show the archive is then allowed.
+- `good/msg.txt` — the commit message file the `-F` and `--file=` checks read; it names RF02.
