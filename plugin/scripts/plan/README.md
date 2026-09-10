@@ -68,9 +68,10 @@ the single plan in flight under `docs/` is used — a task owns a directory hold
 log, and one plan per module, `plan.md` for a single-module task and `<module>/plan.md` for each module of a
 multi-module one. An archived plan under `docs/implemented/` has to be named explicitly.
 
-**Every plan has a `plan-log.md` beside it**, holding its **Review Findings** and its **Run Log**; `--log` names
-another, and takes one file, never a directory. `validate` reads both, and `block` writes to the log. The plan
-stays what a step agent reads; the log is what happened to it.
+**Every plan has a `plan-log.md` beside it**, holding its **Review Findings**, its **Run Log** and, where a
+script was refused or absent, its **Caveats** ([`scripts/README.md`](../README.md), **The log keeps the
+record**); `--log` names another, and takes one file, never a directory. `validate` reads both, and `block`
+writes to the log. The plan stays what a step agent reads; the log is what happened to it.
 
 A multi-module task therefore has several plans in flight, and every command names the one it addresses. IDs
 restart per plan, so `GU07` can exist in two of them and is only meaningful with its plan's path.

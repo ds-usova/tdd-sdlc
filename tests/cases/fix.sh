@@ -47,6 +47,9 @@ check_match "the entry names the step and the note" \
 check_match "with an empty Resolved line beneath it" '^  - Resolved:$' "$(cat "$D/fix-log.md")"
 check_fails "block refuses an unquoted note" fx block FG01 a second cause
 check_ok "the log block wrote still validates" fx validate docs/3-double-charge
+printf '%s\n' "" "## Caveats" "" "- **CV01:** fix.sh refused from FG01 on. Ticks by hand." >> "$D/fix-log.md"
+check_ok "a Caveats section in the log still validates" fx validate docs/3-double-charge
+check_match "and the counts are unchanged" 'fix.md: 3 steps, 2 attempts, 1 run-log entry, no problems' "$(fx_out validate docs/3-double-charge)"
 
 # --- attempts, task
 check "attempts sums every log" "bug-log.md · AT01, fix-log.md · AT01–AT02" "$(fx_out attempts docs/3-double-charge)"

@@ -26,7 +26,9 @@ for pair in "git commit -m 'Implements ST01 and GU07'|ST01, GU07" \
             'git commit --message=FS01|FS01' \
             'git -C sub commit -m "UP01"|UP01' \
             'git add -A && git commit -m "after WK02"|WK02' \
-            "git commit -am 'RQ01 met'|RQ01"; do
+            "git commit -am 'RQ01 met'|RQ01" \
+            'git commit -m "scripts by hand, CV01"|CV01' \
+            'git commit -m "closes BC02"|BC02'; do
   c="${pair%|*}"; ids="${pair##*|}"
   check_match "refused: $c" "^deny: .*names $ids\\. " "$(hook "$COMMIT" "$c")"
 done

@@ -58,6 +58,9 @@ rw block WK01 "second note" "$SF" > /dev/null
 check "block appends the next entry below the one before" "RL01 RL02" \
   "$(grep -o 'RL0[0-9]' "$LOG" | tr '\n' ' ' | sed 's/ $//')"
 check_match "validate counts the appended entries" '2 run-log entries, no problems' "$(rw validate "$SF" 2>&1)"
+printf '%s\n' "" "## Caveats" "" "- **CV01:** rework.sh refused from WK01 on. Ticks by hand." >> "$LOG"
+check_ok "a Caveats section in the log still validates" rw validate "$SF"
+check_match "and the counts are unchanged" '2 run-log entries, no problems' "$(rw validate "$SF" 2>&1)"
 check_fails "block of an unknown id fails" rw block WK99 "a note" "$SF"
 check_fails "block with an unquoted note is bad usage" rw block WK03 two words
 

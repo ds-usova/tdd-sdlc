@@ -124,8 +124,9 @@ hand, which is a chance to paraphrase a scenario the agent is supposed to implem
 A plan whose items have no IDs predates this format: `plan.sh validate` will say so item by item. Add the IDs
 first (you own plan edits), then proceed.
 
-If the script is absent or the call is refused — by a hook or by the user at the prompt — fall back to editing the checkboxes directly and put
-the case as one line in your final report, as [`scripts/README.md`](../scripts/README.md) says. Everything
+If the script is absent or the call is refused — by a hook or by the user at the prompt — fall back to editing
+the checkboxes directly, write the log's **Caveats** entry and put the case as one line in your final report,
+as [`scripts/README.md`](../scripts/README.md) says. Everything
 below still applies; only the mechanics change, and `validate` is never run. Never stop for it — the skill that
 spawned you has already told the user.
 

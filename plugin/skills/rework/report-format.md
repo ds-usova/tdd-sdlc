@@ -3,6 +3,8 @@
 What a finished rework tells the user, once phase 4 is done. The logs' Run Logs are its source: every line below
 that names a step's deviation is an `RL` entry there first.
 
+- **Every log's Caveats first**, as [`scripts/README.md`](../../scripts/README.md)'s **The log keeps the
+  record** says. Nothing when no log has the section.
 - **What is left where this rework came from**, in one line: `<that file> — 1 of 4 open (RX01)`. It costs one read
   of that file. A stale line here binds nothing.
 - Each step, its kind, and the files it touched.

@@ -2,6 +2,8 @@
 
 What a finished upgrade tells the user, once phase 4 is done.
 
+- **Every log's Caveats first**, as [`scripts/README.md`](../../scripts/README.md)'s **The log keeps the
+  record** says. Nothing when no log has the section.
 - **The survey after the run**: every row's `Status`, so what moved and what did not is one table.
 - **What listed versions and vulnerabilities**, and where the conventions were silent, what the stack could
   offer — a versions plugin, an audit command, a CVE scanner — as an option, not a recommendation made.

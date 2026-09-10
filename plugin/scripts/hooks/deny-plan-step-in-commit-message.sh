@@ -89,11 +89,11 @@ fi
 
 # Every id prefix the framework's files define - two capital letters and at least two digits - and
 # nothing else. Plan steps: ST RU RI RS GU GI GS PI. Spec: RQ AC DN. Design log: DF. Plan: OQ. Plan
-# log: RF. Every log: RL AT. Findings file: RX DX. Backlog: BB BR BT. Fix steps: FS FR FG. Rework
+# log: RF. Every log: RL AT CV. Findings file: RX DX. Backlog: BC BB BR BT. Fix steps: FS FR FG. Rework
 # steps: WK. Upgrade steps: UP. Case-sensitive on purpose: "rq01" is not an id.
 # The message is split into words at every character an id cannot contain, so two ids one space
 # apart are both seen.
-pattern='^(ST|RU|RI|RS|GU|GI|GS|PI|RQ|AC|DN|DF|OQ|RF|RL|AT|RX|DX|BB|BR|BT|FS|FR|FG|WK|UP)[0-9]{2,}$'
+pattern='^(ST|RU|RI|RS|GU|GI|GS|PI|RQ|AC|DN|DF|OQ|RF|RL|AT|CV|RX|DX|BC|BB|BR|BT|FS|FR|FG|WK|UP)[0-9]{2,}$'
 found=()
 for message in "${messages[@]}"; do
     while IFS= read -r hit; do

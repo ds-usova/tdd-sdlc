@@ -46,8 +46,8 @@ log:
 `--log` names another. **Read a step from `fix.sh show`**, never by extracting it by hand. **Tick a step only
 once you have verified it yourself** — `tick` empties the log's `In flight:` line, so a step is never ticked
 early to tidy it up. Where the script is absent or the call is refused — by a hook or by the user at the prompt
-— edit the files directly under the same rules and put the case as one line in your final report, as
-[`scripts/README.md`](../scripts/README.md) says; never stop for it.
+— edit the files directly under the same rules, write the log's **Caveats** entry and put the case as one line
+in your final report, as [`scripts/README.md`](../scripts/README.md) says; never stop for it.
 
 **Run a suite in the foreground and wait for it.** Backgrounding it ends the turn mid-step, and nothing restarts
 you.

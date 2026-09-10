@@ -78,8 +78,10 @@ steps file. `shared/steps.md` names every module the catalog serves.
 
 Every steps file has a log beside it under its own stem: `upgrade-log.md` beside `upgrade.md`, `steps-log.md`
 beside `<module>/steps.md` and `shared/steps.md`. One log per steps file, written at Phase 1 as its title and
-an empty `## Attempts`; `## Run Log` is created at the first entry, never empty. `upgrade.sh validate` reports
-a steps file without one. The steps file is what an agent reads; the log is what happened to it.
+an empty `## Attempts`; `## Run Log` is created at the first entry, never empty. `## Caveats` is created at the
+first script refused or absent ([`scripts/README.md`](../../scripts/README.md), **The log keeps the record**).
+`upgrade.sh validate` reports a steps file without a log. The steps file is what an agent reads; the log is
+what happened to it.
 
 ```
 # Upgrade Log: <upgrade.md's title, after the colon>

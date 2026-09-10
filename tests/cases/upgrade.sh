@@ -54,6 +54,9 @@ run "$P" block UP05 "the module's lock file is stale" docs/3-bump-libs/module-a/
 check_match "block: creates the Run Log where the log has none" '^## Run Log$' "$(cat "$D/module-a/steps-log.md")"
 check_match "block: as RL01" '^- \*\*RL01 \(UP05\):\*\* the module' "$(cat "$D/module-a/steps-log.md")"
 check_ok "block: the logs still validate" run "$P" validate docs/3-bump-libs
+printf '%s\n' "" "## Caveats" "" "- **CV01:** upgrade.sh refused from UP05 on. Ticks by hand." >> "$D/module-a/steps-log.md"
+check_ok "caveats: a Caveats section in the log still validates" run "$P" validate docs/3-bump-libs
+check_match "caveats: the counts are unchanged" 'module-a/steps.md: 1 step, 0 attempts, 1 run-log entry, no problems' "$(run "$P" validate docs/3-bump-libs)"
 check_fails "block: an unknown id fails" run "$P" block UP99 "note"
 check_fails "block: a note in several words is bad usage" run "$P" block UP03 waiting on a release
 
