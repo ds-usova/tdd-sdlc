@@ -99,9 +99,9 @@ Four commands. Each writes its files and stops; the next one reads them.
 <img src="docs/diagrams/workflow.svg" alt="init-conventions writes the conventions; design-task, plan-task and implement-plan each read them and write the next file" width="596">
 </p>
 
-What the files look like: [a spec](skills/design-task/example-spec.md),
-[its design](skills/design-task/example-design.md), [its log](skills/design-task/example-design-log.md),
-[a plan](templates/example-plan.md), [its log](templates/example-plan-log.md).
+What the files look like: [a spec](plugin/skills/design-task/example-spec.md),
+[its design](plugin/skills/design-task/example-design.md), [its log](plugin/skills/design-task/example-design-log.md),
+[a plan](plugin/templates/example-plan.md), [its log](plugin/templates/example-plan-log.md).
 What happens when the plan runs — levels, gates, waves: [`docs/implement-plan.md`](docs/implement-plan.md).
 Which agent spawns which: [`docs/agents.md`](docs/agents.md).
 
@@ -162,8 +162,8 @@ Everything the plugin does in your repository, it does because a conventions fil
   brief any model or any newcomer.
 
 Which facts the agents read, who reads each, and what happens when one is absent:
-[`docs/conventions-contract.md`](docs/conventions-contract.md). The layout `init-conventions` writes:
-[`templates/conventions/`](templates/conventions/README.md).
+[`templates/conventions/contract.md`](plugin/templates/conventions/contract.md). The layout `init-conventions` writes:
+[`templates/conventions/`](plugin/templates/conventions/README.md).
 
 <hr>
 
@@ -182,7 +182,7 @@ Which facts the agents read, who reads each, and what happens when one is absent
   unattended.
 - The plugin's scripts need allow rules. Every one is listed in [`settings.json`](settings.json) at the plugin
   root; copy them into your `.claude/settings.json` with the path adapted to where the plugin was installed
-  (see [`scripts/design/README.md`](scripts/design/README.md), Portability), or choose "always allow" on the
+  (see [`scripts/design/README.md`](plugin/scripts/design/README.md), Portability), or choose "always allow" on the
   first prompt.
 - A refused script never stops a run; the skill falls back to reading the file.
 - The plugin commits only where your conventions say so. Silent means no commits.

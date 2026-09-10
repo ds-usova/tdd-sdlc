@@ -5,7 +5,7 @@
   "plugins": [
     {
       "name": "tdd-sdlc",
-      "source": "./",
+      "source": "./plugin",
       "description": "Design, plan, red-green-refactor, rework, bug-fix and upgrade pipelines as gated skills and sub-agents.",
       "category": "development",
       "tags": ["tdd", "workflow", "planning", "sub-agents", "spec"]

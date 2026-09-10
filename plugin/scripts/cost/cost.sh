@@ -19,10 +19,9 @@ Usage:
   <plugin>/scripts/cost/cost.sh refresh-pricing
 
 Commands:
-  report           Read the task's review/cost.jsonl and write review/cost.md beside it. What the
-                   report holds is docs/cost-recording.md.
+  report           Read the task's review/cost.jsonl and write review/cost.md beside it.
   refresh-pricing  Fetch the published rates and rewrite the plugin's own pricing.json, beside the
-                   script, dated today. Run before a release, as docs/developing.md says.
+                   script, dated today. Run before a release.
 
 The task is named as a directory, as its review/cost.jsonl, or not at all when one task under docs/
 carries a cost.jsonl. An archived task under docs/implemented/ is named explicitly.
@@ -84,8 +83,8 @@ resolve_jsonl() {
 }
 
 # The last line per id, in start order, as JSON. A line recorded before the hook wrote `turns`,
-# `cache_create_5m`, `cache_create_1h`, `peak_ctx` and `offset` is skipped and counted
-# (docs/cost-recording.md); the last-per-id rule runs first, so a new line supersedes an old one.
+# `cache_create_5m`, `cache_create_1h`, `peak_ctx` and `offset` is skipped and counted;
+# the last-per-id rule runs first, so a new line supersedes an old one.
 current_lines() {
     jq -Rc -n '
         [inputs | select(length > 0) | (fromjson? // empty) | select(.id)] as $lines
@@ -108,7 +107,7 @@ skipped_count() {
 
 # Two tables the transcript does not carry: dollars per million tokens and the context window, per
 # model id. The bundled file ships with the plugin; a fetched copy is cached per user and refreshed
-# only when a report needs it (docs/cost-recording.md, "Where the rates come from").
+# only when a report needs it.
 pricing_bundled="$script_dir/pricing.json"
 pricing_parser="$script_dir/pricing-parse.awk"
 pricing_cache="${XDG_CACHE_HOME:-$HOME/.cache}/tdd-sdlc/pricing.json"

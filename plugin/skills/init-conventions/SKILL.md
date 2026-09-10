@@ -90,9 +90,8 @@ plugin, under `.claude/templates/` in a plain checkout — are the module tier a
 plus the index. Their placeholders are the questions to answer; the survey supplies the answers.
 
 The split above is the default shape, not a requirement. What the other skills read is the list of facts in
-`conventions-contract.md`, under `docs/` at the same root as those templates — the plugin's `docs/`, not this
-repository's. An existing conventions layout that
-the index leads to holds those facts wherever it likes.
+`contract.md`, beside those templates. An existing conventions layout that the index leads to holds those
+facts wherever it likes.
 
 ## 3. Write the Files
 
@@ -138,7 +137,7 @@ than guessed.
   wrong reading before the rest of the framework inherits it.
 - List every remaining `TBD` as a numbered list — file, what to confirm, the options — never as prose. Each one was
   asked in step 4; a TBD that was not asked is a step-4 defect, not a hand-over item.
-- **List every fact from `docs/conventions-contract.md` the written files do not state**, with what happens when
+- **List every fact from `templates/conventions/contract.md` the written files do not state**, with what happens when
   a run meets the gap, as that page gives it. Read the files, not the template headings: a fact stated under any
   heading counts. Where a gap survives because the user declined to answer, say so.
 - **Stop.** Do not change code, reformat existing sources to match a rule just written, or run build commands

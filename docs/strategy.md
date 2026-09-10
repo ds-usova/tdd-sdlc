@@ -13,7 +13,7 @@ models, the commit policy — and never supplies the value. Every value lives in
 
 A rule paraphrased into a prompt is a second copy that drifts where no review looks. So a skill names the fact
 it needs and lets the agent follow the conventions index to it. The facts, who reads each, and the default when
-one is absent: [`conventions-contract.md`](conventions-contract.md). Where your repository says nothing, the
+one is absent: [`contract.md`](../plugin/templates/conventions/contract.md). Where your repository says nothing, the
 skill has a default — PlantUML with C4, the session's model, generic layer names — and the run continues on the
 default instead of stopping. The two facts with no default, the build commands and the test-type mapping, stop
 it.
@@ -93,7 +93,7 @@ never reused; a withdrawn entry keeps its number.
 
 The commit-message hook refuses exactly this list, and nothing shaped like it occurs in ordinary prose. The
 format number every file carries, and what changed between formats, is
-[`scripts/README.md`](../scripts/README.md), **Formats**.
+[`scripts/README.md`](../plugin/scripts/README.md), **Formats**.
 
 ## The invariants
 

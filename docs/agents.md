@@ -19,6 +19,6 @@ the agent `implement-plan-module` spawns per post-implementation section.
 What each agent cost: [`cost-recording.md`](cost-recording.md).
 
 **Escalation** spawns the same type once more, on the deciding model
-([`templates/sub-agents.md`](../templates/sub-agents.md), **Budget and escalation**). It adds no edge.
+([`templates/sub-agents.md`](../plugin/templates/sub-agents.md), **Budget and escalation**). It adds no edge.
 
 *Diagram source: [`diagrams/agents.puml`](diagrams/agents.puml). Re-render with `diagrams/render.sh`.*

@@ -229,7 +229,7 @@ function addrow(label, st, en, usd, peak, star, ind) {
     rind[rn] = ind
 }
 
-# Agents of one type under one parent are grouped (docs/cost-recording.md). `withmod` puts the plan's
+# Agents of one type under one parent are grouped. `withmod` puts the plan's
 # module in the label, which the overview needs and a plan's own timeline does not. A group's dollars
 # are its priced members' sum, starred when a member is unpriced; its peak context is the members' largest.
 function group_rows(list, count, ind, withmod,
@@ -583,7 +583,7 @@ END {
     print ""
     printf "Written by `scripts/cost/cost.sh report` at %s (%s).\n", fstamp(epoch(now)),
         (off_name == "" ? "UTC, no offset recorded" : off_name ", the latest record's offset")
-    print "Re-run the script rather than edit this file. What each number is: `docs/cost-recording.md`."
+    print "Re-run the script rather than edit this file."
     if (rates != "") print rates
     if (skipped + 0 > 0)
         printf "%d line%s recorded before the format change %s skipped.\n", skipped,

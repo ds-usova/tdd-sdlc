@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SubagentStop hook: appends one line to the task's review/cost.jsonl for a framework agent that
-# stopped. What is recorded and how it is attributed is docs/cost-recording.md.
+# stopped.
 set -u
 
 if ! command -v jq >/dev/null 2>&1; then
@@ -125,7 +125,8 @@ usage="$(jq -Rn '
         model:          ($a | last | .message.model // ""),
         started:        ($t | first | .timestamp // ""),
         ended:          ($t | last  | .timestamp // "")
-      }' < "$transcript" 2>/dev/null | tr -d '')"
+      }' < "$transcript" 2>/dev/null | tr -d '
+')"
 [ -n "$usage" ] || exit 0
 
 get() { printf '%s' "$usage" | jq -r ".$1 // empty" | tr -d '\r'; }
@@ -158,7 +159,7 @@ seconds="$(awk -v a="$started" -v b="$ended" '
     }')"
 
 # The offset is the machine's at the moment the hook fires, as `date +%z` prints it. The report renders
-# local times from it (docs/cost-recording.md).
+# local times from it.
 offset="$(date +%z 2>/dev/null | tr -d '\r')"
 [ -n "$offset" ] || offset="+0000"
 

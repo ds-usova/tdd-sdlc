@@ -1,7 +1,7 @@
 # Recording what a run costs
 
 Your conventions assign a model to each kind of agent the plugin spawns
-([`conventions-contract.md`](conventions-contract.md)). This page says
+([`contract.md`](../plugin/templates/conventions/contract.md)). This page says
 what those choices cost. After every `implement-plan`, `fix-bug`, `rework` or `upgrade-deps` run, the task
 directory holds `review/cost.md`: what each agent cost in dollars, tokens and time, and a timeline of when
 everything ran. Nothing has to be switched on.
@@ -232,7 +232,7 @@ tdd-unit-red-phase-step module-a     15:38  15:40  ··············�
   work and a deciding model for review and refactoring. The per-type rows say what each choice costs.
 - **Find the long tail.** A single agent far above its type's average is one that looped. The budget rule
   stops that after three attempts and escalates once to the deciding model
-  ([`templates/sub-agents.md`](../templates/sub-agents.md), **Budget and escalation**); every escalation is an
+  ([`templates/sub-agents.md`](../plugin/templates/sub-agents.md), **Budget and escalation**); every escalation is an
   `RL` note in the plan log, which names the step.
 - **Watch the window.** An agent whose `of window` nears 100% is one about to lose its earliest context. A
   peak that high on a step agent says the step's brief is too large.
@@ -260,7 +260,7 @@ Two hooks, registered by the plugin in `hooks/hooks.json`, and one script.
    appends one JSON line to `docs/<n>-<task>/review/cost.jsonl`. The start time is the transcript's first
    timestamp and the end time its last, so no start hook is needed. The file moves with the task at archive and is never
    cleaned.
-3. **`cost.sh report <task>`** (`scripts/cost/cost.sh`, usage in [its README](../scripts/cost/README.md)) reads
+3. **`cost.sh report <task>`** (`scripts/cost/cost.sh`, usage in [its README](../plugin/scripts/cost/README.md)) reads
    `cost.jsonl` and writes `cost.md`. `implement-plan` runs it before archiving; `fix-bug`, `rework` and
    `upgrade-deps` run it at their finish. The session row comes from the session transcript the mapping
    names, grouped by `message.id` as the hook groups and summed between the session's first framework call

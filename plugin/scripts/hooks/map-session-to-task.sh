@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # PreToolUse hook on Bash: maps the session to the task directory a framework script call names.
-# What the mapping is for is docs/cost-recording.md.
 set -u
 
 if ! command -v jq >/dev/null 2>&1; then

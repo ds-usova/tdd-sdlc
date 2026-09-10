@@ -6,7 +6,7 @@ those rules. This page lists which ones, who needs each, and what happens when y
 it.
 
 An agent that needs the commit policy follows your index to wherever you wrote it. The page layout
-`init-conventions` writes ([`templates/conventions/`](../templates/conventions/README.md)) is one way to hold
+`init-conventions` writes ([`templates/conventions/`](README.md)) is one way to hold
 the facts. Any layout the index leads to works the same.
 
 - [Who the readers are](#who-the-readers-are)

@@ -1,5 +1,5 @@
 ---
-description: How to write and what not to write when editing this repository's skills, agents, templates and docs. Use before any change under skills/, agents/, templates/, scripts/ or docs/.
+description: How to write and what not to write when editing this repository's plugin and docs. Use before any change under plugin/ or docs/.
 ---
 
 # Editing the framework

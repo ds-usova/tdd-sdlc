@@ -6,7 +6,7 @@ and the index to `<module>/docs/conventions.md`, then replace every placeholder 
 `init-conventions` fills these in from the repository itself; filling them in by hand works the same way.
 
 The split is a recommendation. What the skills read is the list of facts in
-[`docs/conventions-contract.md`](../../docs/conventions-contract.md); they follow the index to each fact and never
+[`contract.md`](contract.md); they follow the index to each fact and never
 look for a heading. Any layout that states the facts and indexes them works the same.
 
 | Template          | Copy to                        | Answers                                                              |
