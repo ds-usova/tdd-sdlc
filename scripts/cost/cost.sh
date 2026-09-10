@@ -81,18 +81,37 @@ resolve_jsonl() {
     esac
 }
 
-# One TSV line per agent, the last line per id winning, in start order.
-agent_records() {
-    jq -Rr -n '
+# The last line per id, in start order, as JSON. A line recorded before the hook wrote `turns`,
+# `cache_create_5m`, `cache_create_1h`, `peak_ctx` and `offset` is skipped and counted
+# (docs/cost-recording.md); the last-per-id rule runs first, so a new line supersedes an old one.
+current_lines() {
+    jq -Rc -n '
         [inputs | select(length > 0) | (fromjson? // empty) | select(.id)] as $lines
         | reduce $lines[] as $x ({}; .[$x.id] = $x)
         | [.[]] | sort_by(.started)[]
-        | ["A", .id, (.parent // ""), (.started // ""), (.ended // ""), (.session // ""),
-           (.agent // ""), (.model // ""),
-           ((.tokens.input // 0) + (.tokens.output // 0)
-            + (.tokens.cache_read // 0) + (.tokens.cache_create // 0)),
-           (.seconds // 0), (.plan // "")]
-        | @tsv' < "$jsonl" | tr -d '\r'
+        | select(.turns != null and .tokens.cache_create_5m != null and .tokens.cache_create_1h != null
+                 and .peak_ctx != null and .offset != null)' < "$jsonl" | tr -d '\r'
+}
+
+skipped_count() {
+    jq -Rr -n '
+        [inputs | select(length > 0) | (fromjson? // empty) | select(.id)] as $lines
+        | reduce $lines[] as $x ({}; .[$x.id] = $x)
+        | [.[] | select(.turns == null or .tokens.cache_create_5m == null
+                        or .tokens.cache_create_1h == null or .peak_ctx == null or .offset == null)]
+        | length' < "$jsonl" | tr -d '\r'
+}
+
+# One TSV line per agent.
+agent_records() {
+    current_lines | jq -r '
+        ["A", .id, (.parent // ""), (.started // ""), (.ended // ""), (.session // ""),
+         (.agent // ""), (.model // ""),
+         (.tokens.input // 0), (.tokens.output // 0),
+         (.tokens.cache_create_5m // 0), (.tokens.cache_create_1h // 0), (.tokens.cache_read // 0),
+         (.turns // 0), (.peak_ctx // 0), (.offset // ""),
+         (.seconds // 0), (.plan // "")]
+        | @tsv' | tr -d '\r'
 }
 
 # Every session the file names.
@@ -108,23 +127,34 @@ last_ended_of() {
 }
 
 # The skill's own turns: the session transcript's assistant messages inside the window the mapping
-# file bounds.
+# file bounds, grouped by `message.id` as the hook groups them. One TSV line: input, output,
+# cache_create_5m, cache_create_1h, cache_read, turns, peak_ctx.
 session_tokens() {
     local transcript="$1" from="$2" to="$3"
     jq -Rr -n --arg from "$from" --arg to "$to" '
+        def cc5m: (.message.usage.cache_creation.ephemeral_5m_input_tokens
+            // (if (.message.usage.cache_creation | type) == "object" then 0
+                else (.message.usage.cache_creation_input_tokens // 0) end));
+        def cc1h: (.message.usage.cache_creation.ephemeral_1h_input_tokens // 0);
+        def ctx: ((.message.usage.input_tokens // 0) + cc5m + cc1h
+            + (.message.usage.cache_read_input_tokens // 0));
         [inputs | select(length > 0) | (fromjson? // empty)
          | select(.type == "assistant")
-         | select((.timestamp // "")[0:19] >= $from[0:19] and (.timestamp // "")[0:19] <= $to[0:19])
-         | (.message.usage.input_tokens // 0) + (.message.usage.output_tokens // 0)
-           + (.message.usage.cache_read_input_tokens // 0)
-           + (.message.usage.cache_creation_input_tokens // 0)]
-        | add // 0' < "$transcript" | tr -d '\r'
+         | select((.timestamp // "")[0:19] >= $from[0:19] and (.timestamp // "")[0:19] <= $to[0:19])]
+        | to_entries | group_by(.value.message.id // ("line-" + (.key | tostring))) | map(last.value)
+        | [(map(.message.usage.input_tokens // 0) | add // 0),
+           (map(.message.usage.output_tokens // 0) | add // 0),
+           (map(cc5m) | add // 0), (map(cc1h) | add // 0),
+           (map(.message.usage.cache_read_input_tokens // 0) | add // 0),
+           length, (map(ctx) | max // 0)]
+        | @tsv' < "$transcript" | tr -d '\r'
 }
 
 # S records: one per session, from its mapping file: the window opens at the session's first
-# framework call (line 3) and closes at its latest (line 4), which the report's own call refreshes.
+# framework call (line 3) and closes at its latest (line 4), which the report's own call refreshes;
+# line 5 is the offset of the latest call.
 session_records() {
-    local git_dir sessions=() s map transcript first to tokens
+    local git_dir sessions=() s map transcript first to offset tokens
     git_dir="$(cd "$repo_root_abs" && git rev-parse --git-dir 2>/dev/null)" || git_dir=""
     case "$git_dir" in
         ""|/*|?:*) ;;
@@ -139,19 +169,21 @@ session_records() {
     for s in "${sessions[@]}"; do
         map="$git_dir/tdd-sdlc/sessions/$s"
         if [ -z "$git_dir" ] || [ ! -f "$map" ]; then
-            printf 'S\t%s\t\t\t0\tunavailable\n' "$s"
+            printf 'S\t%s\t\t\t\t\t\t\t\t\t\t\t\tunavailable\n' "$s"
             continue
         fi
         transcript="$(sed -n '2p' "$map" | tr '\134' '/')"
         first="$(sed -n '3p' "$map")"
         to="$(sed -n '4p' "$map")"
+        offset="$(sed -n '5p' "$map")"
         [ -n "$to" ] || to="$(last_ended_of "$s")"
         if [ ! -f "$transcript" ] || [ -z "$first" ] || [ -z "$to" ]; then
-            printf 'S\t%s\t\t\t0\tunavailable\n' "$s"
+            printf 'S\t%s\t\t\t\t\t\t\t\t\t\t\t\tunavailable\n' "$s"
             continue
         fi
         tokens="$(session_tokens "$transcript" "$first" "$to")"
-        printf 'S\t%s\t%s\t%s\t%s\tok\n' "$s" "$first" "$to" "${tokens:-0}"
+        [ -n "$tokens" ] || tokens="$(printf '0\t0\t0\t0\t0\t0\t0')"
+        printf 'S\t%s\t%s\t%s\t%s\t%s\tok\n' "$s" "$first" "$to" "$tokens" "$offset"
     done
 }
 
@@ -185,17 +217,20 @@ case "$command" in
 
         records="${TMPDIR:-/tmp}/cost-records.$$"
         { agent_records; session_records; } > "$records" || { rm -f "$records"; die "could not read $jsonl" 1; }
+        skipped="$(skipped_count)"
         if ! grep -q '^A' "$records"; then
             rm -f "$records"
             die "${jsonl#"$repo_root_abs/"} holds no agent lines" 1
         fi
 
         rewrite_file "$review_dir/cost.md" \
-            awk -v MODE=md -v task="$task_name" -v now="$now" -f "$renderer" "$records"
+            awk -v MODE=md -v task="$task_name" -v now="$now" -v skipped="${skipped:-0}" \
+                -f "$renderer" "$records"
         echo "${review_dir#"$repo_root_abs/"}/cost.md"
         if [ "$puml" -eq 1 ]; then
             rewrite_file "$review_dir/cost.puml" \
-                awk -v MODE=puml -v task="$task_name" -v now="$now" -f "$renderer" "$records"
+                awk -v MODE=puml -v task="$task_name" -v now="$now" -v skipped="${skipped:-0}" \
+                    -f "$renderer" "$records"
             echo "${review_dir#"$repo_root_abs/"}/cost.puml"
         fi
         rm -f "$records"

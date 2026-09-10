@@ -51,13 +51,16 @@ dir="$git_dir/tdd-sdlc/sessions"
 mkdir -p "$dir" 2>/dev/null || exit 0
 file="$dir/$session_id"
 
-# Four lines: the task, the session transcript, the time of the first framework call, the time of
-# the latest. The first is kept across calls; the rest are rewritten.
+# Five lines: the task, the session transcript, the time of the first framework call, the time of
+# the latest, and the machine's UTC offset at the latest, as `date +%z` prints it. The first is kept
+# across calls; the rest are rewritten.
 now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+offset="$(date +%z 2>/dev/null)"
+[ -n "$offset" ] || offset="+0000"
 first="$(sed -n '3p' "$file" 2>/dev/null)"
 [ -n "$first" ] || first="$now"
 
-printf '%s\n%s\n%s\n%s\n' "$task" "$transcript" "$first" "$now" > "$file" 2>/dev/null
+printf '%s\n%s\n%s\n%s\n%s\n' "$task" "$transcript" "$first" "$now" "$offset" > "$file" 2>/dev/null
 
 find "$dir" -type f -mtime +30 -exec rm -f {} + 2>/dev/null
 

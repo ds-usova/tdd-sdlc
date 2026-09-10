@@ -144,7 +144,8 @@ Two hooks, registered by the plugin in `hooks/hooks.json`, and one script.
 1. **`PreToolUse` on Bash** (`scripts/hooks/map-session-to-task.sh`) watches for a call to a framework
    script — `plan.sh`, `fix.sh`, `rework.sh`, `upgrade.sh`, `design.sh`, `cost.sh` — that names a task
    directory. It writes that directory to `.git/tdd-sdlc/sessions/<session>`, with the session's transcript
-   path, the time of the first such call and the time of the latest. Every skill makes such a call before it
+   path, the time of the first such call, the time of the latest and the machine's UTC offset at the latest.
+   Every skill makes such a call before it
    spawns anything, so a framework session is always mapped. A session that never makes one is not a framework
    session. Mapping files older than 30 days are deleted on the next write; losing one only means later agents
    of that session without a plan path in their prompt go unrecorded.
@@ -156,28 +157,41 @@ Two hooks, registered by the plugin in `hooks/hooks.json`, and one script.
 3. **`cost.sh report <task>`** (`scripts/cost/cost.sh`, usage in [its README](../scripts/cost/README.md)) reads
    `cost.jsonl` and writes `cost.md`. `implement-plan` runs it before archiving; `fix-bug`, `rework` and
    `upgrade-deps` run it at their finish. The session row comes from the session transcript the mapping
-   names, summed between the session's first framework call and its latest; the report's own call is the
-   latest, so the running session is summed to now. The report is a snapshot; running it again recomputes.
+   names, grouped by `message.id` as the hook groups and summed between the session's first framework call
+   and its latest; the report's own call is the latest, so the running session is summed to now. The report
+   is a snapshot; running it again recomputes.
 
 Both hooks are silent without `jq`, like the other hooks.
 
 ### One line per agent
 
-| Field     | Value                                                                  | Source                 |
-|-----------|------------------------------------------------------------------------|------------------------|
-| `id`      | the agent id                                                           | the hook's input       |
-| `parent`  | the id of the agent that spawned it; absent when the session did       | the agent's meta file  |
-| `started` | the first message's timestamp                                          | the transcript         |
-| `ended`   | the last message's timestamp                                           | the transcript         |
-| `session` | the session id                                                         | the hook's input       |
-| `agent`   | the agent type, one of `agents/*.md`                                   | the hook's input       |
-| `model`   | the model that answered                                                | the transcript         |
-| `tokens`  | input, output, cache read, cache create                                | the transcript, summed |
-| `seconds` | wall time from first to last message, waiting included                 | the transcript         |
-| `plan`    | the plan path the agent was spawned with, where its prompt names one   | the transcript         |
+| Field      | Value                                                                       | Source                 |
+|------------|-----------------------------------------------------------------------------|------------------------|
+| `id`       | the agent id                                                                | the hook's input       |
+| `parent`   | the id of the agent that spawned it; absent when the session did            | the agent's meta file  |
+| `started`  | the first message's timestamp                                               | the transcript         |
+| `ended`    | the last message's timestamp                                                | the transcript         |
+| `session`  | the session id                                                              | the hook's input       |
+| `agent`    | the agent type, one of `agents/*.md`                                        | the hook's input       |
+| `model`    | the model that answered                                                     | the transcript         |
+| `turns`    | how many messages the agent sent: distinct `message.id`s                    | the transcript         |
+| `tokens`   | `input`, `output`, `cache_read`, `cache_create_5m`, `cache_create_1h`       | the transcript, summed |
+| `peak_ctx` | the largest one message's input + cache write + cache read                  | the transcript         |
+| `seconds`  | wall time from first to last message, waiting included                      | the transcript         |
+| `offset`   | the machine's UTC offset when the hook fired, as `date +%z` prints it       | the hook               |
+| `plan`     | the plan path the agent was spawned with, where its prompt names one        | the transcript         |
+
+The transcript holds one line per content block, and every line of one message repeats the whole message's
+usage. The hook groups the assistant lines by `message.id`, keeps the last line of each group, and sums those.
+A line without a `message.id` is a group of its own. A message without the cache write split is counted at
+the 5-minute TTL.
 
 An agent can stop more than once: a pipeline that hands a wave back stops, is resumed, and stops again, and the
 hook fires each time. Every stop appends a line; the report keeps the last line per `id`.
+
+A line written before the hook recorded `turns`, `cache_create_5m`, `cache_create_1h`, `peak_ctx` and
+`offset` is skipped, after the last-per-id rule, and the report's header counts it: `N lines recorded before
+the format change are skipped`. No column carries a legacy value.
 
 ## How an agent is attributed
 
@@ -206,12 +220,12 @@ there too.
 ## What is not recorded
 
 - The session's turns before its first framework call. The session row starts there.
-- An agent's turn count or anything it says about its own work.
+- Anything an agent says about its own work.
 - Anything from a session with no framework script call.
 
 ## What the host provides
 
-The hooks rely on these Claude Code behaviours, measured on 2026-09-08. The `SubagentStop` event and its
+The hooks rely on these Claude Code behaviours, measured on 2026-09-08 and 2026-09-10. The `SubagentStop` event and its
 stdin are in Claude Code's hooks reference. The transcript's line shape, the meta file, and how nested agents
 report are not documented, and were measured. If an update changes them, recording degrades silently and
 `cost.md` shows fewer rows.
@@ -220,9 +234,13 @@ report are not documented, and were measured. If an update changes them, recordi
    `agent_type`, `agent_transcript_path`, `last_assistant_message`, `hook_event_name`, `stop_hook_active`. An
    `agent_type`, `agent_transcript_path`, `last_assistant_message`, `hook_event_name`, `stop_hook_active`. A
    plugin agent arrives as `<plugin>:<type>`, such as `tdd-sdlc:rework-module`; the hook strips the prefix.
-2. **The transcript** is JSON lines. A line with `"type": "assistant"` carries `timestamp`, and `message.model`
-   and `message.usage` with `input_tokens`, `output_tokens`, `cache_creation_input_tokens`,
-   `cache_read_input_tokens`. The first line with `"type": "user"` is the prompt. Beside every sub-agent
+2. **The transcript** is JSON lines, one line per content block: a message that thinks, says a sentence and
+   calls a tool is three lines. A line with `"type": "assistant"` carries `timestamp`, `message.id`,
+   `message.model` and `message.usage` with `input_tokens`, `output_tokens`, `cache_creation_input_tokens`,
+   `cache_read_input_tokens` and `cache_creation.ephemeral_5m_input_tokens` /
+   `cache_creation.ephemeral_1h_input_tokens`. Every line of one message carries the whole message's usage;
+   `output_tokens` grows line by line and the last line holds the message's total. The first line with
+   `"type": "user"` is the prompt. Beside every sub-agent
    transcript sits `agent-<id>.meta.json` with `agentType`, `description`, `spawnDepth`, `parentAgentId` for an
    agent another agent spawned, and `model` where the spawn set one.
 3. **Grandchildren fire the hook.** A step a pipeline spawned stops and is reported like the pipeline itself.

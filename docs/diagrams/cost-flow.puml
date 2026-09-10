@@ -34,7 +34,7 @@ end note
 S -> A : spawn, prompt names\ndocs/7-x/module-a/plan.md
 A -> STOP : agent ends
 STOP -> STOP : type is a framework agent?\npath in the prompt, else the mapping
-STOP -> JSONL : one line: time, session, type,\nmodel, tokens, wall time, plan
+STOP -> JSONL : one line: time, session, type, model,\nturns, four token counts, peak context,\nwall time, offset, plan
 S -> REP : at the task's finish
 REP -> JSONL : read
 REP -> MD : per session, per plan,\nper agent type

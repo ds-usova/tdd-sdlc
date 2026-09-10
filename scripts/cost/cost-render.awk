@@ -2,8 +2,11 @@
 # the timelines of review/cost.md. -v MODE=md writes the report, -v MODE=puml the gantt blocks.
 #
 # Input records, tab separated:
-#   A  id  parent  started  ended  session  agent  model  tokens  seconds  plan
-#   S  session  from  to  tokens  status
+#   A  id  parent  started  ended  session  agent  model  input  output  cache_create_5m
+#      cache_create_1h  cache_read  turns  peak_ctx  offset  seconds  plan
+#   S  session  from  to  input  output  cache_create_5m  cache_create_1h  cache_read  turns
+#      peak_ctx  offset  status
+# -v skipped=N is the count of lines recorded before the hook wrote the newer fields.
 
 function days(y, m, d,   era, yoe, doy, doe) {
     if (m <= 2) y = y - 1
@@ -97,7 +100,10 @@ $1 == "A" {
     aid[n] = $2; apar[n] = $3; idset[$2] = 1
     ast[n] = epoch($4); aen[n] = epoch($5)
     asess[n] = $6; atyp[n] = $7; amod[n] = $8
-    atok[n] = $9 + 0; asec[n] = $10 + 0; apl[n] = $11
+    ain[n] = $9 + 0; aout[n] = $10 + 0; acc5[n] = $11 + 0; acc1[n] = $12 + 0; acr[n] = $13 + 0
+    aturn[n] = $14 + 0; apeak[n] = $15 + 0; aoff[n] = $16
+    atok[n] = ain[n] + aout[n] + acc5[n] + acc1[n] + acr[n]
+    asec[n] = $17 + 0; apl[n] = $18
     if (atyp[n] == "implement-plan-module") kind_task = 1
     if (atyp[n] == "fix-bug-module") kind_fix = 1
     if (atyp[n] == "rework-module") kind_rework = 1
@@ -107,7 +113,10 @@ $1 == "A" {
 $1 == "S" {
     sn++
     sid[sn] = $2; sfrom[sn] = epoch($3); sto[sn] = epoch($4)
-    stok[sn] = $5 + 0; sstat[sn] = $6
+    sinp[sn] = $5 + 0; soutp[sn] = $6 + 0; scc5[sn] = $7 + 0; scc1[sn] = $8 + 0; scr[sn] = $9 + 0
+    sturn[sn] = $10 + 0; speak[sn] = $11 + 0; soff[sn] = $12
+    stok[sn] = sinp[sn] + soutp[sn] + scc5[sn] + scc1[sn] + scr[sn]
+    sstat[sn] = $13
 }
 
 # ---------------------------------------------------------------- rows of one timeline
@@ -436,6 +445,9 @@ END {
     print ""
     print "Written by `scripts/cost/cost.sh report` from `review/cost.jsonl` at " now ". Times are UTC."
     print "Re-run the script rather than edit this file. What each number is: `docs/cost-recording.md`."
+    if (skipped + 0 > 0)
+        printf "%d line%s recorded before the format change %s skipped.\n", skipped,
+            (skipped + 0 == 1 ? "" : "s"), (skipped + 0 == 1 ? "is" : "are")
     for (i = 1; i <= sn; i++) session_table(i)
     total()
     print ""

@@ -99,19 +99,33 @@ repo_root="$(cd "${cwd:-.}" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/
 out_dir="$repo_root/$task/review"
 mkdir -p "$out_dir" 2>/dev/null || exit 0
 
+# One transcript line per content block, every line of one message carrying the whole message's usage:
+# the lines are grouped by `message.id`, the last line of each group is the message. A line without an
+# id is a group of its own. A message without the cache write split is counted at the 5-minute TTL.
 usage="$(jq -Rn '
+    def cc5m: (.message.usage.cache_creation.ephemeral_5m_input_tokens
+        // (if (.message.usage.cache_creation | type) == "object" then 0
+            else (.message.usage.cache_creation_input_tokens // 0) end));
+    def cc1h: (.message.usage.cache_creation.ephemeral_1h_input_tokens // 0);
+    def ctx: ((.message.usage.input_tokens // 0) + cc5m + cc1h
+        + (.message.usage.cache_read_input_tokens // 0));
     [inputs | select(length > 0) | (fromjson? // empty)] as $l
     | ($l | map(select(.type == "assistant"))) as $a
+    | ($a | to_entries | group_by(.value.message.id // ("line-" + (.key | tostring)))
+        | map(last.value)) as $m
     | ($l | map(select(.timestamp))) as $t
     | {
-        input:       ($a | map(.message.usage.input_tokens // 0) | add // 0),
-        output:      ($a | map(.message.usage.output_tokens // 0) | add // 0),
-        cache_read:  ($a | map(.message.usage.cache_read_input_tokens // 0) | add // 0),
-        cache_create:($a | map(.message.usage.cache_creation_input_tokens // 0) | add // 0),
-        model:       ($a | last | .message.model // ""),
-        started:     ($t | first | .timestamp // ""),
-        ended:       ($t | last  | .timestamp // "")
-      }' < "$transcript" 2>/dev/null | tr -d '\r')"
+        input:          ($m | map(.message.usage.input_tokens // 0) | add // 0),
+        output:         ($m | map(.message.usage.output_tokens // 0) | add // 0),
+        cache_read:     ($m | map(.message.usage.cache_read_input_tokens // 0) | add // 0),
+        cache_create_5m:($m | map(cc5m) | add // 0),
+        cache_create_1h:($m | map(cc1h) | add // 0),
+        turns:          ($m | length),
+        peak_ctx:       ($m | map(ctx) | max // 0),
+        model:          ($a | last | .message.model // ""),
+        started:        ($t | first | .timestamp // ""),
+        ended:          ($t | last  | .timestamp // "")
+      }' < "$transcript" 2>/dev/null | tr -d '')"
 [ -n "$usage" ] || exit 0
 
 get() { printf '%s' "$usage" | jq -r ".$1 // empty" | tr -d '\r'; }
@@ -143,18 +157,27 @@ seconds="$(awk -v a="$started" -v b="$ended" '
         print (d < 0 ? 0 : d)
     }')"
 
+# The offset is the machine's at the moment the hook fires, as `date +%z` prints it. The report renders
+# local times from it (docs/cost-recording.md).
+offset="$(date +%z 2>/dev/null | tr -d '\r')"
+[ -n "$offset" ] || offset="+0000"
+
 line="$(jq -nc \
     --arg id "$agent_id" --arg parent "$parent" \
     --arg started "$started" --arg ended "$ended" \
     --arg session "$session_id" --arg agent "$agent_type" --arg model "$model" \
-    --arg plan "$plan" --argjson seconds "${seconds:-0}" \
+    --arg plan "$plan" --arg offset "$offset" --argjson seconds "${seconds:-0}" \
     --argjson input "$(get input)" --argjson output "$(get output)" \
-    --argjson cache_read "$(get cache_read)" --argjson cache_create "$(get cache_create)" '
+    --argjson cache_read "$(get cache_read)" \
+    --argjson cache_create_5m "$(get cache_create_5m)" --argjson cache_create_1h "$(get cache_create_1h)" \
+    --argjson turns "$(get turns)" --argjson peak_ctx "$(get peak_ctx)" '
     {id: $id}
     + (if $parent == "" then {} else {parent: $parent} end)
     + {started: $started, ended: $ended, session: $session, agent: $agent, model: $model,
-       tokens: {input: $input, output: $output, cache_read: $cache_read, cache_create: $cache_create},
-       seconds: $seconds}
+       turns: $turns,
+       tokens: {input: $input, output: $output, cache_read: $cache_read,
+                cache_create_5m: $cache_create_5m, cache_create_1h: $cache_create_1h},
+       peak_ctx: $peak_ctx, seconds: $seconds, offset: $offset}
     + (if $plan == "" then {} else {plan: $plan} end)' | tr -d '\r')"
 
 # One short printf per stop, appended; agents of one wave stop close together and each writes one line.
