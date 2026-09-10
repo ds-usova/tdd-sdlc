@@ -86,10 +86,11 @@ Each token count is priced at the model's rates, per million tokens:
 A subscription plan is not billed this way; the dollars say what the run would cost at API rates, which is
 the one scale on which two runs compare.
 
-**A row whose model is in no table** renders `—` in every priced cell. The task total and every `%` are
-computed over the priced rows only, the total ends with `*`, and a line under it names the model:
-`* excludes 1 unpriced row (claude-x)`. Nothing is guessed and no rate is borrowed from a model with a
-similar id. The volume table is complete regardless.
+**An agent whose model is in no table** is priced nowhere. A row that holds only such agents renders `—` in
+every priced cell. A row that mixes them with priced agents shows the priced sum and ends with `*`. The
+task total and every `%` are computed over the priced agents only, the total ends with `*`, and a line under
+it names the models: `* excludes 1 unpriced agent (claude-x)`. Nothing is guessed and no rate is borrowed
+from a model with a similar id. The volume table is complete regardless.
 
 ### Where the rates come from
 
@@ -98,8 +99,9 @@ model. Both are current without anyone editing a file or waiting for a release:
 
 1. **Bundled defaults ship with the plugin**, `scripts/cost/pricing.json`: per model id, the input and
    output rate, the cache read multiplier where it is not 0.1, the cache write multipliers where they are
-   not 1.25 and 2, the context window, and the date the file was written. A machine without internet
-   renders from it, and the header says `Rates: the plugin's table, dated <date>.`
+   not 1.25 and 2, the context window, and the date the file was written. `cost.sh refresh-pricing`
+   rewrites it from the pages below, before a release, as `docs/developing.md` says. A machine without
+   internet renders from it, and the header says `Rates: the plugin's table, dated <date>.`
 2. **A fetched copy is cached per user**, at `$XDG_CACHE_HOME/tdd-sdlc/pricing.json`, which defaults to
    `~/.cache/tdd-sdlc/pricing.json` (under Git Bash on Windows, `C:\Users\<user>\.cache\...`).
    `cost.sh report` fetches the published pricing and models pages, parses their tables and rewrites the
@@ -112,8 +114,9 @@ model. Both are current without anyone editing a file or waiting for a release:
    The cache is the fetched rows merged over the bundled file, so a bundled model the pages no longer list
    keeps its bundled rate. A model neither lists is written into the cache as `missing` with the date, and
    a failed fetch writes its date and reason. Either is retried only when that date is more than a day old.
-   Otherwise the report reads the cache, or the bundled file when there is no cache, and does not touch the
-   network. The header says `Rates: fetched <date>.`
+   A cache that has never been fetched ages from its failure's date. Otherwise the report reads the cache,
+   or the bundled file when there is no cache, and does not touch the network. The header says
+   `Rates: fetched <date>.`
 3. **A failed fetch or parse falls back and says so**: the cached copy first, the bundled defaults second.
    The fetch runs with `curl --max-time 10`; a missing `curl` is a failed fetch, not an error; nothing goes
    to stderr.
@@ -335,7 +338,6 @@ report are not documented, and were measured. If an update changes them, recordi
 `cost.md` shows fewer rows.
 
 1. **`SubagentStop` stdin** carries `session_id`, `transcript_path` (the session's), `cwd`, `agent_id`,
-   `agent_type`, `agent_transcript_path`, `last_assistant_message`, `hook_event_name`, `stop_hook_active`. An
    `agent_type`, `agent_transcript_path`, `last_assistant_message`, `hook_event_name`, `stop_hook_active`. A
    plugin agent arrives as `<plugin>:<type>`, such as `tdd-sdlc:rework-module`; the hook strips the prefix.
 2. **The transcript** is JSON lines, one line per content block: a message that thinks, says a sentence and

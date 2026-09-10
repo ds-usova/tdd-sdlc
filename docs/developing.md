@@ -11,10 +11,12 @@
 
 ## Releasing
 
-1. `claude plugin validate .`
-2. Bump `version` in `.claude-plugin/plugin.json` and commit it.
-3. `git push`.
-4. `claude plugin tag --push`.
+1. `bash scripts/cost/cost.sh refresh-pricing`, then commit `scripts/cost/pricing.json` when it changed. It is
+   the rates a report uses offline and on a first run; a release ships it as it is.
+2. `claude plugin validate .`
+3. Bump `version` in `.claude-plugin/plugin.json` and commit it.
+4. `git push`.
+5. `claude plugin tag --push`.
 
 Nothing pushes an update to anyone. A user stays on the version they installed until they run those two
 commands.

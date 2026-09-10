@@ -17,15 +17,18 @@ usage() {
     cat <<'EOF'
 Usage:
   <plugin>/scripts/cost/cost.sh report [<task directory> | <cost.jsonl>] [--puml]
+  <plugin>/scripts/cost/cost.sh refresh-pricing
 
 Commands:
-  report    Read the task's review/cost.jsonl and write review/cost.md beside it. --puml also
-            writes review/cost.puml. What the report holds is docs/cost-recording.md.
+  report           Read the task's review/cost.jsonl and write review/cost.md beside it. --puml
+                   also writes review/cost.puml. What the report holds is docs/cost-recording.md.
+  refresh-pricing  Fetch the published rates and rewrite the plugin's own pricing.json, beside the
+                   script, dated today. Run before a release, as docs/developing.md says.
 
 The task is named as a directory, as its review/cost.jsonl, or not at all when one task under docs/
 carries a cost.jsonl. An archived task under docs/implemented/ is named explicitly.
 
-Exit codes: 0 done - 1 no cost lines to report on - 2 bad usage.
+Exit codes: 0 done - 1 no cost lines to report on, or the fetch failed - 2 bad usage.
 EOF
 }
 
@@ -156,12 +159,13 @@ pricing_missing_since() {
     printf '%s' "$2" | jq -r --arg id "$1" '.models[$id].missing // empty' 2>/dev/null | tr -d '\r'
 }
 
-# Fetches the two pages, parses them, and rewrites the cache as the rows merged over the bundled
-# file, with a `missing` entry for every needed model neither lists. Sets fetch_reason and returns 1
-# when the fetch or the parse fails; nothing goes to stderr.
-fetch_pricing() {
-    local tmp="${TMPDIR:-/tmp}/cost-pricing.$$" err rows now today
+# Fetches the two pages and parses them into fetched_rows, one model per line as pricing-parse.awk
+# writes it. Sets fetch_reason and returns 1 when the fetch or the parse fails; nothing goes to
+# stderr.
+fetch_rows() {
+    local tmp="${TMPDIR:-/tmp}/cost-pricing.$$" err
     fetch_reason=""
+    fetched_rows=""
     if ! command -v curl >/dev/null 2>&1; then
         fetch_reason="curl is not installed"
         return 1
@@ -179,18 +183,19 @@ fetch_pricing() {
         fetch_reason="${err:-curl failed on the models page}"
         return 1
     fi
-    rows="$(awk -f "$pricing_parser" "$tmp/pricing.md" "$tmp/models.md" 2>/dev/null | tr -d '\r')"
+    fetched_rows="$(awk -f "$pricing_parser" "$tmp/pricing.md" "$tmp/models.md" 2>/dev/null | tr -d '\r')"
     rm -rf "$tmp"
-    if [ -z "$rows" ]; then
+    if [ -z "$fetched_rows" ]; then
         fetch_reason="no model table on the pricing page"
         return 1
     fi
-    now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    today="${now%%T*}"
-    mkdir -p "$(dirname "$pricing_cache")" 2>/dev/null || { fetch_reason="could not create the cache"; return 1; }
-    # Rows to a models object: a multiplier at its default is left out, as in the bundled file.
-    printf '%s\n' "$rows" | jq -R -s --arg today "$today" --arg now "$now" --arg needed "$1" \
-        --slurpfile bundled "$pricing_bundled" '
+    return 0
+}
+
+# fetched_rows on stdin to a models object on stdout, merged over the bundled file's: a multiplier at
+# its default is left out, as in the bundled file.
+rows_to_models() {
+    jq -R -s --slurpfile bundled "$pricing_bundled" '
         [split("\n")[] | select(length > 0) | split("\t")
          | {key: .[0], value: ({input: (.[1] | tonumber), output: (.[2] | tonumber)}
              + (if .[3] != "" and (.[3] | tonumber) != 0.1 then {cache_read: (.[3] | tonumber)} else {} end)
@@ -198,16 +203,50 @@ fetch_pricing() {
              + (if .[5] != "" and (.[5] | tonumber) != 2 then {cache_write_1h: (.[5] | tonumber)} else {} end)
              + (if .[6] != "" then {window: (.[6] | tonumber)} else {} end))}]
         | from_entries as $fetched
-        | (($bundled[0].models // {}) * $fetched) as $models
-        | ($needed | split(" ") | map(select(length > 0))) as $need
+        | ($bundled[0].models // {}) * $fetched'
+}
+
+# Fetches, and rewrites the cache as the rows merged over the bundled file, with a `missing` entry
+# for every needed model neither lists. Sets fetch_reason and returns 1 when the fetch or the parse
+# fails; nothing goes to stderr.
+fetch_pricing() {
+    local now today
+    fetch_rows || return 1
+    now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    today="${now%%T*}"
+    mkdir -p "$(dirname "$pricing_cache")" 2>/dev/null || { fetch_reason="could not create the cache"; return 1; }
+    printf '%s\n' "$fetched_rows" | rows_to_models 2>/dev/null \
+        | jq --arg today "$today" --arg now "$now" --arg needed "$1" '
+        ($needed | split(" ") | map(select(length > 0))) as $need
         | def bare: sub("-[0-9]{8}$"; "");
-          reduce $need[] as $id ($models;
+          reduce $need[] as $id (.;
             if (.[$id] // .[$id | bare]) != null then . else .[$id] = {missing: $today} end)
         | {dated: $today, fetched: $now, fetch_failed: null, models: .}' \
         > "$pricing_cache.tmp.$$" 2>/dev/null \
         && mv "$pricing_cache.tmp.$$" "$pricing_cache" \
         || { rm -f "$pricing_cache.tmp.$$"; fetch_reason="could not write the cache"; return 1; }
     return 0
+}
+
+# Fetches, and rewrites the bundled file as the rows merged over it, dated today, one model per line.
+# Prints the models whose entry changed and the ones added; dies when the fetch fails.
+refresh_pricing() {
+    local today before after
+    fetch_rows || die "fetching current rates failed: $fetch_reason" 1
+    today="$(date -u +%Y-%m-%d)"
+    before="$(jq -c '.models' "$pricing_bundled")"
+    after="$(printf '%s\n' "$fetched_rows" | rows_to_models)" || die "could not parse the fetched rates" 1
+    rewrite_file "$pricing_bundled" \
+        printf '{\n  "dated": "%s",\n  "source": %s,\n  "models": {\n%s\n  }\n}\n' \
+        "$today" \
+        "$(jq -c '.source' "$pricing_bundled" | sed 's/","/",\n             "/')" \
+        "$(printf '%s' "$after" \
+            | jq -r 'to_entries | map("    " + (.key | tojson) + ":" + (.value | tojson)) | join(",\n")' \
+            | sed 's/:/: /g; s/,/, /g; s/, $/,/')"
+    echo "${pricing_bundled#"$repo_root_abs/"}"
+    jq -n -r --argjson a "$before" --argjson b "$after" '
+        ($b | to_entries[] | select($a[.key] == null) | "  added    " + .key),
+        ($b | to_entries[] | select($a[.key] != null and $a[.key] != .value) | "  changed  " + .key)'
 }
 
 # Writes the cache as the current view plus the failure's time and reason, so the fetch is not
@@ -234,7 +273,9 @@ ensure_pricing() {
         since="$(pricing_missing_since "$id" "$current")"
         if [ -z "$since" ] || [ "$(days_since "$since")" -gt 1 ]; then need_fetch=1; fi
     done
-    if [ -n "$fetched" ] && [ "$(days_since "$fetched")" -gt 7 ]; then need_fetch=1; fi
+    # The cache's age is its fetch, or its failed fetch when it has never been fetched.
+    stamp="${fetched:-$failed}"
+    if [ -n "$stamp" ] && [ "$(days_since "$stamp")" -gt 7 ]; then need_fetch=1; fi
     if [ -n "$failed" ] && [ "$(days_since "$failed")" -le 1 ]; then need_fetch=0; fi
 
     if [ "$need_fetch" -eq 1 ]; then
@@ -248,8 +289,11 @@ ensure_pricing() {
         fi
     fi
 
+    # A failure is named while it still holds the fetch back: this run's, or one less than a day old.
     why=""
-    [ -z "$failed" ] || why=" (fetching current rates failed: ${failed#* })"
+    if [ -n "$failed" ] && [ "$(days_since "$failed")" -le 1 ]; then
+        why=" (fetching current rates failed: ${failed#* })"
+    fi
     if [ -n "$fetched" ] && [ -z "$failed" ]; then
         rates_line="Rates: fetched ${fetched%%T*}."
     elif [ -n "$fetched" ]; then
@@ -392,7 +436,7 @@ session_records() {
         [ -n "$s" ] || continue
         w="$(session_window "$s")"
         if [ -z "$w" ]; then
-            printf 'S\t%s\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tunavailable\n' "$s"
+            printf 'S\t%s\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tunavailable\n' "$s"
             continue
         fi
         transcript="$(printf '%s' "$w" | cut -f1)"; first="$(printf '%s' "$w" | cut -f2)"
@@ -478,6 +522,13 @@ case "$command" in
         fi
         echo "$rates_line"
         rm -f "$records" "$prices_tsv"
+        ;;
+
+    refresh-pricing)
+        command -v jq >/dev/null 2>&1 || die "refresh-pricing needs jq" 1
+        [ -f "$pricing_bundled" ] || die "no pricing table beside the script: $pricing_bundled"
+        [ -z "$target" ] || die "refresh-pricing takes no task"
+        refresh_pricing
         ;;
 
     *)

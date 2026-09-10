@@ -23,14 +23,17 @@ Run it with bash, from anywhere inside the project:
 <plugin>/scripts/cost/cost.sh report docs/7-add-widget
 <plugin>/scripts/cost/cost.sh report docs/7-add-widget --puml
 <plugin>/scripts/cost/cost.sh report
+<plugin>/scripts/cost/cost.sh refresh-pricing
 ```
 
 | Command           | Effect                                                                              |
 |-------------------|-------------------------------------------------------------------------------------|
 | `report [<path>]` | Read `review/cost.jsonl` and write `review/cost.md` beside it. Prints its path, then `Rates:`. |
 | `report … --puml` | Also write `review/cost.puml`, one `@startgantt` block per timeline, for rendering. |
+| `refresh-pricing` | Rewrite `pricing.json` beside the script from the published rates. Prints the models it changed. |
 
-Exit codes: **0** done, **1** no cost lines to report on, **2** bad usage. `--help` or `-h` prints the usage.
+Exit codes: **0** done, **1** no cost lines to report on or the fetch failed, **2** bad usage. `--help` or `-h`
+prints the usage.
 
 **The task is named as a directory, as its `review/cost.jsonl`, or not at all** when one task under `docs/`
 carries a `cost.jsonl`. An archived task under `docs/implemented/` is named explicitly. The ambiguity is
@@ -54,5 +57,5 @@ says. The machine's own zone and `TZ` play no part.
 
 It reads the lines' **shape**, not their meaning. A line the hooks never wrote is a run that went unrecorded,
 and the report cannot tell that from a cheap one. A session whose mapping file is gone gets `unavailable` for
-its own turns and no session row in the timeline. A model in no rates table gets `—` in every priced cell and
-is named under the task total; nothing is guessed for it.
+its own turns and no session row in the timeline. A model in no rates table is rendered as
+[`docs/cost-recording.md`](../../docs/cost-recording.md), **Prices**, says.
