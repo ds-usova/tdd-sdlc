@@ -132,6 +132,20 @@ the pricing page's model table and the models page's comparison table: a model's
 come from the models page where it lists the model, else the id is derived from the name and the window is
 unknown, rendered `—`.
 
+### Times
+
+`cost.jsonl` is the machine-readable record and stays UTC, portable and comparable across machines. Only
+`cost.md` is rendered in local time, from the offset the hooks recorded, never from the rendering machine's
+zone or `TZ`:
+
+- **One offset per report**: the mapping file's, since the report's own call has just rewritten it; else the
+  offset of the agent line with the latest `ended`; else UTC. Every row, the timeline's axis, the task total's
+  span and the header use it. A row recorded under another offset is not converted separately.
+- **The header names it**: `Written by scripts/cost/cost.sh report at 2026-09-10 01:06:51. Times are
+  UTC+02:00, the offset of the latest record.` With no offset recorded anywhere: `Times are UTC: no offset
+  recorded.`
+- **Durations are unaffected.**
+
 ### Reading a timeline
 
 One overview for the task, then one timeline per plan. A row is an agent: its name, the clock time it

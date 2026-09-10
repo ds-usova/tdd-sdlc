@@ -46,8 +46,9 @@ Everything the plan reader's **Portability** section says applies here, and the 
 | plugin         | `Bash(bash <root>/scripts/cost/cost.sh:*)`   |
 | plugin, quoted | `Bash(bash "<root>/scripts/cost/cost.sh":*)` |
 
-`report` needs `jq`, and exits 1 saying so without it. Times are **UTC**: every stamp the host writes carries
-`Z`, and the report does no zone conversion.
+`report` needs `jq`, and exits 1 saying so without it. `cost.jsonl` stays **UTC**; `cost.md` renders clock
+times in the offset the hooks recorded, as [`docs/cost-recording.md`](../../docs/cost-recording.md), **Times**,
+says. The machine's own zone and `TZ` play no part.
 
 ## Where it stops
 

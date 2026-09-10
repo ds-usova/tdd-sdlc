@@ -27,10 +27,63 @@ function epoch(s) {
         + substr(s, 12, 2) * 3600 + substr(s, 15, 2) * 60 + substr(s, 18, 2)
 }
 
+# Clock times are rendered in the report's one offset, `off` seconds east of UTC, chosen in END.
 function hhmm(e,   r) {
-    r = e % 86400
+    r = (e + off) % 86400
     if (r < 0) r = r + 86400
     return sprintf("%02d:%02d", int(r / 3600), int(r / 60) % 60)
+}
+
+# "2026-09-10 01:06:51" in the report's offset.
+function fstamp(e,   z, era, doe, yoe, y, doy, mp, d, m, r) {
+    e = e + off
+    z = int(e / 86400)
+    if (e < 0 && z * 86400 != e) z--
+    r = e - z * 86400
+    z += 719468
+    era = int((z >= 0 ? z : z - 146096) / 146097)
+    doe = z - era * 146097
+    yoe = int((doe - int(doe / 1460) + int(doe / 36524) - int(doe / 146096)) / 365)
+    y = yoe + era * 400
+    doy = doe - (365 * yoe + int(yoe / 4) - int(yoe / 100))
+    mp = int((5 * doy + 2) / 153)
+    d = doy - int((153 * mp + 2) / 5) + 1
+    m = mp < 10 ? mp + 3 : mp - 9
+    if (m <= 2) y++
+    return sprintf("%04d-%02d-%02d %02d:%02d:%02d", y, m, d, int(r / 3600), int(r / 60) % 60, r % 60)
+}
+
+# "+0200" -> 7200; anything else -> "".
+function offset_secs(o) {
+    if (o !~ /^[+-][0-9][0-9][0-9][0-9]$/) return ""
+    return (substr(o, 1, 1) == "-" ? -1 : 1) * (substr(o, 2, 2) * 3600 + substr(o, 4, 2) * 60)
+}
+
+# "+0200" -> "UTC+02:00".
+function offset_name(o) {
+    return "UTC" substr(o, 1, 3) ":" substr(o, 4, 2)
+}
+
+# One offset per report: the session record with the latest window end, since the report's own call
+# has just rewritten its mapping; else the agent record with the latest end; else UTC. Sets `off` and
+# `off_name`.
+function pick_offset(   i, best, cand) {
+    off = 0; off_name = ""
+    best = -1; cand = ""
+    for (i = 1; i <= sn; i++) {
+        if (sstat[i] != "ok" || offset_secs(soff[i]) == "") continue
+        if (sto[i] > best) { best = sto[i]; cand = soff[i] }
+    }
+    if (cand == "") {
+        best = -1
+        for (i = 1; i <= n; i++) {
+            if (offset_secs(aoff[i]) == "") continue
+            if (aen[i] > best) { best = aen[i]; cand = aoff[i] }
+        }
+    }
+    if (cand == "") return
+    off = offset_secs(cand)
+    off_name = offset_name(cand)
 }
 
 function ftok(t) {
@@ -542,6 +595,7 @@ function mark_adopted(   j) {
 
 END {
     mark_adopted()
+    pick_offset()
     if (MODE == "puml") {
         overview()
         print ""
@@ -552,7 +606,9 @@ END {
     type_rows()
     print "# Cost · " task
     print ""
-    print "Written by `scripts/cost/cost.sh report` from `review/cost.jsonl` at " now ". Times are UTC."
+    printf "Written by `scripts/cost/cost.sh report` from `review/cost.jsonl` at %s. Times are %s.\n",
+        fstamp(epoch(now)),
+        (off_name == "" ? "UTC: no offset recorded" : off_name ", the offset of the latest record")
     print "Re-run the script rather than edit this file. What each number is: `docs/cost-recording.md`."
     if (rates != "") print rates
     if (skipped + 0 > 0)
