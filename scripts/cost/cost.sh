@@ -11,17 +11,16 @@ repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 repo_root_abs="$(cd "$repo_root" && pwd)"
 
 jsonl=""
-puml=0
 
 usage() {
     cat <<'EOF'
 Usage:
-  <plugin>/scripts/cost/cost.sh report [<task directory> | <cost.jsonl>] [--puml]
+  <plugin>/scripts/cost/cost.sh report [<task directory> | <cost.jsonl>]
   <plugin>/scripts/cost/cost.sh refresh-pricing
 
 Commands:
-  report           Read the task's review/cost.jsonl and write review/cost.md beside it. --puml
-                   also writes review/cost.puml. What the report holds is docs/cost-recording.md.
+  report           Read the task's review/cost.jsonl and write review/cost.md beside it. What the
+                   report holds is docs/cost-recording.md.
   refresh-pricing  Fetch the published rates and rewrite the plugin's own pricing.json, beside the
                    script, dated today. Run before a release, as docs/developing.md says.
 
@@ -273,9 +272,10 @@ ensure_pricing() {
         since="$(pricing_missing_since "$id" "$current")"
         if [ -z "$since" ] || [ "$(days_since "$since")" -gt 1 ]; then need_fetch=1; fi
     done
-    # The cache's age is its fetch, or its failed fetch when it has never been fetched.
+    # No cache yet is a fetch. The cache's age is its fetch, or its failed fetch when it has never
+    # been fetched.
     stamp="${fetched:-$failed}"
-    if [ -n "$stamp" ] && [ "$(days_since "$stamp")" -gt 7 ]; then need_fetch=1; fi
+    if [ -z "$stamp" ] || [ "$(days_since "$stamp")" -gt 7 ]; then need_fetch=1; fi
     if [ -n "$failed" ] && [ "$(days_since "$failed")" -le 1 ]; then need_fetch=0; fi
 
     if [ "$need_fetch" -eq 1 ]; then
@@ -481,7 +481,6 @@ shift
 target=""
 while [ $# -gt 0 ]; do
     case "$1" in
-        --puml)    puml=1; shift ;;
         -h|--help) usage; exit 0 ;;
         *)
             [ -z "$target" ] || die "the task is named once: $target and $1"
@@ -511,15 +510,9 @@ case "$command" in
         fi
 
         rewrite_file "$review_dir/cost.md" \
-            awk -v MODE=md -v task="$task_name" -v now="$now" -v skipped="${skipped:-0}" \
+            awk -v task="$task_name" -v now="$now" -v skipped="${skipped:-0}" \
                 -v rates="$rates_line" -f "$renderer" "$records"
         echo "${review_dir#"$repo_root_abs/"}/cost.md"
-        if [ "$puml" -eq 1 ]; then
-            rewrite_file "$review_dir/cost.puml" \
-                awk -v MODE=puml -v task="$task_name" -v now="$now" -v skipped="${skipped:-0}" \
-                    -v rates="$rates_line" -f "$renderer" "$records"
-            echo "${review_dir#"$repo_root_abs/"}/cost.puml"
-        fi
         echo "$rates_line"
         rm -f "$records" "$prices_tsv"
         ;;

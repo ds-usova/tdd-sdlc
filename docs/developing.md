@@ -12,7 +12,7 @@
 ## Releasing
 
 1. `bash scripts/cost/cost.sh refresh-pricing`, then commit `scripts/cost/pricing.json` when it changed. It is
-   the rates a report uses offline and on a first run; a release ships it as it is.
+   the rates a report uses offline; a release ships it as it is.
 2. `claude plugin validate .`
 3. Bump `version` in `.claude-plugin/plugin.json` and commit it.
 4. `git push`.

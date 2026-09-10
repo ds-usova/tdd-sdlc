@@ -21,7 +21,6 @@ Run it with bash, from anywhere inside the project:
 
 ```
 <plugin>/scripts/cost/cost.sh report docs/7-add-widget
-<plugin>/scripts/cost/cost.sh report docs/7-add-widget --puml
 <plugin>/scripts/cost/cost.sh report
 <plugin>/scripts/cost/cost.sh refresh-pricing
 ```
@@ -29,7 +28,6 @@ Run it with bash, from anywhere inside the project:
 | Command           | Effect                                                                              |
 |-------------------|-------------------------------------------------------------------------------------|
 | `report [<path>]` | Read `review/cost.jsonl` and write `review/cost.md` beside it. Prints its path, then `Rates:`. |
-| `report … --puml` | Also write `review/cost.puml`, one `@startgantt` block per timeline, for rendering. |
 | `refresh-pricing` | Rewrite `pricing.json` beside the script from the published rates. Prints the models it changed. |
 
 Exit codes: **0** done, **1** no cost lines to report on or the fetch failed, **2** bad usage. `--help` or `-h`

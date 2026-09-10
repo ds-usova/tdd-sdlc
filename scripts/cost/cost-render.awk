@@ -1,7 +1,6 @@
 # Renders review/cost.jsonl, already deduplicated, priced and flattened to TSV by cost.sh, as the
-# tables and the timelines of review/cost.md. -v MODE=md writes the report, -v MODE=puml the gantt
-# blocks. It does no pricing: the dollar fields arrive computed, empty where the model is priced
-# nowhere.
+# tables and the timelines of review/cost.md. It does no pricing: the dollar fields arrive computed,
+# empty where the model is priced nowhere.
 #
 # Input records, tab separated:
 #   A  id  parent  started  ended  session  agent  model  input  output  cache_create_5m
@@ -220,14 +219,14 @@ $1 == "S" {
 
 function rows_reset() {
     split("", rlabel); split("", rst); split("", ren); split("", rusd); split("", rpeak); split("", rstar)
-    split("", rind); split("", rleaf)
+    split("", rind)
     rn = 0
 }
 
-function addrow(label, st, en, usd, peak, star, ind, leaf) {
+function addrow(label, st, en, usd, peak, star, ind) {
     rn++
     rlabel[rn] = label; rst[rn] = st; ren[rn] = en; rusd[rn] = usd; rpeak[rn] = peak; rstar[rn] = star
-    rind[rn] = ind; rleaf[rn] = leaf
+    rind[rn] = ind
 }
 
 # Agents of one type under one parent are grouped (docs/cost-recording.md). `withmod` puts the plan's
@@ -269,12 +268,12 @@ function group_rows(list, count, ind, withmod,
         }
         if (gc[k] == 1) {
             j = gmem[k ",1"]
-            addrow(glabel[k], ast[j], aen[j], ausd[j], apeak[j], 0, ind, 1)
+            addrow(glabel[k], ast[j], aen[j], ausd[j], apeak[j], 0, ind)
         } else {
-            addrow(glabel[k] " \303\227" gc[k], gs[k], ge[k], row_usd(gu[k], gpr[k]), gp[k], gnp[k] && gpr[k], ind, 0)
+            addrow(glabel[k] " \303\227" gc[k], gs[k], ge[k], row_usd(gu[k], gpr[k]), gp[k], gnp[k] && gpr[k], ind)
             for (mi = 1; mi <= gc[k]; mi++) {
                 j = gmem[k "," mi]
-                addrow("#" mi, ast[j], aen[j], ausd[j], apeak[j], 0, ind + 1, 1)
+                addrow("#" mi, ast[j], aen[j], ausd[j], apeak[j], 0, ind + 1)
             }
         }
     }
@@ -320,37 +319,8 @@ function draw(title,   i, t0, t1, span, m, w, c, k, axis, line, sc, ec, ind, lab
     }
 }
 
-# One gantt block per timeline; a day on its scale is a minute of wall time.
-function draw_puml(title,   i, t0, label, group, seen, key, k, st, len) {
-    if (rn == 0) return
-    t0 = rst[1]
-    for (i = 1; i <= rn; i++) if (rst[i] < t0) t0 = rst[i]
-    print "@startgantt"
-    print "' one day on this scale is one minute of wall time"
-    print "title " title
-    for (i = 1; i <= rn; i++) {
-        if (!rleaf[i]) {
-            group = rlabel[i]
-            sub(/ \303\227[0-9]+$/, "", group)
-            continue
-        }
-        label = rlabel[i]
-        if (label ~ /^#/) label = group " " label
-        key = label
-        k = 1
-        while (key in seen) { k++; key = label " (" k ")" }
-        seen[key] = 1
-        st = int((rst[i] - t0) / 60)
-        len = mins(rst[i], ren[i])
-        if (len < 1) len = 1
-        print "[" key "] lasts " len " days"
-        print "[" key "] starts " st " days after start"
-    }
-    print "@endgantt"
-}
-
 function emit(title) {
-    if (MODE == "puml") draw_puml(title); else draw(title)
+    draw(title)
 }
 
 # "session (own turns)", with the session named when the task saw more than one.
@@ -365,7 +335,7 @@ function overview(   i, list, count, title) {
     rows_reset()
     for (i = 1; i <= sn; i++) {
         if (sstat[i] != "ok") continue
-        addrow(session_label(i), sfrom[i], sto[i], susd[i], speak[i], 0, 0, 1)
+        addrow(session_label(i), sfrom[i], sto[i], susd[i], speak[i], 0, 0)
     }
     count = 0
     for (i = 1; i <= n; i++) {
@@ -421,7 +391,7 @@ function descendants(root, list,   i, changed, mark, count) {
 
 function one_plan(i, nth,   list, count) {
     rows_reset()
-    addrow(atyp[i], ast[i], aen[i], ausd[i], apeak[i], 0, 0, 1)
+    addrow(atyp[i], ast[i], aen[i], ausd[i], apeak[i], 0, 0)
     count = descendants(i, list)
     group_rows(list, count, 1, 0)
     emit(plan_of(apl[i]) (nth > 1 ? " (" nth ")" : ""))
@@ -504,12 +474,13 @@ function cost_table(total,   i, k, u, st) {
             fusd(row_usd(tuo[k], tpr[k]), st), fdur(tmin[k], tmax[k]), commas(tmod[k])
     }
     print ""
-    print "`$` is what the run would cost at API rates: input at the model's input rate, cache reads at"
-    print "the read multiplier (a tenth of it, or less on some models), cache writes at 1.25× for the"
-    print "5-minute TTL and 2× for the 1-hour one, output at the output rate. On a subscription plan it"
-    print "is not a bill. `read $` includes input, a few tokens per turn. `%` is the share of the task's"
-    print "total. A `—` is a row priced nowhere; a `*` is a row with an unpriced agent left out of its"
-    print "sum. The header says where the rates come from."
+    print "- `$`: what the run would cost at API rates. On a subscription plan it is not a bill."
+    print "- `read $`: cache reads at the read multiplier (a tenth of the input rate, or less on some models),"
+    print "  plus input at the input rate."
+    print "- `write $`: cache writes at 1.25× the input rate for the 5-minute TTL and 2× for the 1-hour one."
+    print "- `out $`: output at the output rate."
+    print "- `%`: the share of the task's total."
+    print "- `—`: a row priced nowhere. `*`: a sum that leaves out an unpriced agent."
 }
 
 function volume_table(   i, k) {
@@ -532,10 +503,11 @@ function volume_table(   i, k) {
             ftok(tin[k]), ftok(tout[k]), ftok(tcw[k]), ftok(tcr[k]), ftok(tpeak[k]), fwin(tpeak[k], twin[k])
     }
     print ""
-    print "`cache read` is not new tokens: it is the conversation prefix, re-read from cache on each turn."
-    print "It grows with roughly the square of the turn count. `peak ctx` is the largest one message's"
-    print "input + cache write + cache read: the most context the agent carried at once. `of window` is"
-    print "that against the model's context window. A type's `peak ctx` is its largest agent's."
+    print "- `cache read`: the conversation prefix, re-read from cache on each turn, not new tokens. It grows"
+    print "  with roughly the square of the turn count."
+    print "- `peak ctx`: the largest one message's input + cache write + cache read, the most context the"
+    print "  agent carried at once. A type's is its largest agent's."
+    print "- `of window`: `peak ctx` against the model's context window."
 }
 
 function plan_table(   i, k, key, pn, pk, pc, pu, pnp, ppr, pmin, pmax, idx, pord) {
@@ -590,9 +562,9 @@ function plan_blocks(   i, seenp) {
     for (i = 1; i <= n; i++) {
         if (atyp[i] != "implement-plan-module" || apl[i] == "") continue
         seenp[apl[i]]++
-        if (MODE != "puml") print "```"
+        print "```"
         one_plan(i, seenp[apl[i]])
-        if (MODE != "puml") print "```"
+        print "```"
         print ""
     }
 }
@@ -605,19 +577,12 @@ function mark_adopted(   j) {
 END {
     mark_adopted()
     pick_offset()
-    if (MODE == "puml") {
-        overview()
-        print ""
-        plan_blocks()
-        exit 0
-    }
     total = task_total()
     type_rows()
     print "# Cost · " task
     print ""
-    printf "Written by `scripts/cost/cost.sh report` from `review/cost.jsonl` at %s. Times are %s.\n",
-        fstamp(epoch(now)),
-        (off_name == "" ? "UTC: no offset recorded" : off_name ", the offset of the latest record")
+    printf "Written by `scripts/cost/cost.sh report` at %s (%s).\n", fstamp(epoch(now)),
+        (off_name == "" ? "UTC, no offset recorded" : off_name ", the latest record's offset")
     print "Re-run the script rather than edit this file. What each number is: `docs/cost-recording.md`."
     if (rates != "") print rates
     if (skipped + 0 > 0)

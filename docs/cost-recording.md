@@ -68,7 +68,7 @@ The second says what moved:
 - **peak ctx** is the largest one message's input + cache write + cache read: the most context the agent
   carried at once. A type's is its largest agent's. **of window** is that against the model's context window.
 
-Each table is followed by the sentence that says what its columns are. Below them come a per-plan split
+Each table is followed by a list that says what its columns are. Below them come a per-plan split
 (`plan`, `agents`, `$`, `time`), a task total (`$` and one span from the first framework call to the report),
 and the timelines.
 
@@ -105,7 +105,8 @@ model. Both are current without anyone editing a file or waiting for a release:
 2. **A fetched copy is cached per user**, at `$XDG_CACHE_HOME/tdd-sdlc/pricing.json`, which defaults to
    `~/.cache/tdd-sdlc/pricing.json` (under Git Bash on Windows, `C:\Users\<user>\.cache\...`).
    `cost.sh report` fetches the published pricing and models pages, parses their tables and rewrites the
-   cache in exactly two cases:
+   cache in exactly three cases:
+   - there is no cache yet;
    - a model id the report needs, from `cost.jsonl` or from the session transcript's `message.model`, is in
      neither the cache nor the bundled file. An id is looked up as written, then without a trailing
      `-YYYYMMDD`;
@@ -144,9 +145,8 @@ zone or `TZ`:
 - **One offset per report**: the mapping file's, since the report's own call has just rewritten it; else the
   offset of the agent line with the latest `ended`; else UTC. Every row, the timeline's axis, the task total's
   span and the header use it. A row recorded under another offset is not converted separately.
-- **The header names it**: `Written by scripts/cost/cost.sh report at 2026-09-10 01:06:51. Times are
-  UTC+02:00, the offset of the latest record.` With no offset recorded anywhere: `Times are UTC: no offset
-  recorded.`
+- **The header names it**: `Written by scripts/cost/cost.sh report at 2026-09-10 01:06:51 (UTC+02:00, the
+  latest record's offset).` With no offset recorded anywhere: `(UTC, no offset recorded)`.
 - **Durations are unaffected.**
 
 ### Reading a timeline
