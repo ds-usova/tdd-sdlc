@@ -42,9 +42,9 @@ the files:
 **Name your file on every call**; several are in flight at once; the log is found beside it. **Read a step
 from `upgrade.sh show`**, never by extracting it by hand. **Tick a step only once you have verified it
 yourself.** Run `validate` after every attempt or run-log entry you write. Where the script is absent or the
-call is refused — by a hook or by the user at the prompt — edit the files directly under the same rules and put
-the case as one line in your final report, as [`scripts/README.md`](../scripts/README.md) says; never stop for
-it.
+call is refused — by a hook or by the user at the prompt — edit the files directly under the same rules, write
+the log's **Caveats** entry and put the case as one line in your final report, as
+[`scripts/README.md`](../scripts/README.md) says; never stop for it.
 
 ## The Sequence
 

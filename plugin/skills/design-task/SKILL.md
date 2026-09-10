@@ -157,6 +157,13 @@ scenario no step names is a visible gap.
 **These are behaviour, never mechanics.** No class, no test class, no layer. "Then: the response is 400 with
 `PERIOD_INVALID`" is a scenario; "then `ListExpensesUseCase` throws" is a plan step.
 
+**A `Then:` may be a measurement.** "Then: the page answers in under 300 ms at 10,000 rows" is a scenario: a
+figure, its unit, and the load it holds under. Latency, throughput and memory are the measurements. The plan maps
+such a scenario to a performance step where the module's conventions name a tool, and records it as unmeasured
+where they do not. Idempotency, a limit and a page size are ordinary behaviour with an ordinary `Then:`.
+Retention and availability are neither: they are the infrastructure's, and belong to the design's **Details**,
+never to a scenario.
+
 ### Decisions
 
 Every judgment call the user made or still has to make, one entry each, in this exact format:

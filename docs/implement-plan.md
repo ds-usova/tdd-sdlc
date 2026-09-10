@@ -46,8 +46,15 @@ Three test types, each with its own red agent and its own green agent:
   a message broker, the framework's own request handling — with the rest of the module mocked.
 - A *system* test drives the running module through its entry point, every dependency real and wired.
 
-Your module's testing conventions decide which parts of the code get which type, and which model runs each
-step.
+A fourth type has no red or green step:
+
+- A *performance* test drives the running module under a stated load and measures a figure — latency,
+  throughput, memory — against the threshold the spec states. A post-implementation step writes it and runs it
+  once, after the refactor. The figure is recorded beside the threshold, never gated on. A missed threshold is
+  filed as a deferred change for a tuning pass.
+
+Your module's testing conventions decide which parts of the code get which type, whether performance is
+measured and with what, and which model runs each step.
 
 ## One task
 

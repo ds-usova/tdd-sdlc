@@ -3,6 +3,8 @@
 What a finished fix tells the user. Short: the files hold the detail, and the report points at them rather than
 restating them.
 
+- **Every log's Caveats first**, as [`scripts/README.md`](../../scripts/README.md)'s **The log keeps the
+  record** says. Nothing when no log has the section.
 - **Verdict in one line** — fixed and archived, or what is still open and where.
 - **The symptom no longer reproduces**: the command from `## How it reproduces`, and one line on what it produces
   now.

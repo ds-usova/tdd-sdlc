@@ -30,9 +30,9 @@ version.
 | 1      | 0.1.0        | single-letter ids: `R1`, `A3`, `D2`, `F1`, `Q1`, `B3`, and plan steps `ST01` … `P01`                   |
 | 2      | 0.2.0        | every id is two letters and at least two digits, one prefix per kind, no letter reused across files   |
 
-Format 2's prefixes: plan steps `ST RU RI RS GU GI GS PI`; spec `RQ AC DN`; design log `DF`; plan `OQ`; plan
-log `RF`; every log's run log `RL` and attempts `AT`; findings file `RX DX`; backlog `BB BR BT`; fix steps
-`FS FR FG`; rework steps `WK`; upgrade steps `UP`. A task written in format 1 is migrated by hand - the ids
+Format 2's prefixes: plan steps `ST RU RI RS GU GI GS PM PI`; spec `RQ AC DN`; design log `DF`; plan `OQ`; plan
+log `RF`; every log's run log `RL`, attempts `AT` and caveats `CV`; findings file `RX DX`; backlog `BC BB BR BT`;
+fix steps `FS FR FG`; rework steps `WK`; upgrade steps `UP`. A task written in format 1 is migrated by hand - the ids
 renamed in every file of the directory and the line added - or archived as it stands.
 
 ## When one cannot run
@@ -64,5 +64,27 @@ Then it goes on. It does not stop and it does not ask: the user answers by addin
 
 **A module agent has no user to tell.** Its report arrives when it has finished, so it never stops for this
 either. It names the case it hit as one line in the first section of its final report — which call, refused or
-absent, and that every tick from there on was made by hand against the suite's figures. That line is the
-record; the skill that spawned it already said the rest.
+absent, and that every tick from there on was made by hand against the suite's figures. The skill that spawned
+it already said the rest.
+
+### The log keeps the record
+
+**The first call that fails, at either level, is written into the log beside the file the call named**, under a
+`## Caveats` heading. The heading goes last in the log; create it when absent, append when present. One entry
+per script, at the moment it stopped answering:
+
+```
+## Caveats
+
+- **CV01:** `plan.sh` refused from RU01 on — hook: "<its wording>". Ticks and validation by hand.
+- **CV02:** `cost.sh` absent at Phase 3. No cost report for this task.
+```
+
+An entry names the script, `refused` or `absent`, the step or phase it failed at, and what the run did instead.
+Nothing else goes here: a blocker is an `RL` entry, an attempt an `AT` entry. A log without the section is a run
+every script answered. The section is what the archive keeps of the case, so a reader of `docs/implemented/`
+knows which run's ticks were judged rather than computed.
+
+**The closing report opens with every log's `## Caveats`.** Read that section of every log the run wrote before
+reading any Run Log. Repeat each entry to the user in one line: the script, from where, and the rule or the
+install step that lets it answer next time. A run with no such section says nothing about it.

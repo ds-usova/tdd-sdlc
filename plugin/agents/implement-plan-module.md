@@ -124,8 +124,9 @@ hand, which is a chance to paraphrase a scenario the agent is supposed to implem
 A plan whose items have no IDs predates this format: `plan.sh validate` will say so item by item. Add the IDs
 first (you own plan edits), then proceed.
 
-If the script is absent or the call is refused — by a hook or by the user at the prompt — fall back to editing the checkboxes directly and put
-the case as one line in your final report, as [`scripts/README.md`](../scripts/README.md) says. Everything
+If the script is absent or the call is refused — by a hook or by the user at the prompt — fall back to editing
+the checkboxes directly, write the log's **Caveats** entry and put the case as one line in your final report,
+as [`scripts/README.md`](../scripts/README.md) says. Everything
 below still applies; only the mechanics change, and `validate` is never run. Never stop for it — the skill that
 spawned you has already told the user.
 
@@ -314,6 +315,14 @@ plan, written for this task.
 
 1. Implement the plan's **Post-Implementation Steps** group, in section order, one sub-agent per section.
 
+   **The Performance section runs first, on the execution model, under `step-formats.md`'s Performance Step
+   Format** — name that file in the spawn as the rule. Pass the `plan.sh show` output of its items, the plan path
+   and the conventions index paths. The agent writes each test with the threshold in code, runs it the way the
+   testing conventions say, and reports the figure per item. Tick an item whose test exists and ran, whatever
+   the figure. Record each figure beside its threshold in the **Run Log** — `- **RL<nn> (PM01):** measured 900 ms
+   against a threshold of 300 ms` — and carry the pair into your report. A missed threshold is not a blocker and
+   not a fix: the agent never tunes production code to reach it, and neither do you.
+
    **An item an Open Question authorized carries that question's answer verbatim.** The checklist item is a
    summary written when the answer arrived; the answer is what the user actually asked for, and the two drift in
    exactly the direction that drops half of it. Quote the `- A:` text into the prompt, and before ticking the
@@ -321,7 +330,8 @@ plan, written for this task.
    `- Action:` on a Review Finding that prescribes content.
 2. **Whole-plan guardrail** — run yourself, from the conventions' commands: the module(s) fully compile, the
    architecture-enforcement test passes, and **the entire test suite is green** — not just the classes this plan
-   touched. If the module conventions name a **coverage guardrail**, run it here too — this is the first point at
+   touched. The performance tests are outside the suite command by the conventions' own rule, so a missed
+   threshold does not turn this red. If the module conventions name a **coverage guardrail**, run it here too — this is the first point at
    which every step exists, so it is the only point where a coverage figure means anything. Coverage below the
    minimum is a blocker: spawn a step agent for the tests that close the gap, or record why in the **Run Log**.
    Then **`plan.sh stubs`** must report no marker left in the recorded files: a stub no `covers:` list reached is
@@ -362,4 +372,5 @@ environmental/flaky). In that case:
 - Stage-by-stage progress, inside the one report you return at the end: what was spawned, what came back,
   guardrail results. Not a message per stage.
 - A final summary the level above can act on: sections completed, test-suite status, the suite's final total and
-  skipped counts, and every blocker or unrelated failure with the item ID it belongs to.
+  skipped counts, every Performance item's figure beside its threshold, and every blocker or unrelated failure
+  with the item ID it belongs to.

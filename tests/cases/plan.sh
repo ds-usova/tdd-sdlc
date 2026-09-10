@@ -58,6 +58,9 @@ check_match "block: the entry is appended to the Run Log" '^- \*\*RL03 \(RI01\):
 check_match "block: an empty Resolved line under it" '^  - Resolved:$' "$(cat "$LOG")"
 check_match "block: leaves the item open" '^- \[ \] RI01' "$(plan show RI01)"
 check_ok "block: the log still validates" plan validate
+printf '%s\n' "" "## Caveats" "" "- **CV01:** plan.sh refused from RU01 on. Ticks and validation by hand." >> "$LOG"
+check_ok "caveats: a Caveats section in the log still validates" plan validate
+check_match "caveats: the counts are unchanged" '23 items, 3 run-log entries, no problems' "$(plan validate)"
 check_fails "block: an unknown id is refused" plan block ZZ99 "note"
 check_fails "block: needs a note" plan block RI01
 

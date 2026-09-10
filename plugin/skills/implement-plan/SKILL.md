@@ -51,9 +51,10 @@ rules and the version-control policy this skill needs, and each pipeline reads i
 Both are hard. Run them in this order.
 
 **Before either gate, the scripts.** Run `plan.sh status` on one of the task's plans. Refused or absent, tell
-the user as [`scripts/README.md`](../../scripts/README.md) says — once, here in the session, before anything is
-spawned, since a pipeline's report arrives only when it has finished — and continue. Every check below that
-names a script then has the same fallback: read the file and answer the question by hand.
+the user and write that plan log's **Caveats** entry, as [`scripts/README.md`](../../scripts/README.md) says —
+once, here in the session, before anything is spawned, since a pipeline's report arrives only when it has
+finished — and continue. Every check below that names a script then has the same fallback: read the file and
+answer the question by hand.
 
 **Gate 1 — every plan is ready.** A plan is ready only when the user has closed the loops the planning phase
 opened. Check every plan in the task directory, `shared/plan.md` included:
@@ -233,5 +234,6 @@ refusal it does not cover rather than improvising a retry.
 
 - One line per phase as it starts, and one per pipeline as it returns.
 - A pipeline's own progress is its report, not yours to relay in full.
-- Final summary: what each plan finished, whether the task was archived, and a pointer to `review/findings.md`
-  rather than a second copy of what it says.
+- Final summary: every plan log's **Caveats** first, as [`scripts/README.md`](../../scripts/README.md) says;
+  then what each plan finished, whether the task was archived, and a pointer to `review/findings.md` rather
+  than a second copy of what it says.

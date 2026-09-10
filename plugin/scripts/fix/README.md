@@ -72,10 +72,11 @@ several words is refused rather than cut down to its first. `--log` takes one fi
 refused beside a bug directory, whose every file is validated with its own log.
 
 **Every file has a log beside it under its own stem** — `bug-log.md` beside `bug.md`, `fix-log.md` beside each
-`fix.md` — holding its **Attempts**, its **Run Log** and, for a fix, the `**In flight:**` line; `--log` names
-another. `validate` reads both, and `start`, `tick` and `block` write to the log. The file stays what a step
-agent reads; the log is what happened to it. Log files are never enumerated as files of their own: a directory
-`validate` finds them through the file each sits beside.
+`fix.md` — holding its **Attempts**, its **Run Log**, for a fix the `**In flight:**` line and, where a script
+was refused or absent, its **Caveats** ([`scripts/README.md`](../README.md), **The log keeps the record**);
+`--log` names another. `validate` reads both, and `start`, `tick` and `block` write to the log. The file stays
+what a step agent reads; the log is what happened to it. Log files are never enumerated as files of their own: a
+directory `validate` finds them through the file each sits beside.
 
 **`attempts` prints `bug-log.md · AT01–AT03, module-a/fix-log.md · AT01, module-b/fix-log.md · —`** — a range where a
 log's numbers run without a gap, the list where they do not, an em dash where a log holds none.

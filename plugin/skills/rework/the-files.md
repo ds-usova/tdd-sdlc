@@ -89,11 +89,12 @@ the seam. **`## What changes` stays in `rework.md`** and covers every steps file
 ## Each log
 
 `<file-stem>-log.md` beside its steps file, titled `# Rework Log: <what changes>` after the rework's title, and
-holding one section:
+holding these sections:
 
 | Section     | Holds                                                                           | Written by                         |
 |-------------|---------------------------------------------------------------------------------|------------------------------------|
 | **Run Log** | `RL<nn>` entries, one per thing the run recorded — a blocker, a note, a deviation | `rework-module`, `rework.sh block` |
+| **Caveats** | `CV<nn>` entries, one per script refused or absent — `scripts/README.md`        | whoever hit it, by hand            |
 
 Phase 1 writes the title alone; `rework.sh block` creates the **Run Log** heading at the first entry. An entry
 is `- **RL<nn> (<ID>):** what happened`, `<ID>` the step it belongs to, numbered once per log and appended; a
