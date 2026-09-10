@@ -188,7 +188,8 @@ When every pipeline has returned:
    Write it before archiving, so the whole directory moves once and the folder is there for the evidence to
    land in.
 
-   **Run `cost.sh report docs/<n>-<name>/` before archiving.** Refused or absent: say so and go on.
+   **Run `cost.sh report docs/<n>-<name>/` before archiving** and show the person what it printed. Refused or
+   absent: say so and go on.
 
    **A bug block is a reproduction the pipelines reported** ([`reproducing.md`](../../templates/reproducing.md)).
    Nothing else becomes one.

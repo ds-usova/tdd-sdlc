@@ -102,16 +102,212 @@ skipped_count() {
         | length' < "$jsonl" | tr -d '\r'
 }
 
+# ---------------------------------------------------------------- prices
+
+# Two tables the transcript does not carry: dollars per million tokens and the context window, per
+# model id. The bundled file ships with the plugin; a fetched copy is cached per user and refreshed
+# only when a report needs it (docs/cost-recording.md, "Where the rates come from").
+pricing_bundled="$script_dir/pricing.json"
+pricing_parser="$script_dir/pricing-parse.awk"
+pricing_cache="${XDG_CACHE_HOME:-$HOME/.cache}/tdd-sdlc/pricing.json"
+pricing_page="https://platform.claude.com/docs/en/about-claude/pricing.md"
+models_page="https://platform.claude.com/docs/en/models/overview.md"
+rates_line=""
+prices_tsv=""
+
+# Whole days from a date or timestamp to now; a large number when it cannot be read.
+days_since() {
+    awk -v a="$1" -v b="$(date -u +%Y-%m-%d)" '
+    function days(y, m, d,   era, yoe, doy, doe) {
+        if (m <= 2) y = y - 1
+        era = int((y >= 0 ? y : y - 399) / 400)
+        yoe = y - era * 400
+        doy = int((153 * (m + (m > 2 ? -3 : 9)) + 2) / 5) + d - 1
+        doe = yoe * 365 + int(yoe / 4) - int(yoe / 100) + doy
+        return era * 146097 + doe - 719468
+    }
+    function day(s) {
+        if (s !~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/) return ""
+        return days(substr(s, 1, 4) + 0, substr(s, 6, 2) + 0, substr(s, 9, 2) + 0)
+    }
+    BEGIN { x = day(a); y = day(b); print (x == "" || y == "") ? 100000 : y - x }'
+}
+
+# The bundled file with the cache merged over it, as one JSON document on stdout.
+pricing_current() {
+    if [ -f "$pricing_cache" ]; then
+        jq -s '.[1] * {models: ((.[0].models // {}) * (.[1].models // {}))}' \
+            "$pricing_bundled" "$pricing_cache" 2>/dev/null
+    else
+        cat "$pricing_bundled"
+    fi
+}
+
+# An id is looked up as written, then without a trailing -YYYYMMDD.
+pricing_has() {
+    local id="$1" bare
+    bare="$(printf '%s' "$id" | sed -E 's/-[0-9]{8}$//')"
+    printf '%s' "$2" | jq -e --arg id "$id" --arg bare "$bare" '
+        (.models[$id] // .models[$bare]) as $m | $m != null and $m.missing == null' >/dev/null 2>&1
+}
+
+# The date a `missing` entry carries for the id, or nothing.
+pricing_missing_since() {
+    printf '%s' "$2" | jq -r --arg id "$1" '.models[$id].missing // empty' 2>/dev/null | tr -d '\r'
+}
+
+# Fetches the two pages, parses them, and rewrites the cache as the rows merged over the bundled
+# file, with a `missing` entry for every needed model neither lists. Sets fetch_reason and returns 1
+# when the fetch or the parse fails; nothing goes to stderr.
+fetch_pricing() {
+    local tmp="${TMPDIR:-/tmp}/cost-pricing.$$" err rows now today
+    fetch_reason=""
+    if ! command -v curl >/dev/null 2>&1; then
+        fetch_reason="curl is not installed"
+        return 1
+    fi
+    mkdir -p "$tmp" 2>/dev/null || { fetch_reason="could not create $tmp"; return 1; }
+    if ! curl -fsSL --max-time 10 "$pricing_page" -o "$tmp/pricing.md" 2>"$tmp/err"; then
+        err="$(head -1 "$tmp/err" | tr -d '\r')"
+        rm -rf "$tmp"
+        fetch_reason="${err:-curl failed on the pricing page}"
+        return 1
+    fi
+    if ! curl -fsSL --max-time 10 "$models_page" -o "$tmp/models.md" 2>"$tmp/err"; then
+        err="$(head -1 "$tmp/err" | tr -d '\r')"
+        rm -rf "$tmp"
+        fetch_reason="${err:-curl failed on the models page}"
+        return 1
+    fi
+    rows="$(awk -f "$pricing_parser" "$tmp/pricing.md" "$tmp/models.md" 2>/dev/null | tr -d '\r')"
+    rm -rf "$tmp"
+    if [ -z "$rows" ]; then
+        fetch_reason="no model table on the pricing page"
+        return 1
+    fi
+    now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    today="${now%%T*}"
+    mkdir -p "$(dirname "$pricing_cache")" 2>/dev/null || { fetch_reason="could not create the cache"; return 1; }
+    # Rows to a models object: a multiplier at its default is left out, as in the bundled file.
+    printf '%s\n' "$rows" | jq -R -s --arg today "$today" --arg now "$now" --arg needed "$1" \
+        --slurpfile bundled "$pricing_bundled" '
+        [split("\n")[] | select(length > 0) | split("\t")
+         | {key: .[0], value: ({input: (.[1] | tonumber), output: (.[2] | tonumber)}
+             + (if .[3] != "" and (.[3] | tonumber) != 0.1 then {cache_read: (.[3] | tonumber)} else {} end)
+             + (if .[4] != "" and (.[4] | tonumber) != 1.25 then {cache_write_5m: (.[4] | tonumber)} else {} end)
+             + (if .[5] != "" and (.[5] | tonumber) != 2 then {cache_write_1h: (.[5] | tonumber)} else {} end)
+             + (if .[6] != "" then {window: (.[6] | tonumber)} else {} end))}]
+        | from_entries as $fetched
+        | (($bundled[0].models // {}) * $fetched) as $models
+        | ($needed | split(" ") | map(select(length > 0))) as $need
+        | def bare: sub("-[0-9]{8}$"; "");
+          reduce $need[] as $id ($models;
+            if (.[$id] // .[$id | bare]) != null then . else .[$id] = {missing: $today} end)
+        | {dated: $today, fetched: $now, fetch_failed: null, models: .}' \
+        > "$pricing_cache.tmp.$$" 2>/dev/null \
+        && mv "$pricing_cache.tmp.$$" "$pricing_cache" \
+        || { rm -f "$pricing_cache.tmp.$$"; fetch_reason="could not write the cache"; return 1; }
+    return 0
+}
+
+# Writes the cache as the current view plus the failure's time and reason, so the fetch is not
+# retried for a day.
+note_fetch_failure() {
+    local now
+    now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    mkdir -p "$(dirname "$pricing_cache")" 2>/dev/null || return 0
+    pricing_current | jq --arg f "$now $1" '.fetch_failed = $f' > "$pricing_cache.tmp.$$" 2>/dev/null \
+        && mv "$pricing_cache.tmp.$$" "$pricing_cache" || rm -f "$pricing_cache.tmp.$$"
+}
+
+# Decides whether to fetch, fetches, and sets rates_line and prices_tsv. $1 is the needed model ids,
+# space separated.
+ensure_pricing() {
+    local needed="$1" current fetched failed why id since need_fetch=0 dated
+    current="$(pricing_current)"
+    fetched="$(printf '%s' "$current" | jq -r '.fetched // empty' | tr -d '\r')"
+    failed="$(printf '%s' "$current" | jq -r '.fetch_failed // empty' | tr -d '\r')"
+    dated="$(jq -r '.dated // empty' "$pricing_bundled" | tr -d '\r')"
+
+    for id in $needed; do
+        if pricing_has "$id" "$current"; then continue; fi
+        since="$(pricing_missing_since "$id" "$current")"
+        if [ -z "$since" ] || [ "$(days_since "$since")" -gt 1 ]; then need_fetch=1; fi
+    done
+    if [ -n "$fetched" ] && [ "$(days_since "$fetched")" -gt 7 ]; then need_fetch=1; fi
+    if [ -n "$failed" ] && [ "$(days_since "$failed")" -le 1 ]; then need_fetch=0; fi
+
+    if [ "$need_fetch" -eq 1 ]; then
+        if fetch_pricing "$needed"; then
+            current="$(pricing_current)"
+            fetched="$(printf '%s' "$current" | jq -r '.fetched // empty' | tr -d '\r')"
+            failed=""
+        else
+            note_fetch_failure "$fetch_reason"
+            failed="$(date -u +%Y-%m-%dT%H:%M:%SZ) $fetch_reason"
+        fi
+    fi
+
+    why=""
+    [ -z "$failed" ] || why=" (fetching current rates failed: ${failed#* })"
+    if [ -n "$fetched" ] && [ -z "$failed" ]; then
+        rates_line="Rates: fetched ${fetched%%T*}."
+    elif [ -n "$fetched" ]; then
+        rates_line="Rates: cached copy from ${fetched%%T*}$why."
+    else
+        rates_line="Rates: the plugin's table, dated ${dated:-unknown}$why."
+    fi
+
+    prices_tsv="${TMPDIR:-/tmp}/cost-prices.$$"
+    printf '%s' "$current" | jq -r '
+        .models | to_entries[] | select(.value.missing == null)
+        | [.key, .value.input, .value.output, (.value.cache_read // 0.1),
+           (.value.cache_write_5m // 1.25), (.value.cache_write_1h // 2), (.value.window // "")]
+        | @tsv' 2>/dev/null | tr -d '\r' > "$prices_tsv"
+}
+
+# usd_read, usd_write, usd_out and window for one model's counts, tab separated; four empty fields
+# when the model is priced nowhere. Input and cache reads are priced at the model's input rate and
+# the read multiplier, cache writes at their TTL's multiplier, output at the output rate.
+price_fields() {
+    awk -F '\t' -v id="$1" -v inp="$2" -v out="$3" -v cc5="$4" -v cc1="$5" -v cr="$6" '
+    BEGIN { bare = id; sub(/-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]$/, "", bare) }
+    $1 == id { row = $0; exit }
+    $1 == bare && row == "" { row = $0 }
+    END {
+        if (row == "") { printf "\t\t\t\n"; exit }
+        split(row, f, "\t")
+        printf "%.6f\t%.6f\t%.6f\t%s\n",
+            (inp + cr * f[4]) * f[2] / 1000000,
+            (cc5 * f[5] + cc1 * f[6]) * f[2] / 1000000,
+            out * f[3] / 1000000, f[7]
+    }' "$prices_tsv"
+}
+
+# ---------------------------------------------------------------- records
+
 # One TSV line per agent.
 agent_records() {
-    current_lines | jq -r '
-        ["A", .id, (.parent // ""), (.started // ""), (.ended // ""), (.session // ""),
-         (.agent // ""), (.model // ""),
-         (.tokens.input // 0), (.tokens.output // 0),
-         (.tokens.cache_create_5m // 0), (.tokens.cache_create_1h // 0), (.tokens.cache_read // 0),
-         (.turns // 0), (.peak_ctx // 0), (.offset // ""),
-         (.seconds // 0), (.plan // "")]
-        | @tsv' | tr -d '\r'
+    local line f priced
+    while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        f="$(printf '%s' "$line" | jq -r '
+            [(.model // ""), (.tokens.input // 0), (.tokens.output // 0),
+             (.tokens.cache_create_5m // 0), (.tokens.cache_create_1h // 0), (.tokens.cache_read // 0)]
+            | @tsv' | tr -d '\r')"
+        priced="$(price_fields "$(printf '%s' "$f" | cut -f1)" "$(printf '%s' "$f" | cut -f2)" \
+            "$(printf '%s' "$f" | cut -f3)" "$(printf '%s' "$f" | cut -f4)" \
+            "$(printf '%s' "$f" | cut -f5)" "$(printf '%s' "$f" | cut -f6)")"
+        printf '%s' "$line" | jq -r --arg priced "$priced" '
+            ["A", .id, (.parent // ""), (.started // ""), (.ended // ""), (.session // ""),
+             (.agent // ""), (.model // ""),
+             (.tokens.input // 0), (.tokens.output // 0),
+             (.tokens.cache_create_5m // 0), (.tokens.cache_create_1h // 0), (.tokens.cache_read // 0),
+             (.turns // 0), (.peak_ctx // 0), (.offset // "")]
+            + ($priced | split("\t"))
+            + [(.seconds // 0), (.plan // "")]
+            | @tsv' | tr -d '\r'
+    done < <(current_lines)
 }
 
 # Every session the file names.
@@ -126,9 +322,29 @@ last_ended_of() {
          | select(.session == $s) | .ended // empty] | sort | last // ""' < "$jsonl" | tr -d '\r'
 }
 
-# The skill's own turns: the session transcript's assistant messages inside the window the mapping
-# file bounds, grouped by `message.id` as the hook groups them. One TSV line: input, output,
-# cache_create_5m, cache_create_1h, cache_read, turns, peak_ctx.
+# The session's window from its mapping file: transcript, first framework call (line 3), latest
+# (line 4, which the report's own call refreshes), offset (line 5). Nothing when unavailable.
+session_window() {
+    local s="$1" git_dir map transcript first to offset
+    git_dir="$(cd "$repo_root_abs" && git rev-parse --git-dir 2>/dev/null)" || return 0
+    case "$git_dir" in
+        ""|/*|?:*) ;;
+        *) git_dir="$repo_root_abs/$git_dir" ;;
+    esac
+    map="$git_dir/tdd-sdlc/sessions/$s"
+    [ -f "$map" ] || return 0
+    transcript="$(sed -n '2p' "$map" | tr '\134' '/')"
+    first="$(sed -n '3p' "$map")"
+    to="$(sed -n '4p' "$map")"
+    offset="$(sed -n '5p' "$map")"
+    [ -n "$to" ] || to="$(last_ended_of "$s")"
+    if [ ! -f "$transcript" ] || [ -z "$first" ] || [ -z "$to" ]; then return 0; fi
+    printf '%s\t%s\t%s\t%s\n' "$transcript" "$first" "$to" "$offset"
+}
+
+# The skill's own turns: the session transcript's assistant messages inside the window, grouped by
+# `message.id` as the hook groups them, one TSV line per model the session answered with:
+# model, input, output, cache_create_5m, cache_create_1h, cache_read, turns, peak_ctx.
 session_tokens() {
     local transcript="$1" from="$2" to="$3"
     jq -Rr -n --arg from "$from" --arg to "$to" '
@@ -142,7 +358,9 @@ session_tokens() {
          | select(.type == "assistant")
          | select((.timestamp // "")[0:19] >= $from[0:19] and (.timestamp // "")[0:19] <= $to[0:19])]
         | to_entries | group_by(.value.message.id // ("line-" + (.key | tostring))) | map(last.value)
-        | [(map(.message.usage.input_tokens // 0) | add // 0),
+        | group_by(.message.model // "")[]
+        | [(.[0].message.model // ""),
+           (map(.message.usage.input_tokens // 0) | add // 0),
            (map(.message.usage.output_tokens // 0) | add // 0),
            (map(cc5m) | add // 0), (map(cc1h) | add // 0),
            (map(.message.usage.cache_read_input_tokens // 0) | add // 0),
@@ -150,41 +368,63 @@ session_tokens() {
         | @tsv' < "$transcript" | tr -d '\r'
 }
 
-# S records: one per session, from its mapping file: the window opens at the session's first
-# framework call (line 3) and closes at its latest (line 4), which the report's own call refreshes;
-# line 5 is the offset of the latest call.
+# Every model id the report needs a rate for: the agent lines' and the sessions' own.
+needed_models() {
+    local s w
+    {
+        current_lines | jq -r '.model // empty' | tr -d '\r'
+        while IFS= read -r s; do
+            [ -n "$s" ] || continue
+            w="$(session_window "$s")"
+            [ -n "$w" ] || continue
+            session_tokens "$(printf '%s' "$w" | cut -f1)" "$(printf '%s' "$w" | cut -f2)" \
+                "$(printf '%s' "$w" | cut -f3)" | cut -f1
+        done < <(sessions_of)
+    } | grep -v '^$' | sort -u | tr '\n' ' '
+}
+
+# S records: one per session. Each model's messages are priced at that model; the row's peak context
+# is the largest one and its window that model's. The two `unavailable` branches print the full width.
 session_records() {
-    local git_dir sessions=() s map transcript first to offset tokens
-    git_dir="$(cd "$repo_root_abs" && git rev-parse --git-dir 2>/dev/null)" || git_dir=""
-    case "$git_dir" in
-        ""|/*|?:*) ;;
-        *) git_dir="$repo_root_abs/$git_dir" ;;
-    esac
-
+    local s w transcript first to offset line priced
+    local inp out cc5 cc1 cr turns model models ur uw uo pw pk unpriced i o c5 c1 r t p
     while IFS= read -r s; do
-        [ -n "$s" ] && sessions+=("$s")
+        [ -n "$s" ] || continue
+        w="$(session_window "$s")"
+        if [ -z "$w" ]; then
+            printf 'S\t%s\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tunavailable\n' "$s"
+            continue
+        fi
+        transcript="$(printf '%s' "$w" | cut -f1)"; first="$(printf '%s' "$w" | cut -f2)"
+        to="$(printf '%s' "$w" | cut -f3)"; offset="$(printf '%s' "$w" | cut -f4)"
+        inp=0; out=0; cc5=0; cc1=0; cr=0; turns=0; models=""; ur=0; uw=0; uo=0; pw=""; pk=-1; unpriced=0
+        while IFS= read -r line; do
+            [ -n "$line" ] || continue
+            model="$(printf '%s' "$line" | cut -f1)"; i="$(printf '%s' "$line" | cut -f2)"
+            o="$(printf '%s' "$line" | cut -f3)"; c5="$(printf '%s' "$line" | cut -f4)"
+            c1="$(printf '%s' "$line" | cut -f5)"; r="$(printf '%s' "$line" | cut -f6)"
+            t="$(printf '%s' "$line" | cut -f7)"; p="$(printf '%s' "$line" | cut -f8)"
+            inp=$((inp + i)); out=$((out + o)); cc5=$((cc5 + c5)); cc1=$((cc1 + c1)); cr=$((cr + r))
+            turns=$((turns + t))
+            if [ -n "$model" ] && ! printf '%s' ",$models," | grep -q ",$model,"; then
+                models="${models:+$models,}$model"
+            fi
+            priced="$(price_fields "$model" "$i" "$o" "$c5" "$c1" "$r")"
+            if [ -z "$(printf '%s' "$priced" | cut -f1)" ]; then
+                unpriced=1
+            else
+                ur="$(awk -v a="$ur" -v b="$(printf '%s' "$priced" | cut -f1)" 'BEGIN { printf "%.6f", a + b }')"
+                uw="$(awk -v a="$uw" -v b="$(printf '%s' "$priced" | cut -f2)" 'BEGIN { printf "%.6f", a + b }')"
+                uo="$(awk -v a="$uo" -v b="$(printf '%s' "$priced" | cut -f3)" 'BEGIN { printf "%.6f", a + b }')"
+            fi
+            if [ "$p" -gt "$pk" ]; then pk="$p"; pw="$(printf '%s' "$priced" | cut -f4)"; fi
+        done < <(session_tokens "$transcript" "$first" "$to")
+        [ "$pk" -ge 0 ] || pk=0
+        if [ "$unpriced" -eq 1 ]; then ur=""; uw=""; uo=""; fi
+        printf 'S\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\tok\n' \
+            "$s" "$first" "$to" "$inp" "$out" "$cc5" "$cc1" "$cr" "$turns" "$pk" "$offset" \
+            "$ur" "$uw" "$uo" "$pw" "$models"
     done < <(sessions_of)
-    [ "${#sessions[@]}" -gt 0 ] || return 0
-
-    for s in "${sessions[@]}"; do
-        map="$git_dir/tdd-sdlc/sessions/$s"
-        if [ -z "$git_dir" ] || [ ! -f "$map" ]; then
-            printf 'S\t%s\t\t\t\t\t\t\t\t\t\t\t\tunavailable\n' "$s"
-            continue
-        fi
-        transcript="$(sed -n '2p' "$map" | tr '\134' '/')"
-        first="$(sed -n '3p' "$map")"
-        to="$(sed -n '4p' "$map")"
-        offset="$(sed -n '5p' "$map")"
-        [ -n "$to" ] || to="$(last_ended_of "$s")"
-        if [ ! -f "$transcript" ] || [ -z "$first" ] || [ -z "$to" ]; then
-            printf 'S\t%s\t\t\t\t\t\t\t\t\t\t\t\tunavailable\n' "$s"
-            continue
-        fi
-        tokens="$(session_tokens "$transcript" "$first" "$to")"
-        [ -n "$tokens" ] || tokens="$(printf '0\t0\t0\t0\t0\t0\t0')"
-        printf 'S\t%s\t%s\t%s\t%s\t%s\tok\n' "$s" "$first" "$to" "$tokens" "$offset"
-    done
 }
 
 command="${1:-}"
@@ -209,31 +449,35 @@ case "$command" in
     report)
         command -v jq >/dev/null 2>&1 || die "report needs jq" 1
         [ -f "$renderer" ] || die "no renderer beside the script: $renderer"
+        [ -f "$pricing_bundled" ] || die "no pricing table beside the script: $pricing_bundled"
         resolve_jsonl "$target"
         review_dir="$(cd "$(dirname "$jsonl")" && pwd)"
         task_dir="$(dirname "$review_dir")"
         task_name="$(basename "$task_dir")"
         now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
+        ensure_pricing "$(needed_models)"
         records="${TMPDIR:-/tmp}/cost-records.$$"
-        { agent_records; session_records; } > "$records" || { rm -f "$records"; die "could not read $jsonl" 1; }
+        { agent_records; session_records; } > "$records" \
+            || { rm -f "$records" "$prices_tsv"; die "could not read $jsonl" 1; }
         skipped="$(skipped_count)"
         if ! grep -q '^A' "$records"; then
-            rm -f "$records"
+            rm -f "$records" "$prices_tsv"
             die "${jsonl#"$repo_root_abs/"} holds no agent lines" 1
         fi
 
         rewrite_file "$review_dir/cost.md" \
             awk -v MODE=md -v task="$task_name" -v now="$now" -v skipped="${skipped:-0}" \
-                -f "$renderer" "$records"
+                -v rates="$rates_line" -f "$renderer" "$records"
         echo "${review_dir#"$repo_root_abs/"}/cost.md"
         if [ "$puml" -eq 1 ]; then
             rewrite_file "$review_dir/cost.puml" \
                 awk -v MODE=puml -v task="$task_name" -v now="$now" -v skipped="${skipped:-0}" \
-                    -f "$renderer" "$records"
+                    -v rates="$rates_line" -f "$renderer" "$records"
             echo "${review_dir#"$repo_root_abs/"}/cost.puml"
         fi
-        rm -f "$records"
+        echo "$rates_line"
+        rm -f "$records" "$prices_tsv"
         ;;
 
     *)

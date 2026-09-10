@@ -148,7 +148,7 @@ follows, and the commit is provisional: the closing full run proves the whole.
    **Every critical block, bug block and `DX` row it files is appended to `docs/backlog.md`** — a `BC` row per
    critical block, a `BB` row per bug, a `BT` row per deferred change, each taking the next id in its table, in the
    shape [`backlog.md`](../../templates/backlog.md) gives, with the link written to the archived path. **Run `cost.sh
-   report docs/<n>-<name>/`.** Refused or absent: say so and go on.
+   report docs/<n>-<name>/`** and show the person what it printed. Refused or absent: say so and go on.
 4. **Close the row this rework came from.** Where `Source:` names a findings file and a row, set the row's
    `Status`: `done · <this rework's number>`, or leave it `open` with one clause naming what remains. A row set
    to `done` leaves `docs/backlog.md` in the same edit — its `BR` row is removed, never

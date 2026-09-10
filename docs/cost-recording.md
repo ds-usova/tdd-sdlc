@@ -3,8 +3,8 @@
 Your conventions assign a model to each kind of agent the plugin spawns
 ([`conventions-contract.md`](conventions-contract.md)). This page says
 what those choices cost. After every `implement-plan`, `fix-bug`, `rework` or `upgrade-deps` run, the task
-directory holds `review/cost.md`: what each agent cost in tokens and time, and a timeline of when everything
-ran. Nothing has to be switched on.
+directory holds `review/cost.md`: what each agent cost in dollars, tokens and time, and a timeline of when
+everything ran. Nothing has to be switched on.
 
 ## Terms
 
@@ -23,87 +23,174 @@ ran. Nothing has to be switched on.
 
 ## The report
 
-`review/cost.md` opens with one table per session that worked on the task:
+`review/cost.md` opens with two tables for the whole task, one row per session that worked on it and one
+row per agent type. The first answers "did this cost a lot":
 
 ```
-| agent                   | n | tokens | time | model  | largest |
-|-------------------------|---|--------|------|--------|---------|
-| session (own turns)     | 1 | 2.1M   | 60m  |        |         |
-| grill-design            | 1 | 3.3M   | 7m   | opus   | 3.3M    |
-| review-plan             | 1 | 2.2M   | 6m   | opus   | 2.2M    |
-| implement-plan-module   | 3 | 11.4M  | 29m  | opus   | 5.9M    |
-| tdd-unit-red-phase-step | 5 | 3.1M   | 5m   | sonnet | 0.7M    |
+| agent                   | n | $      | %   | read $ | write $ | out $ | time | model           |
+|-------------------------|---|--------|-----|--------|---------|-------|------|-----------------|
+| session (own turns)     | 1 | $3.89  | 22% | $1.50  | $2.20   | $0.19 | 60m  | claude-opus-5   |
+| grill-design            | 1 | $2.10  | 12% | $0.90  | $0.80   | $0.40 | 7m   | claude-opus-5   |
+| review-plan             | 1 | $1.40  | 8%  | $0.60  | $0.55   | $0.25 | 6m   | claude-opus-5   |
+| implement-plan-module   | 3 | $8.70  | 49% | $6.10  | $1.80   | $0.80 | 29m  | claude-opus-5   |
+| tdd-unit-red-phase-step | 5 | $1.60  | 9%  | $0.70  | $0.60   | $0.30 | 5m   | claude-sonnet-5 |
 ```
 
 - **session (own turns)** is the skill itself: the designer, the planner, the task level of `implement-plan`.
-  They run in the session, not as sub-agents, so their cost is one row.
-- **n** is how many agents of that type ran. **tokens** is their sum. **largest** is the biggest single one.
+  They run in the session, not as sub-agents, so their cost is one row. A task resumed in a new session has
+  one session row per session.
+- **n** is how many agents of that type ran. **$** is what they would have cost at API rates. **%** is the
+  share of the task's total.
+- **read $**, **write $** and **out $** split the dollars by what was priced: input and cache reads, cache
+  writes, output.
 - **time** is the type's span from its first start to its last end. Times nest: a pipeline's minutes contain
-  its steps' minutes. Tokens add up across rows; minutes never do.
-- **tokens** count input, output, cache reads and cache writes together. A short agent with a large context
-  can cost more than a long one with a small context. That is the number the bill is made of.
+  its steps' minutes. Dollars add up across rows; minutes never do.
+- **model** lists every model the rows answered with. The session row lists each model its own messages
+  used, and each message is priced at its own model.
 
-Below the tables come a per-plan split, a task total with one span from the first framework call to the
-report, and the timelines.
+The second says what moved:
+
+```
+| agent                   | turns | input | output | cache write | cache read | peak ctx | of window |
+|-------------------------|-------|-------|--------|-------------|------------|----------|-----------|
+| session (own turns)     | 31    | 62    | 7.6k   | 220k        | 3.0M       | 140k     | 14%       |
+| grill-design            | 12    | 40    | 6.1k   | 110k        | 1.1M       | 120k     | 12%       |
+| review-plan             | 9     | 35    | 4.0k   | 90k         | 0.7M       | 110k     | 11%       |
+| implement-plan-module   | 167   | 540   | 60.9k  | 555k        | 40.2M      | 310k     | 31%       |
+| tdd-unit-red-phase-step | 60    | 210   | 21.0k  | 190k        | 3.9M       | 90k      | 45%       |
+```
+
+- **turns** is how many messages the agents of that type sent.
+- **input**, **output**, **cache write** and **cache read** are the four token counts, one per column and
+  never summed: they are priced differently, so their sum corresponds to nothing.
+- **cache read** is not new tokens. It is the conversation prefix, re-read from cache on each turn, and it
+  grows with roughly the square of the turn count. A long agent shows tens of millions; a short one does not.
+- **peak ctx** is the largest one message's input + cache write + cache read: the most context the agent
+  carried at once. A type's is its largest agent's. **of window** is that against the model's context window.
+
+Each table is followed by the sentence that says what its columns are. Below them come a per-plan split
+(`plan`, `agents`, `$`, `time`), a task total (`$` and one span from the first framework call to the report),
+and the timelines.
+
+### Prices
+
+Each token count is priced at the model's rates, per million tokens:
+
+| Quantity      | Price, relative to the model's input rate       |
+|---------------|-------------------------------------------------|
+| `input`       | 1×                                              |
+| `cache_write` | 1.25× at the 5-minute TTL, 2× at the 1-hour one |
+| `cache_read`  | 0.1× (0.025× on Claude Fable 5.1)               |
+| `output`      | the model's output rate, 5× on current models   |
+
+A subscription plan is not billed this way; the dollars say what the run would cost at API rates, which is
+the one scale on which two runs compare.
+
+**A row whose model is in no table** renders `—` in every priced cell. The task total and every `%` are
+computed over the priced rows only, the total ends with `*`, and a line under it names the model:
+`* excludes 1 unpriced row (claude-x)`. Nothing is guessed and no rate is borrowed from a model with a
+similar id. The volume table is complete regardless.
+
+### Where the rates come from
+
+Two tables the transcript does not carry: dollars per million tokens per model, and the context window per
+model. Both are current without anyone editing a file or waiting for a release:
+
+1. **Bundled defaults ship with the plugin**, `scripts/cost/pricing.json`: per model id, the input and
+   output rate, the cache read multiplier where it is not 0.1, the cache write multipliers where they are
+   not 1.25 and 2, the context window, and the date the file was written. A machine without internet
+   renders from it, and the header says `Rates: the plugin's table, dated <date>.`
+2. **A fetched copy is cached per user**, at `$XDG_CACHE_HOME/tdd-sdlc/pricing.json`, which defaults to
+   `~/.cache/tdd-sdlc/pricing.json` (under Git Bash on Windows, `C:\Users\<user>\.cache\...`).
+   `cost.sh report` fetches the published pricing and models pages, parses their tables and rewrites the
+   cache in exactly two cases:
+   - a model id the report needs, from `cost.jsonl` or from the session transcript's `message.model`, is in
+     neither the cache nor the bundled file. An id is looked up as written, then without a trailing
+     `-YYYYMMDD`;
+   - the cache is older than seven days.
+
+   The cache is the fetched rows merged over the bundled file, so a bundled model the pages no longer list
+   keeps its bundled rate. A model neither lists is written into the cache as `missing` with the date, and
+   a failed fetch writes its date and reason. Either is retried only when that date is more than a day old.
+   Otherwise the report reads the cache, or the bundled file when there is no cache, and does not touch the
+   network. The header says `Rates: fetched <date>.`
+3. **A failed fetch or parse falls back and says so**: the cached copy first, the bundled defaults second.
+   The fetch runs with `curl --max-time 10`; a missing `curl` is a failed fetch, not an error; nothing goes
+   to stderr.
+
+   ```
+   Rates: cached copy from 2026-09-08 (fetching current rates failed: curl: (6) Could not resolve host).
+   Rates: the plugin's table, dated 2026-09-10 (fetching current rates failed: no model table on the pricing page).
+   ```
+
+The `Rates:` line stands in the report's header and `cost.sh report` prints it to stdout after the report's
+path, and the skill that ran it shows the person what the command printed.
+
+The pages are `platform.claude.com/docs/en/about-claude/pricing.md` and
+`platform.claude.com/docs/en/models/overview.md`, served as markdown. `scripts/cost/pricing-parse.awk` reads
+the pricing page's model table and the models page's comparison table: a model's id, alias and context window
+come from the models page where it lists the model, else the id is derived from the name and the window is
+unknown, rendered `—`.
 
 ### Reading a timeline
 
 One overview for the task, then one timeline per plan. A row is an agent: its name, the clock time it
-started and ended, a bar, its time and its tokens. Each column of the bar is a slice of the timeline's span; a
-`█` is a column the agent was running in, a `·` one it was not. The axis above the bars carries clock times.
-Columns are one minute wide where the span fits in forty columns, wider where it does not.
+started and ended, a bar, its time, its dollars and its peak context. Each column of the bar is a slice of
+the timeline's span; a `█` is a column the agent was running in, a `·` one it was not. The axis above the
+bars carries clock times. Columns are one minute wide where the span fits in forty columns, wider where it
+does not.
 
-Agents of one type under one parent are grouped: a row `type ×3` carries the group's span and summed tokens,
-and its members follow as `#1`, `#2`, `#3`. A wave reads as members sharing a start time. A waiting pipeline
-reads as a long bar over short ones.
+Agents of one type under one parent are grouped: a row `type ×3` carries the group's span, summed dollars
+and largest peak context, and its members follow as `#1`, `#2`, `#3`. A wave reads as members sharing a
+start time. A waiting pipeline reads as a long bar over short ones.
 
 The example is a two-module task with a seam: design and plan in the same session, the shared plan first and
 alone, then both module pipelines in parallel.
 
 ```
 task 7-add-widget · overview
-agent                                start  end    13:40     14:00     14:20       time  tokens
-session (own turns)                  13:40  14:40  ██████████████████████████████   60m    2.1M
-grill-design                         13:42  13:49  ·████·························    7m    3.3M
-review-plan                          13:55  14:01  ·······████···················    6m    2.2M
-implement-plan-module shared         14:05  14:09  ············███···············    4m    1.1M
-implement-plan-module module-a       14:09  14:34  ··············█████████████···   25m    5.9M
-implement-plan-module module-b       14:09  14:30  ··············███████████·····   21m    4.4M
+agent                                start  end    13:40     14:00     14:20       time        $  peak ctx
+session (own turns)                  13:40  14:40  ██████████████████████████████   60m    $3.89      140k
+grill-design                         13:42  13:49  ·████·························    7m    $2.10      120k
+review-plan                          13:55  14:01  ·······████···················    6m    $1.40      110k
+implement-plan-module shared         14:05  14:09  ············███···············    4m    $0.90       90k
+implement-plan-module module-a       14:09  14:34  ··············█████████████···   25m    $4.60      310k
+implement-plan-module module-b       14:09  14:30  ··············███████████·····   21m    $3.20      260k
 ```
 
 ```
 module-a/plan.md
-agent                                start  end   14:09     14:19     14:29  time  tokens
-implement-plan-module                14:09  14:34  █████████████████████████   25m    5.9M
-  stabilization-step                 14:09  14:12  ███······················    3m    1.9M
-  tdd-unit-red-phase-step ×3         14:13  14:16  ····███··················    3m    2.0M
-    #1                               14:13  14:15  ····██···················    2m    0.7M
-    #2                               14:13  14:15  ····██···················    2m    0.6M
-    #3                               14:13  14:16  ····███··················    3m    0.7M
-  tdd-integration-red-phase-step     14:13  14:17  ····████·················    4m    1.4M
-  tdd-unit-green-phase-step ×3       14:18  14:21  ·········███·············    3m    0.9M
-    #1                               14:18  14:19  ·········█···············    1m    0.3M
-    #2                               14:18  14:20  ·········██··············    2m    0.3M
-    #3                               14:18  14:21  ·········███·············    3m    0.3M
-  tdd-integration-green-phase-step   14:21  14:24  ············███··········    3m    0.9M
-  tdd-system-green-phase-step        14:24  14:25  ···············█·········    1m    0.1M
-  tdd-refactor-phase                 14:27  14:33  ··················██████·    6m    3.5M
+agent                                start  end   14:09     14:19     14:29  time        $  peak ctx
+implement-plan-module                14:09  14:34  █████████████████████████   25m    $4.60      310k
+  stabilization-step                 14:09  14:12  ███······················    3m    $0.70       80k
+  tdd-unit-red-phase-step ×3         14:13  14:16  ····███··················    3m    $0.95       90k
+    #1                               14:13  14:15  ····██···················    2m    $0.30       70k
+    #2                               14:13  14:15  ····██···················    2m    $0.30       60k
+    #3                               14:13  14:16  ····███··················    3m    $0.35       90k
+  tdd-integration-red-phase-step     14:13  14:17  ····████·················    4m    $0.60       85k
+  tdd-unit-green-phase-step ×3       14:18  14:21  ·········███·············    3m    $0.45       50k
+    #1                               14:18  14:19  ·········█···············    1m    $0.15       40k
+    #2                               14:18  14:20  ·········██··············    2m    $0.15       45k
+    #3                               14:18  14:21  ·········███·············    3m    $0.15       50k
+  tdd-integration-green-phase-step   14:21  14:24  ············███··········    3m    $0.40       60k
+  tdd-system-green-phase-step        14:24  14:25  ···············█·········    1m    $0.05       30k
+  tdd-refactor-phase                 14:27  14:33  ··················██████·    6m    $1.30      200k
 ```
 
 ```
 module-b/plan.md
-agent                                start  end   14:09     14:19     14:29  time  tokens
-implement-plan-module                14:09  14:30  █████████████████████   21m    4.4M
-  stabilization-step                 14:09  14:11  ██···················    2m    1.2M
-  tdd-unit-red-phase-step ×2         14:12  14:14  ···██················    2m    1.1M
-    #1                               14:12  14:14  ···██················    2m    0.6M
-    #2                               14:12  14:13  ···█·················    1m    0.5M
-  tdd-system-red-phase-step          14:12  14:17  ···█████·············    5m    1.9M
-  tdd-unit-green-phase-step ×2       14:18  14:20  ·········██··········    2m    0.5M
-    #1                               14:18  14:19  ·········█···········    1m    0.2M
-    #2                               14:18  14:20  ·········██··········    2m    0.3M
-  tdd-system-green-phase-step        14:21  14:23  ············██·······    2m    0.4M
-  tdd-refactor-phase                 14:24  14:29  ···············█████·    5m    2.8M
+agent                                start  end   14:09     14:19     14:29  time        $  peak ctx
+implement-plan-module                14:09  14:30  █████████████████████   21m    $3.20      260k
+  stabilization-step                 14:09  14:11  ██···················    2m    $0.50       70k
+  tdd-unit-red-phase-step ×2         14:12  14:14  ···██················    2m    $0.55       75k
+    #1                               14:12  14:14  ···██················    2m    $0.30       75k
+    #2                               14:12  14:13  ···█·················    1m    $0.25       60k
+  tdd-system-red-phase-step          14:12  14:17  ···█████·············    5m    $0.80      120k
+  tdd-unit-green-phase-step ×2       14:18  14:20  ·········██··········    2m    $0.25       45k
+    #1                               14:18  14:19  ·········█···········    1m    $0.10       40k
+    #2                               14:18  14:20  ·········██··········    2m    $0.15       45k
+  tdd-system-green-phase-step        14:21  14:23  ············██·······    2m    $0.20       50k
+  tdd-refactor-phase                 14:24  14:29  ···············█████·    5m    $1.10      180k
 ```
 
 A fix, a rework or an upgrade has the overview only, since its module agents spawn no steps. Its rows are the
@@ -112,14 +199,14 @@ reproduction at the finish. An upgrade has no refactor pass.
 
 ```
 fix 12-widget-listed-twice
-agent                                start  end    15:10     15:20     15:30     15:40       time  tokens
-session (own turns)                  15:10  15:44  ██████████████████████████████████   34m    1.6M
-fix-bug-module shared                15:16  15:19  ······███·························    3m    0.8M
-fix-bug-module module-a              15:19  15:31  ·········████████████·············   12m    2.6M
-fix-bug-module module-b              15:19  15:27  ·········████████·················    8m    1.9M
-tdd-refactor-phase module-a          15:32  15:37  ······················█████·······    5m    2.1M
-tdd-refactor-phase module-b          15:32  15:35  ······················███·········    3m    1.4M
-tdd-unit-red-phase-step module-a     15:38  15:40  ····························██····    2m    0.4M
+agent                                start  end    15:10     15:20     15:30     15:40       time        $  peak ctx
+session (own turns)                  15:10  15:44  ██████████████████████████████████   34m    $2.30      120k
+fix-bug-module shared                15:16  15:19  ······███·························    3m    $0.60       80k
+fix-bug-module module-a              15:19  15:31  ·········████████████·············   12m    $2.10      210k
+fix-bug-module module-b              15:19  15:27  ·········████████·················    8m    $1.50      170k
+tdd-refactor-phase module-a          15:32  15:37  ······················█████·······    5m    $0.90      150k
+tdd-refactor-phase module-b          15:32  15:35  ······················███·········    3m    $0.60      120k
+tdd-unit-red-phase-step module-a     15:38  15:40  ····························██····    2m    $0.20       50k
 ```
 
 ### What to do with it
@@ -130,6 +217,8 @@ tdd-unit-red-phase-step module-a     15:38  15:40  ··············�
   stops that after three attempts and escalates once to the deciding model
   ([`templates/sub-agents.md`](../templates/sub-agents.md), **Budget and escalation**); every escalation is an
   `RL` note in the plan log, which names the step.
+- **Watch the window.** An agent whose `of window` nears 100% is one about to lose its earliest context. A
+  peak that high on a step agent says the step's brief is too large.
 - **Assert a budget.** A plugin eval can read `cost.jsonl` and fail when a type exceeds a budget, so a cost
   regression fails a test.
 
@@ -158,8 +247,9 @@ Two hooks, registered by the plugin in `hooks/hooks.json`, and one script.
    `cost.jsonl` and writes `cost.md`. `implement-plan` runs it before archiving; `fix-bug`, `rework` and
    `upgrade-deps` run it at their finish. The session row comes from the session transcript the mapping
    names, grouped by `message.id` as the hook groups and summed between the session's first framework call
-   and its latest; the report's own call is the latest, so the running session is summed to now. The report
-   is a snapshot; running it again recomputes.
+   and its latest; the report's own call is the latest, so the running session is summed to now. Every row
+   is priced from the rates table ([above](#where-the-rates-come-from)), and the `Rates:` line goes to
+   stdout after the report's path. The report is a snapshot; running it again recomputes.
 
 Both hooks are silent without `jq`, like the other hooks.
 

@@ -23,6 +23,7 @@ participant "sub-agent" as A
 participant "SubagentStop hook" as STOP
 database "docs/<n>-<task>/\nreview/cost.jsonl" as JSONL
 participant "cost.sh report" as REP
+database "rates: bundled\npricing.json, user cache" as RATES
 database "docs/<n>-<task>/\nreview/cost.md" as MD
 
 S -> PRE : plan.sh status docs/7-x/plan.md
@@ -37,5 +38,6 @@ STOP -> STOP : type is a framework agent?\npath in the prompt, else the mapping
 STOP -> JSONL : one line: time, session, type, model,\nturns, four token counts, peak context,\nwall time, offset, plan
 S -> REP : at the task's finish
 REP -> JSONL : read
-REP -> MD : per session, per plan,\nper agent type
+REP -> RATES : rate per model;\nfetched when a model is new\nor the cache is a week old
+REP -> MD : dollars and counts per session,\nper plan, per agent type
 @enduml

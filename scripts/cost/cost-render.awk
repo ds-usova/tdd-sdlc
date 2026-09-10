@@ -1,12 +1,16 @@
-# Renders review/cost.jsonl, already deduplicated and flattened to TSV by cost.sh, as the tables and
-# the timelines of review/cost.md. -v MODE=md writes the report, -v MODE=puml the gantt blocks.
+# Renders review/cost.jsonl, already deduplicated, priced and flattened to TSV by cost.sh, as the
+# tables and the timelines of review/cost.md. -v MODE=md writes the report, -v MODE=puml the gantt
+# blocks. It does no pricing: the dollar fields arrive computed, empty where the model is priced
+# nowhere.
 #
 # Input records, tab separated:
 #   A  id  parent  started  ended  session  agent  model  input  output  cache_create_5m
-#      cache_create_1h  cache_read  turns  peak_ctx  offset  seconds  plan
+#      cache_create_1h  cache_read  turns  peak_ctx  offset  usd_read  usd_write  usd_out  window
+#      seconds  plan
 #   S  session  from  to  input  output  cache_create_5m  cache_create_1h  cache_read  turns
-#      peak_ctx  offset  status
+#      peak_ctx  offset  usd_read  usd_write  usd_out  window  model  status
 # -v skipped=N is the count of lines recorded before the hook wrote the newer fields.
+# -v rates="..." is the sentence naming where the rates came from.
 
 function days(y, m, d,   era, yoe, doy, doe) {
     if (m <= 2) y = y - 1
@@ -33,6 +37,23 @@ function ftok(t) {
     if (t >= 999500) return sprintf("%.1fM", t / 1000000)
     if (t >= 1000) return sprintf("%dk", int(t / 1000 + 0.5))
     return sprintf("%d", t)
+}
+
+# "$10.88"; an unpriced amount, carried as the empty string, is a dash.
+function fusd(u) {
+    if (u == "") return "\342\200\224"
+    return sprintf("$%.2f", u)
+}
+
+function fpct(u, total) {
+    if (u == "" || total <= 0) return "\342\200\224"
+    return sprintf("%d%%", int(u / total * 100 + 0.5))
+}
+
+# Peak context against the window: "31%", or a dash without a window.
+function fwin(peak, win) {
+    if (win == "" || win + 0 <= 0) return "\342\200\224"
+    return sprintf("%d%%", int(peak / win * 100 + 0.5))
 }
 
 function mins(a, b) {
@@ -84,9 +105,21 @@ function pad(s, w,   r) {
     return r
 }
 
+function rpad(s, w,   r) {
+    r = s
+    while (vlen(r) < w) r = " " r
+    return r
+}
+
 function commas(s) {
     gsub(/,/, ", ", s)
     return s
+}
+
+# Adds a model to a comma-joined list once.
+function add_model(list, m) {
+    if (m == "" || index("," list ",", "," m ",") > 0) return list
+    return (list == "" ? m : list "," m)
 }
 
 BEGIN {
@@ -102,8 +135,10 @@ $1 == "A" {
     asess[n] = $6; atyp[n] = $7; amod[n] = $8
     ain[n] = $9 + 0; aout[n] = $10 + 0; acc5[n] = $11 + 0; acc1[n] = $12 + 0; acr[n] = $13 + 0
     aturn[n] = $14 + 0; apeak[n] = $15 + 0; aoff[n] = $16
-    atok[n] = ain[n] + aout[n] + acc5[n] + acc1[n] + acr[n]
-    asec[n] = $17 + 0; apl[n] = $18
+    apriced[n] = ($17 != "")
+    aur[n] = $17 + 0; auw[n] = $18 + 0; auo[n] = $19 + 0; awin[n] = $20
+    ausd[n] = apriced[n] ? aur[n] + auw[n] + auo[n] : ""
+    asec[n] = $21 + 0; apl[n] = $22
     if (atyp[n] == "implement-plan-module") kind_task = 1
     if (atyp[n] == "fix-bug-module") kind_fix = 1
     if (atyp[n] == "rework-module") kind_rework = 1
@@ -115,28 +150,31 @@ $1 == "S" {
     sid[sn] = $2; sfrom[sn] = epoch($3); sto[sn] = epoch($4)
     sinp[sn] = $5 + 0; soutp[sn] = $6 + 0; scc5[sn] = $7 + 0; scc1[sn] = $8 + 0; scr[sn] = $9 + 0
     sturn[sn] = $10 + 0; speak[sn] = $11 + 0; soff[sn] = $12
-    stok[sn] = sinp[sn] + soutp[sn] + scc5[sn] + scc1[sn] + scr[sn]
-    sstat[sn] = $13
+    spriced[sn] = ($13 != "")
+    sur[sn] = $13 + 0; suw[sn] = $14 + 0; suo[sn] = $15 + 0; swin[sn] = $16; smod[sn] = $17
+    susd[sn] = spriced[sn] ? sur[sn] + suw[sn] + suo[sn] : ""
+    sstat[sn] = $18
 }
 
 # ---------------------------------------------------------------- rows of one timeline
 
 function rows_reset() {
-    split("", rlabel); split("", rst); split("", ren); split("", rtok)
+    split("", rlabel); split("", rst); split("", ren); split("", rusd); split("", rpeak)
     split("", rind); split("", rleaf)
     rn = 0
 }
 
-function addrow(label, st, en, tok, ind, leaf) {
+function addrow(label, st, en, usd, peak, ind, leaf) {
     rn++
-    rlabel[rn] = label; rst[rn] = st; ren[rn] = en; rtok[rn] = tok
+    rlabel[rn] = label; rst[rn] = st; ren[rn] = en; rusd[rn] = usd; rpeak[rn] = peak
     rind[rn] = ind; rleaf[rn] = leaf
 }
 
 # Agents of one type under one parent are grouped (docs/cost-recording.md). `withmod` puts the plan's
-# module in the label, which the overview needs and a plan's own timeline does not.
+# module in the label, which the overview needs and a plan's own timeline does not. A group's dollars
+# are its members' sum, a dash when any member is unpriced; its peak context is the members' largest.
 function group_rows(list, count, ind, withmod,
-                    i, j, k, m, mi, key, gn, gc, gs, ge, gt, glabel, gmem, at, ord, tmp) {
+                    i, j, k, m, mi, key, gn, gc, gs, ge, gu, gp, gnp, glabel, gmem, at, ord, tmp) {
     gn = 0
     for (i = 1; i <= count; i++) {
         j = list[i]
@@ -146,14 +184,15 @@ function group_rows(list, count, ind, withmod,
             gn++
             at[key] = gn
             glabel[gn] = atyp[j] (m == "" ? "" : " " m)
-            gc[gn] = 0; gs[gn] = ast[j]; ge[gn] = aen[j]; gt[gn] = 0
+            gc[gn] = 0; gs[gn] = ast[j]; ge[gn] = aen[j]; gu[gn] = 0; gp[gn] = 0; gnp[gn] = 0
         }
         k = at[key]
         gc[k]++
         gmem[k "," gc[k]] = j
         if (ast[j] < gs[k]) gs[k] = ast[j]
         if (aen[j] > ge[k]) ge[k] = aen[j]
-        gt[k] += atok[j]
+        if (apriced[j]) gu[k] += ausd[j]; else gnp[k] = 1
+        if (apeak[j] > gp[k]) gp[k] = apeak[j]
     }
     for (i = 1; i <= gn; i++) ord[i] = i
     for (i = 2; i <= gn; i++) {
@@ -170,12 +209,12 @@ function group_rows(list, count, ind, withmod,
         }
         if (gc[k] == 1) {
             j = gmem[k ",1"]
-            addrow(glabel[k], ast[j], aen[j], atok[j], ind, 1)
+            addrow(glabel[k], ast[j], aen[j], ausd[j], apeak[j], ind, 1)
         } else {
-            addrow(glabel[k] " \303\227" gc[k], gs[k], ge[k], gt[k], ind, 0)
+            addrow(glabel[k] " \303\227" gc[k], gs[k], ge[k], (gnp[k] ? "" : gu[k]), gp[k], ind, 0)
             for (mi = 1; mi <= gc[k]; mi++) {
                 j = gmem[k "," mi]
-                addrow("#" mi, ast[j], aen[j], atok[j], ind + 1, 1)
+                addrow("#" mi, ast[j], aen[j], ausd[j], apeak[j], ind + 1, 1)
             }
         }
     }
@@ -204,7 +243,8 @@ function draw(title,   i, t0, t1, span, m, w, c, k, axis, line, sc, ec, ind, lab
     }
     while (length(axis) < w) axis = axis " "
     print title
-    printf "%s %-5s  %-5s  %s%6s %7s\n", pad("agent", 36), "start", "end", axis, "time", "tokens"
+    printf "%s %-5s  %-5s  %s%6s %s %s\n", pad("agent", 36), "start", "end", axis, "time",
+        rpad("$", 8), rpad("peak ctx", 9)
     for (i = 1; i <= rn; i++) {
         sc = int((rst[i] - t0) / (m * 60))
         ec = ceil((ren[i] - t0) / (m * 60))
@@ -215,8 +255,8 @@ function draw(title,   i, t0, t1, span, m, w, c, k, axis, line, sc, ec, ind, lab
         ind = ""
         for (k = 0; k < rind[i]; k++) ind = ind "  "
         label = ind rlabel[i]
-        printf "%s %-5s  %-5s  %s%6s %7s\n", pad(label, 36), hhmm(rst[i]), hhmm(ren[i]), line,
-            fdur(rst[i], ren[i]), ftok(rtok[i])
+        printf "%s %-5s  %-5s  %s%6s %s %s\n", pad(label, 36), hhmm(rst[i]), hhmm(ren[i]), line,
+            fdur(rst[i], ren[i]), rpad(fusd(rusd[i]), 8), rpad(ftok(rpeak[i]), 9)
     }
 }
 
@@ -253,13 +293,19 @@ function emit(title) {
     if (MODE == "puml") draw_puml(title); else draw(title)
 }
 
+# "session (own turns)", with the session named when the task saw more than one.
+function session_label(s) {
+    if (sn == 1) return "session (own turns)"
+    return "session " substr(sid[s], 1, 8) " (own turns)"
+}
+
 # ---------------------------------------------------------------- timelines
 
 function overview(   i, list, count, title) {
     rows_reset()
     for (i = 1; i <= sn; i++) {
         if (sstat[i] != "ok") continue
-        addrow("session (own turns)", sfrom[i], sto[i], stok[i], 0, 1)
+        addrow(session_label(i), sfrom[i], sto[i], susd[i], speak[i], 0, 1)
     }
     count = 0
     for (i = 1; i <= n; i++) {
@@ -315,7 +361,7 @@ function descendants(root, list,   i, changed, mark, count) {
 
 function one_plan(i, nth,   list, count) {
     rows_reset()
-    addrow(atyp[i], ast[i], aen[i], atok[i], 0, 1)
+    addrow(atyp[i], ast[i], aen[i], ausd[i], apeak[i], 0, 1)
     count = descendants(i, list)
     group_rows(list, count, 1, 0)
     emit(plan_of(apl[i]) (nth > 1 ? " (" nth ")" : ""))
@@ -332,79 +378,136 @@ function order_by(starts, cnt, ord,   i, j, tmp) {
     }
 }
 
-function session_table(s,
-                       i, k, key, tn, tk, tc, tt, tmin, tmax, tmod, tbig, idx, ord,
-                       pn, pk, pc, pt, pmin, pmax, pord) {
-    print ""
-    print "## Session `" sid[s] "`"
-    print ""
-    print "| agent | n | tokens | time | model | largest |"
-    print "|-------|---|--------|------|-------|---------|"
-    if (sstat[s] == "ok")
-        printf "| session (own turns) | 1 | %s | %s | | |\n", ftok(stok[s]), fdur(sfrom[s], sto[s])
-    else
-        print "| session (own turns) | 1 | unavailable | unavailable | | |"
-
-    tn = 0
+# The task's total dollars over the priced rows, and the unpriced models comma-joined into
+# `unpriced_models` with their count in `unpriced_rows`.
+function task_total(   i, t) {
+    t = 0
+    unpriced_rows = 0; unpriced_models = ""
     for (i = 1; i <= n; i++) {
-        if (asess[i] != sid[s]) continue
-        key = atyp[i]
-        if (!(key in idx)) {
-            tn++; idx[key] = tn; tk[tn] = key
-            tc[tn] = 0; tt[tn] = 0; tmin[tn] = ast[i]; tmax[tn] = aen[i]; tmod[tn] = ""; tbig[tn] = 0
-        }
-        k = idx[key]
-        tc[k]++
-        tt[k] += atok[i]
-        if (ast[i] < tmin[k]) tmin[k] = ast[i]
-        if (aen[i] > tmax[k]) tmax[k] = aen[i]
-        if (atok[i] > tbig[k]) tbig[k] = atok[i]
-        if (amod[i] != "" && index("," tmod[k] ",", "," amod[i] ",") == 0)
-            tmod[k] = (tmod[k] == "" ? amod[i] : tmod[k] "," amod[i])
-    }
-    order_by(tmin, tn, ord)
-    for (i = 1; i <= tn; i++) {
-        k = ord[i]
-        printf "| %s | %d | %s | %s | %s | %s |\n", tk[k], tc[k], ftok(tt[k]),
-            fdur(tmin[k], tmax[k]), commas(tmod[k]), ftok(tbig[k])
-    }
-
-    split("", idx)
-    pn = 0
-    for (i = 1; i <= n; i++) {
-        if (asess[i] != sid[s] || apl[i] == "") continue
-        key = apl[i]
-        if (!(key in idx)) {
-            pn++; idx[key] = pn; pk[pn] = key
-            pc[pn] = 0; pt[pn] = 0; pmin[pn] = ast[i]; pmax[pn] = aen[i]
-        }
-        k = idx[key]
-        pc[k]++; pt[k] += atok[i]
-        if (ast[i] < pmin[k]) pmin[k] = ast[i]
-        if (aen[i] > pmax[k]) pmax[k] = aen[i]
-    }
-    if (pn > 0) {
-        print ""
-        print "| plan | agents | tokens | time |"
-        print "|------|--------|--------|------|"
-        order_by(pmin, pn, pord)
-        for (i = 1; i <= pn; i++) {
-            k = pord[i]
-            printf "| `%s` | %d | %s | %s |\n", plan_of(pk[k]), pc[k], ftok(pt[k]), fdur(pmin[k], pmax[k])
-        }
-    }
-}
-
-function total(   i, tok, first, nowe) {
-    tok = 0
-    first = -1
-    for (i = 1; i <= n; i++) {
-        tok += atok[i]
-        if (first < 0 || ast[i] < first) first = ast[i]
+        if (apriced[i]) t += ausd[i]
+        else { unpriced_rows++; unpriced_models = add_model(unpriced_models, amod[i]) }
     }
     for (i = 1; i <= sn; i++) {
         if (sstat[i] != "ok") continue
-        tok += stok[i]
+        if (spriced[i]) t += susd[i]
+        else { unpriced_rows++; unpriced_models = add_model(unpriced_models, smod[i]) }
+    }
+    return t
+}
+
+# One type per row across the task: count, dollars, counts, span, models. Sets tn and the t* arrays.
+function type_rows(   i, k, key, idx) {
+    tn = 0
+    for (i = 1; i <= n; i++) {
+        key = atyp[i]
+        if (!(key in idx)) {
+            tn++; idx[key] = tn; tk[tn] = key
+            tc[tn] = 0; tur[tn] = 0; tuw[tn] = 0; tuo[tn] = 0; tnp[tn] = 0
+            tin[tn] = 0; tout[tn] = 0; tcw[tn] = 0; tcr[tn] = 0; tturn[tn] = 0; tpeak[tn] = 0; twin[tn] = ""
+            tmin[tn] = ast[i]; tmax[tn] = aen[i]; tmod[tn] = ""
+        }
+        k = idx[key]
+        tc[k]++
+        if (apriced[i]) { tur[k] += aur[i]; tuw[k] += auw[i]; tuo[k] += auo[i] } else tnp[k] = 1
+        tin[k] += ain[i]; tout[k] += aout[i]; tcw[k] += acc5[i] + acc1[i]; tcr[k] += acr[i]
+        tturn[k] += aturn[i]
+        if (apeak[i] >= tpeak[k]) { tpeak[k] = apeak[i]; twin[k] = awin[i] }
+        if (ast[i] < tmin[k]) tmin[k] = ast[i]
+        if (aen[i] > tmax[k]) tmax[k] = aen[i]
+        tmod[k] = add_model(tmod[k], amod[i])
+    }
+    order_by(tmin, tn, tord)
+}
+
+function cost_table(total,   i, k, u) {
+    print ""
+    print "## Cost"
+    print ""
+    print "| agent | n | $ | % | read $ | write $ | out $ | time | model |"
+    print "|-------|---|---|---|--------|---------|-------|------|-------|"
+    for (i = 1; i <= sn; i++) {
+        if (sstat[i] == "ok")
+            printf "| %s | 1 | %s | %s | %s | %s | %s | %s | %s |\n", session_label(i),
+                fusd(susd[i]), fpct(susd[i], total),
+                fusd(spriced[i] ? sur[i] : ""), fusd(spriced[i] ? suw[i] : ""),
+                fusd(spriced[i] ? suo[i] : ""), fdur(sfrom[i], sto[i]), commas(smod[i])
+        else
+            printf "| %s | 1 | unavailable | | | | | unavailable | |\n", session_label(i)
+    }
+    for (i = 1; i <= tn; i++) {
+        k = tord[i]
+        u = tnp[k] ? "" : tur[k] + tuw[k] + tuo[k]
+        printf "| %s | %d | %s | %s | %s | %s | %s | %s | %s |\n", tk[k], tc[k],
+            fusd(u), fpct(u, total),
+            fusd(tnp[k] ? "" : tur[k]), fusd(tnp[k] ? "" : tuw[k]), fusd(tnp[k] ? "" : tuo[k]),
+            fdur(tmin[k], tmax[k]), commas(tmod[k])
+    }
+    print ""
+    print "`$` is what the run would cost at API rates: input and cache reads at the model's input rate,"
+    print "cache reads at the read multiplier (a tenth, or less on some models), cache writes at 1.25×"
+    print "for the 5-minute TTL and 2× for the 1-hour one, output at the output rate. On a subscription"
+    print "plan it is not a bill. `read $` includes input, a few tokens per turn. `%` is the share of"
+    print "the task's total. The header says where the rates come from."
+}
+
+function volume_table(   i, k) {
+    print ""
+    print "## Volume"
+    print ""
+    print "| agent | turns | input | output | cache write | cache read | peak ctx | of window |"
+    print "|-------|-------|-------|--------|-------------|------------|----------|-----------|"
+    for (i = 1; i <= sn; i++) {
+        if (sstat[i] == "ok")
+            printf "| %s | %d | %s | %s | %s | %s | %s | %s |\n", session_label(i), sturn[i],
+                ftok(sinp[i]), ftok(soutp[i]), ftok(scc5[i] + scc1[i]), ftok(scr[i]),
+                ftok(speak[i]), fwin(speak[i], swin[i])
+        else
+            printf "| %s | unavailable | | | | | | |\n", session_label(i)
+    }
+    for (i = 1; i <= tn; i++) {
+        k = tord[i]
+        printf "| %s | %d | %s | %s | %s | %s | %s | %s |\n", tk[k], tturn[k],
+            ftok(tin[k]), ftok(tout[k]), ftok(tcw[k]), ftok(tcr[k]), ftok(tpeak[k]), fwin(tpeak[k], twin[k])
+    }
+    print ""
+    print "`cache read` is not new tokens: it is the conversation prefix, re-read from cache on each turn."
+    print "It grows with roughly the square of the turn count. `peak ctx` is the largest one message's"
+    print "input + cache write + cache read: the most context the agent carried at once. `of window` is"
+    print "that against the model's context window. A type's `peak ctx` is its largest agent's."
+}
+
+function plan_table(   i, k, key, pn, pk, pc, pu, pnp, pmin, pmax, idx, pord) {
+    pn = 0
+    for (i = 1; i <= n; i++) {
+        if (apl[i] == "") continue
+        key = apl[i]
+        if (!(key in idx)) {
+            pn++; idx[key] = pn; pk[pn] = key
+            pc[pn] = 0; pu[pn] = 0; pnp[pn] = 0; pmin[pn] = ast[i]; pmax[pn] = aen[i]
+        }
+        k = idx[key]
+        pc[k]++
+        if (apriced[i]) pu[k] += ausd[i]; else pnp[k] = 1
+        if (ast[i] < pmin[k]) pmin[k] = ast[i]
+        if (aen[i] > pmax[k]) pmax[k] = aen[i]
+    }
+    if (pn == 0) return
+    print ""
+    print "| plan | agents | $ | time |"
+    print "|------|--------|---|------|"
+    order_by(pmin, pn, pord)
+    for (i = 1; i <= pn; i++) {
+        k = pord[i]
+        printf "| `%s` | %d | %s | %s |\n", plan_of(pk[k]), pc[k], fusd(pnp[k] ? "" : pu[k]),
+            fdur(pmin[k], pmax[k])
+    }
+}
+
+function total_table(total,   i, first, nowe) {
+    first = -1
+    for (i = 1; i <= n; i++) if (first < 0 || ast[i] < first) first = ast[i]
+    for (i = 1; i <= sn; i++) {
+        if (sstat[i] != "ok") continue
         if (first < 0 || sfrom[i] < first) first = sfrom[i]
     }
     nowe = epoch(now)
@@ -412,9 +515,13 @@ function total(   i, tok, first, nowe) {
     print ""
     print "## Task total"
     print ""
-    print "| tokens | span |"
-    print "|--------|------|"
-    printf "| %s | %s (%s → %s) |\n", ftok(tok), fdur(first, nowe), hhmm(first), hhmm(nowe)
+    print "| $ | span |"
+    print "|---|------|"
+    printf "| %s%s | %s (%s → %s) |\n", fusd(total), (unpriced_rows > 0 ? "*" : ""),
+        fdur(first, nowe), hhmm(first), hhmm(nowe)
+    if (unpriced_rows > 0)
+        printf "\n* excludes %d unpriced row%s (%s)\n", unpriced_rows, (unpriced_rows == 1 ? "" : "s"),
+            commas(unpriced_models)
 }
 
 function plan_blocks(   i, seenp) {
@@ -441,15 +548,20 @@ END {
         plan_blocks()
         exit 0
     }
+    total = task_total()
+    type_rows()
     print "# Cost · " task
     print ""
     print "Written by `scripts/cost/cost.sh report` from `review/cost.jsonl` at " now ". Times are UTC."
     print "Re-run the script rather than edit this file. What each number is: `docs/cost-recording.md`."
+    if (rates != "") print rates
     if (skipped + 0 > 0)
         printf "%d line%s recorded before the format change %s skipped.\n", skipped,
             (skipped + 0 == 1 ? "" : "s"), (skipped + 0 == 1 ? "is" : "are")
-    for (i = 1; i <= sn; i++) session_table(i)
-    total()
+    cost_table(total)
+    volume_table()
+    plan_table()
+    total_table(total)
     print ""
     print "## Timelines"
     print ""

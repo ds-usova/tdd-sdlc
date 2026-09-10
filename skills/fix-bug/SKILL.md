@@ -188,8 +188,8 @@ stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decisi
    **Critical**, **Bug** and **Manual test** only. Every case the module agents reported is reproduced here, as
    [`reproducing.md`](../../templates/reproducing.md) says. A fix with nothing open still gets the file. **Every
    critical block and every bug block is appended to `docs/backlog.md`** — a `BC` or a `BB` row, the next id in its
-   table, the link written to the archived path. **Run `cost.sh report docs/<n>-<name>/`.** Refused or absent: say so
-   and go on.
+   table, the link written to the archived path. **Run `cost.sh report docs/<n>-<name>/`** and show the person what
+   it printed. Refused or absent: say so and go on.
 8. **Close the row this fix came from**, where `Source:` names a findings file, in that file's own form. Its
    `BB` or `BC` row leaves `docs/backlog.md` in the same edit ([`backlog.md`](../../templates/backlog.md)).
 9. **Archive**: move `docs/<n>-<name>/` into `docs/implemented/`, and commit the move where the conventions

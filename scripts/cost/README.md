@@ -7,8 +7,10 @@ recomputes the report every time. Everything about the lines and the report is
 ## Where it lives
 
 It ships **with the skills that use it**, at `scripts/cost/` under the plugin root — `${CLAUDE_PLUGIN_ROOT}` once
-installed, `.claude/` in a plain checkout. `cost-render.awk` sits beside it and is found relative to the script,
-so the pair travels together.
+installed, `.claude/` in a plain checkout. `cost-render.awk`, `pricing.json` and `pricing-parse.awk` sit beside
+it and are found relative to the script, so the four travel together. The fetched rates are cached per user at
+`$XDG_CACHE_HOME/tdd-sdlc/pricing.json`, `~/.cache` by default; when and why is
+[`docs/cost-recording.md`](../../docs/cost-recording.md), **Where the rates come from**.
 
 The **task** is found the other way round, from `git rev-parse --show-toplevel` (falling back to the working
 directory).
@@ -25,7 +27,7 @@ Run it with bash, from anywhere inside the project:
 
 | Command           | Effect                                                                              |
 |-------------------|-------------------------------------------------------------------------------------|
-| `report [<path>]` | Read `review/cost.jsonl` and write `review/cost.md` beside it.                      |
+| `report [<path>]` | Read `review/cost.jsonl` and write `review/cost.md` beside it. Prints its path, then `Rates:`. |
 | `report … --puml` | Also write `review/cost.puml`, one `@startgantt` block per timeline, for rendering. |
 
 Exit codes: **0** done, **1** no cost lines to report on, **2** bad usage. `--help` or `-h` prints the usage.
@@ -51,4 +53,5 @@ Everything the plan reader's **Portability** section says applies here, and the 
 
 It reads the lines' **shape**, not their meaning. A line the hooks never wrote is a run that went unrecorded,
 and the report cannot tell that from a cheap one. A session whose mapping file is gone gets `unavailable` for
-its own turns and no session row in the timeline.
+its own turns and no session row in the timeline. A model in no rates table gets `—` in every priced cell and
+is named under the task total; nothing is guessed for it.

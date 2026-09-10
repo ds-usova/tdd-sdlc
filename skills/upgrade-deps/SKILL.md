@@ -193,8 +193,8 @@ starts at its first unticked step.
    closing observation on its own (**Measured, Not Noticed**). A bug a module agent hit is reproduced first
    ([`reproducing.md`](../../templates/reproducing.md)). **Every critical block, bug block and `DX` row it files is
    appended to `docs/backlog.md`** — a `BC`, a `BB` or a `BT` row, the next id in its table, the link written to the
-   archived path ([`backlog.md`](../../templates/backlog.md)). **Run `cost.sh report docs/<n>-<name>/`.** Refused or
-   absent: say so and go on.
+   archived path ([`backlog.md`](../../templates/backlog.md)). **Run `cost.sh report docs/<n>-<name>/`** and show the
+   person what it printed. Refused or absent: say so and go on.
 6. **Archive** once `upgrade.sh status` reports no open step in any steps file: move `docs/<n>-<name>/`, logs
    included, into `docs/implemented/`, and commit the move where the conventions commit at all. A steps file
    with an `abandoned` step or a log with a `kept back` entry still archives; what it left is in
