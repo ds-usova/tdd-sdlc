@@ -30,7 +30,8 @@ inventories drawn from the tree: read them, never recall them.
 
 A task owns a directory: `docs/<n>-<task-name>/`, holding `spec.md`, `design.md`, `design-log.md`, one plan per
 module with its `plan-log.md` beside it, and — where anything crosses between them — a `shared/plan.md`. Phase 3
-adds a `review/` folder to it: what the task left open, and the evidence that everything else was measured.
+adds a `review/` folder to it: the report of what was done, and beside it what the task left open, what it cost,
+and the evidence that everything else was measured.
 
 | Invoked with     | The task directory is                                      |
 |------------------|------------------------------------------------------------|
@@ -65,11 +66,13 @@ opened. Check every plan in the task directory, `shared/plan.md` included:
   plan. Where `approved` fails, the line is missing or the spec changed after it was written. Either way: stop,
   and say to run `plan-task` on the task again. The script ships with the `design-task` skill at
   `scripts/design/design.sh`.
-- **Open Questions**, in the plan: every `- **OQ<nn>:**` has a non-empty `- A:`. An unanswered question means a step agent
+- **Open Questions**, in the plan: every `- **OQ<nn>:**` has a non-empty `- A:`. An unanswered question means a step
+  agent
   will hit exactly the ambiguity the planner already flagged.
 - **Run Log**, in the `plan-log.md` beside it: every `RL` entry a previous partial run left with a `- Resolved:`
   line has that line filled. An empty one is a step still blocked, and the run would stop there again.
-- **Review Findings**, in the same log: every `- **RF<nn>:**` has a non-empty `- Action:`. A deliberate "won't fix" counts — the
+- **Review Findings**, in the same log: every `- **RF<nn>:**` has a non-empty `- Action:`. A deliberate "won't fix"
+  counts — the
   point is that it was decided. A `mechanical` finding carrying `Action: applied — …` satisfies the gate on its
   own, since `plan-task` wrote it when it applied the fix. A `decision` finding, and anything marked
   `- Escalated:`, needs the user's answer. A plan whose review found nothing has its "no issues found" line
@@ -177,11 +180,6 @@ When every pipeline has returned:
    the measurement contradicts stays in the log as history; what it narrows is filed narrowed; what one pass
    cannot settle is reported to the user as unmeasured and filed nowhere.
 
-   **An affected module's conventions may name something else that belongs here**, and that is read rather than
-   remembered: a module whose suite cannot see a whole class of defect leaves the list of what a person still
-   has to look at, which no step implemented and no test closed. Follow the conventions index to whatever the
-   module says its finished work leaves open.
-
    The shape is [`findings.md`](../../templates/findings.md). A task fills all five of its sections. A
    **Deferred change** is behaviour the design did not ask for and the code should have — never a defect, never
    a cleanup; it becomes its own task later, not a rework.
@@ -195,22 +193,29 @@ When every pipeline has returned:
    **A bug block is a reproduction the pipelines reported** ([`reproducing.md`](../../templates/reproducing.md)).
    Nothing else becomes one.
 
-   **Every critical block, bug block, `RX` row and `DX` row it files is appended to `docs/backlog.md`**, one
+   **A performance figure over its threshold is a Performance row** — the test, the threshold and the figure,
+   from the pipelines' reports ([`findings.md`](../../templates/findings.md)). A figure under its threshold is
+   not a row. The test itself stays in the tree either way.
+
+   **Every critical block, bug block, `RX`, `DX` and `PX` row it files is appended to `docs/backlog.md`**, one
    pointer each, in the shape [`backlog.md`](../../templates/backlog.md) gives — a `BC` row per critical
-   block, a `BB` row per bug, a `BR` row per candidate, a `BT` row per deferred change, each taking the next
-   id in its table, with the link written to the archived path, since that is where the file is about to
-   move. The findings file stays the row's owner; the
-   backlog is how the row is found once the task directory has left `docs/`.
+   block, a `BB` row per bug, a `BR` row per candidate, a `BT` row per deferred change, a `BP` row per
+   performance figure, each taking the next id in its table, with the link written to the archived path, since
+   that is where the file is about to move. The findings file stays the row's owner; the backlog is how the row
+   is found once the task directory has left `docs/`.
 
    **Close the row this task came from.** Where the spec's **Objective** names a backlog `BT` row, set the
    owning findings row's `Status` to `done · task <n>` and remove the `BT` row from `docs/backlog.md` in the same
    edit.
-3. **Archive**, on exit 0 and on nothing else: move the **whole task directory** — every `plan.md` and its
+3. **Write `review/report.md`**, last, as [`report.md`](../../templates/report.md) says. Its **Done** and
+   **Measured** rows come from the pipelines' reports. **A figure under an open `BP` row's threshold closes that
+   row** ([`backlog.md`](../../templates/backlog.md)).
+4. **Archive**, on exit 0 and on nothing else: move the **whole task directory** — every `plan.md` and its
    `plan-log.md`, the `design.md` they link, the `spec.md` and `design-log.md` beside it, `review/`, and
    anything else the task accumulated — into `docs/implemented/`. Moving the directory rather than the files
    keeps every link inside it working.
-4. **Commit** per the commit policy. This is where its **squash-before-archiving** setting applies.
-5. **What the conventions run over finished work.** Every affected module's conventions say what happens once a
+5. **Commit** per the commit policy. This is where its **squash-before-archiving** setting applies.
+6. **What the conventions run over finished work.** Every affected module's conventions say what happens once a
    change is complete — a measurement, a documentation pass. Follow the conventions index to wherever they say
    it, and run that list in its order, passing each entry the archived plan. An entry listed by several affected
    modules runs once. Each states its own commit behaviour.
@@ -235,5 +240,5 @@ refusal it does not cover rather than improvising a retry.
 - One line per phase as it starts, and one per pipeline as it returns.
 - A pipeline's own progress is its report, not yours to relay in full.
 - Final summary: every plan log's **Caveats** first, as [`scripts/README.md`](../../scripts/README.md) says;
-  then what each plan finished, whether the task was archived, and a pointer to `review/findings.md` rather
-  than a second copy of what it says.
+  then whether the task was archived, and a pointer to `review/report.md` rather than a second copy of what it
+  says.

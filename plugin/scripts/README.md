@@ -31,7 +31,7 @@ version.
 | 2      | 0.2.0        | every id is two letters and at least two digits, one prefix per kind, no letter reused across files   |
 
 Format 2's prefixes: plan steps `ST RU RI RS GU GI GS PM PI`; spec `RQ AC DN`; design log `DF`; plan `OQ`; plan
-log `RF`; every log's run log `RL`, attempts `AT` and caveats `CV`; findings file `RX DX`; backlog `BC BB BR BT`;
+log `RF`; every log's run log `RL`, attempts `AT` and caveats `CV`; findings file `RX DX PX`; backlog `BC BB BR BT BP`;
 fix steps `FS FR FG`; rework steps `WK`; upgrade steps `UP`. A task written in format 1 is migrated by hand - the ids
 renamed in every file of the directory and the line added - or archived as it stands.
 

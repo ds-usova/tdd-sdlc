@@ -4,13 +4,14 @@ What each test type targets, and how a test in this module is written.
 
 ## Test Types
 
-There are three, and what separates them is what is real and what is faked: a **unit** test mocks every
-dependency, an **integration** test uses the real thing the class talks to, and a **system** test mocks nothing
-at all.
+There are four, and what separates them is what is real and what is faked: a **unit** test mocks every
+dependency, an **integration** test uses the real thing the class talks to, a **system** test mocks nothing at
+all, and a **performance** test mocks nothing and measures a figure against a threshold.
 
-**This section maps the module's own structure onto those three.** Nothing outside this file knows what this
-module's parts are called, so a plan cannot place a class in a test type without the mapping below. Name real
-packages, folders or roles — whatever this module actually organizes code by.
+**This section maps the module's own structure onto the first three**; the fourth is the section below. Nothing
+outside this file knows what this module's parts are called, so a plan cannot place a class in a test type
+without the mapping below. Name real packages, folders or roles — whatever this module actually organizes code
+by.
 
 - **Unit-test targets:** `<the parts holding logic worth testing in isolation — e.g. domain/, application/usecase/,
   or src/lib/>`
@@ -25,6 +26,19 @@ packages, folders or roles — whatever this module actually organizes code by.
 
 A module that leaves this mapping blank cannot be planned: the planner would have to guess a test type from a
 package name, and that guess is wrong exactly where the module differs from the last one.
+
+## Performance
+
+Latency, throughput and memory, measured against a threshold a spec scenario states. The test carries its
+threshold in code and is red past it; it stays out of the suite the build runs.
+
+- Tool: `<e.g. JMH, pytest-benchmark, Criterion for a micro-benchmark; Gatling, k6, Locust for a load test;
+  or "not measured — a measurable scenario gets no step">`
+- What it targets: `<the entry points or paths a performance test may drive — e.g. every HTTP entry point
+  through the API-level test client under k6>`
+- Where the figure is measured: `<local, the CI runner, staging — the one machine whose figure counts>`
+- How it is run: `<the command, the tag or profile that keeps it out of the full suite, the load it is run at>`
+- Where a test lives and how it is named: `<e.g. src/perfTest/, <EntryPoint>PerfTest>`
 
 ## Test Tooling
 

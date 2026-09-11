@@ -1,23 +1,24 @@
 # Plan Step Formats
 
-The exact shape of every checklist item in a plan's **Red Phase** and **Green Phase**, and the rule for deciding
-which phase a step belongs to. Written by [`plan-task`](../skills/plan-task/SKILL.md), consumed by the step agents
-a pipeline spawns.
+The exact shape of every checklist item in a plan's **Red Phase**, **Green Phase** and **Performance** section,
+and the rule for deciding which phase a step belongs to. Written by
+[`plan-task`](../skills/plan-task/SKILL.md), consumed by the step agents a pipeline spawns.
 
 Read this when writing or reviewing a step. The stage order, the ID scheme, the group and section structure, and
 the guardrails are the skill's; only the shape of an item is here.
 [`example-plan.md`](example-plan.md) is a complete worked plan in these formats.
 
-## The Three Test Types — reference, **not** a section of the plan
+## The Four Test Types — reference, **not** a section of the plan
 
-Every step belongs to one of three types. **What separates them is what is real and what is faked**, and nothing
-else — not the architecture, not the package a class sits in.
+Every test step belongs to one of four types. **What separates them is what is real and what is faked**, and
+nothing else — not the architecture, not the package a class sits in.
 
-| Type            | What is real                                      | What is faked                     |
-|-----------------|---------------------------------------------------|-----------------------------------|
-| **Unit**        | the target class                                  | every dependency it is handed     |
-| **Integration** | the target class and the one thing it talks to    | everything past that one thing    |
-| **System**      | the whole application, entered as production does | nothing                           |
+| Type            | What is real                                              | What is faked                     |
+|-----------------|-----------------------------------------------------------|-----------------------------------|
+| **Unit**        | the target class                                          | every dependency it is handed     |
+| **Integration** | the target class and the one thing it talks to            | everything past that one thing    |
+| **System**      | the whole application, entered as production does         | nothing                           |
+| **Performance** | the whole application, under the load the scenario states | nothing                           |
 
 - **Unit** — the class in isolation. Every collaborator it is given is a mock or a fake. No database, no network,
   no filesystem, no application-framework context. What it proves is the class's own logic.
@@ -38,11 +39,18 @@ else — not the architecture, not the package a class sits in.
   raised from deep in the stack, and any wiring concern only the whole application can show — the object graph,
   serialization config, transactions. Field-by-field validation belongs to the integration step for the class
   that does the validating.
+- **Performance** — the whole application, entered as production does, driven under the load the scenario states
+  and measured: a latency, a throughput or a memory figure against the threshold the scenario names. Nothing is
+  faked. What it proves is a figure, not a behaviour. The test carries the threshold in code and is red past it,
+  but the step that runs it records the figure rather than gating on it. Red-first does not apply: the test
+  measures nothing until the feature exists. It runs where and how the module's testing conventions say, never
+  with every build.
 
 **Which classes fall into which type is the module's answer, not this file's.** Its testing conventions map its
-own layers, folders or roles onto these three, and that mapping is what a step is written against. A module whose
-conventions carry no such mapping cannot be planned: ask for it before writing steps, rather than inventing one
-from the package names.
+own layers, folders or roles onto the first three, and name the tool and the run for the fourth or say that
+performance is not measured. That mapping is what a step is written against. A module whose conventions carry no
+such mapping cannot be planned: ask for it before writing steps, rather than inventing one from the package
+names.
 
 Do **not** copy the mapping into the plan file. It lives in the conventions, and a second copy is one more place
 for the two to drift apart.
@@ -273,9 +281,10 @@ per the conventions, and awaiting the observable outcome. Tests are expected to 
 implementation is incomplete — this is intentional.
 **No production implementation is done in this section.**
 
-System steps are a **thin slice** (see [The Three Test Types](#the-three-test-types--reference-not-a-section-of-the-plan)):
-per entry point, one end-to-end happy path and a representative error path raised from deep in the stack. Do not
-list field-validation scenarios here — those belong to the entry-point integration step. Only list scenarios not
+System steps are a **thin slice** (see
+[The Four Test Types](#the-four-test-types--reference-not-a-section-of-the-plan)): per entry point, one
+end-to-end happy path and a representative error path raised from deep in the stack. Do not list
+field-validation scenarios here — those belong to the entry-point integration step. Only list scenarios not
 yet covered by an existing system test class or already owned by another type.
 
 ## TDD Unit Green Phase Step Format
@@ -336,3 +345,44 @@ Fix implementation bugs **anywhere in the stack** as needed to make the test pas
 An entry point with its own integration step is already implemented before this section starts. One without —
 a framework-fired trigger with no protocol behaviour of its own — is wired as part of making this step pass. Do
 not add a separate checklist item for it.
+
+## Performance Step Format
+
+Each item in the `Performance` section — the first section of `Post-Implementation Steps` — MUST follow one of
+these two formats. The first writes a test; the second reruns one that exists.
+
+```
+- [ ] PM<nn> · `<PerformanceTestClass>` · covers: `<entry point>` · scenarios: AC05
+  - threshold: [the figure, its unit and the load, as the scenario's Then states them]
+  - given: [the state and the load arranged]
+    when: [the entry point is driven]
+    then: [the measurement the threshold bounds]
+```
+
+- `<PerformanceTestClass>` — the performance test to write, in the tool the module's testing conventions name
+- `covers:` — the entry point under measurement, in the same two forms as a system step
+- `scenarios:` — the spec scenarios whose `Then:` is a measurement; one step per entry point
+- `threshold:` — copied from the spec, never rounded and never restated
+
+```
+- [ ] PM<nn> · `<ExistingPerformanceTestClass>` · covers: `<entry point>` · rerun
+```
+
+- `<ExistingPerformanceTestClass>` — a performance test already in the tree; the threshold is the one it carries
+- `rerun` — the step runs it and records the figure; no test is written and no scenario is listed
+
+One step writes the test, or takes the existing one, and runs it once. The test carries the threshold in code,
+so it is red past it like any other test. The step runs it the way the conventions say — the command, the
+machine, the load — and reports the figure beside the threshold. **A missed threshold is a figure, not a
+failure.** The step never tunes production code to reach it, and the pipeline never blocks on it. What to do
+with the pair is a later pass, not this plan.
+
+A writing step exists only where the spec carries a measurable scenario **and** the conventions name a
+performance tool. Where they say performance is not measured, the scenario gets no step and the plan carries a
+coverage note instead (`plan-task`, **Step-by-Step Implementation Map**). Latency, throughput and memory are
+measurements. Idempotency, a limit and a page size are behaviour, and belong to an ordinary integration or
+system step.
+
+A rerun step exists only where the plan's **Open Questions** carry the user's `yes` for that test
+(`plan-task`, **Open Questions**). An unanswered or declined question adds no step. The section exists when
+either kind of step does.

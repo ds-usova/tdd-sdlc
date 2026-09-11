@@ -57,6 +57,10 @@ job — do not re-derive them by hand and do not report them again as findings.
   `templates/step-formats.md` beside the skills; read them there rather than from memory.
 - Confirm every Green-phase step corresponds 1-to-1 with a Red-phase step (same target class, same test class) — no
   Green step without a matching Red step, and no Red step left without a Green step.
+- Where the plan has a **Performance** section, `plan.sh validate` already checked its place and its `PM`
+  items' `covers:`, `threshold:` and `scenarios:`. What is yours: that the module's testing conventions name a
+  performance tool. A module that does not measure performance is fine; a `PM` step written for it anyway is
+  the finding. The plan for such a module carries a coverage note instead, and that passes.
 - Confirm every `after:` reference on a Green-phase step names a class that is itself a Green-phase target in the
   plan, and that the `after:` graph contains no cycles.
 - Confirm every class stubbed in **Interface-First / Build Stabilization** appears as a target in some Red phase, or
@@ -124,6 +128,10 @@ this section.
 - **Every acceptance scenario in the spec is covered by at least one step.** The spec numbers them `AC01`,
   `AC02`; each Red Phase step names the ones it covers. An `AC<nn>` no step names is behaviour a person signed off
   and nothing will test. A step naming an `AC<nn>` the spec does not carry is the reverse, and just as wrong.
+- **A scenario whose `Then:` is a measurement** — a latency, a throughput, a memory figure — is covered by a
+  **Performance** step, or by a coverage note saying the conventions do not measure it; read the conventions and
+  confirm they say so. A measurement in a red step, or a behaviour in a Performance step, is at the wrong type. A
+  `threshold:` that differs from the scenario's figure, unit or load is a dropped value like any other.
 - **A scenario carries every concrete value its spec entry states.** Naming the `AC<nn>` is not covering it:
   a `then:` that paraphrases the entry into an outcome without its specifics has dropped them, and no test
   written from it will assert them. Compare each scenario's `then:` with the `AC<nn>` or `DN<nn>` in the spec, or

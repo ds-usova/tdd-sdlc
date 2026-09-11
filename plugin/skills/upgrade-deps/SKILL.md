@@ -122,7 +122,9 @@ description. A dependency left unselected keeps its row in `## Survey` with `Sta
 step. A major the conventions call "its own story" is listed and not offered.
 
 Open Questions beyond that are rare: a guide that offers two migration paths, a vulnerability whose fix is only
-in a major. Ask them in the same batch and write each answer in as `- A:`.
+in a major. One more where an affected module has performance tests, found the way `plan-task` finds them
+(**Open Questions**): the question offers the module's whole set — rerun all, some, or none once the upgrade is
+in. Ask them in the same batch and write each answer in as `- A:`.
 
 **An upgrade turned down here** — every dependency deferred, or the user declining the run — gets
 the header line `**Closed:** <why>` in `upgrade.md`; nothing is written to the log. It is left where it is
@@ -186,20 +188,25 @@ starts at its first unticked step.
    outcome written back into `upgrade.md` rather than the log, because the survey is what a reader opens.
 4. **Whatever the modules' build conventions require of a finished change** — a coverage guardrail, a formatting
    gate. A guardrail that fails blocks the archive.
-5. **Write `review/findings.md`** in the shape [`findings.md`](../../templates/findings.md) gives — a deprecation the
-   guide announced that this run did not act on, every `kept back` entry lifted from the logs' Run Log with what
-   would unblock it, a manual check where a bump changes runtime behaviour no test reaches. An upgrade with nothing
-   open still gets the file. Each entry is read off the manifest, the guide or the logs, never off a module agent's
-   closing observation on its own (**Measured, Not Noticed**). A bug a module agent hit is reproduced first
-   ([`reproducing.md`](../../templates/reproducing.md)). **Every critical block, bug block and `DX` row it files is
-   appended to `docs/backlog.md`** — a `BC`, a `BB` or a `BT` row, the next id in its table, the link written to the
-   archived path ([`backlog.md`](../../templates/backlog.md)). **Run `cost.sh report docs/<n>-<name>/`** and show the
-   person what it printed. Refused or absent: say so and go on.
-6. **Archive** once `upgrade.sh status` reports no open step in any steps file: move `docs/<n>-<name>/`, logs
+5. **Run every performance test the user's `- A:` named**, the way the testing conventions say, and keep each
+   figure beside its threshold for the report. Then **write `review/findings.md`** in the shape
+   [`findings.md`](../../templates/findings.md) gives — a deprecation the guide announced that this run did not
+   act on, every `kept back` entry lifted from the logs' Run Log with what would unblock it, a figure past its
+   threshold as a **Performance** row. An upgrade with nothing open still gets the file. Each entry is read off
+   the manifest, the guide or the logs, never off a module agent's closing observation on its own (**Measured,
+   Not Noticed**). A bug a module agent hit is reproduced first
+   ([`reproducing.md`](../../templates/reproducing.md)). **Every critical block, bug block, `DX` row and `PX` row
+   it files is appended to `docs/backlog.md`** — a `BC`, a `BB`, a `BT` or a `BP` row, the next id in its table,
+   the link written to the archived path ([`backlog.md`](../../templates/backlog.md)). **Run `cost.sh report
+   docs/<n>-<name>/`** and show the person what it printed. Refused or absent: say so and go on.
+6. **Then write `review/report.md`** as [`report.md`](../../templates/report.md) says. **Measured** holds what
+   item 5 ran; **Manual checks** holds every bump that changes runtime behaviour no test reaches. **A figure
+   under an open `BP` row's threshold closes that row** ([`backlog.md`](../../templates/backlog.md)).
+7. **Archive** once `upgrade.sh status` reports no open step in any steps file: move `docs/<n>-<name>/`, logs
    included, into `docs/implemented/`, and commit the move where the conventions commit at all. A steps file
    with an `abandoned` step or a log with a `kept back` entry still archives; what it left is in
-   `review/findings.md` and the closing report.
-7. **What the conventions run over finished work**, in their order, each entry once, each handed the archived
+   `review/findings.md` and `review/report.md`.
+8. **What the conventions run over finished work**, in their order, each entry once, each handed the archived
    `upgrade.md`.
 
 ## Version Control

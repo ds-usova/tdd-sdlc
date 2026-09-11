@@ -27,6 +27,7 @@ downstream trusts it.
 | Package layout   | the source tree itself — the real folders, not an idealized version of them                   |
 | Architecture     | an existing dependency-rule test or lint config; failing that, the import directions in code  |
 | Test conventions | the existing test classes — naming, assertion library, base classes, fixtures, containers     |
+| Performance      | a benchmark or load-test dependency in the manifest, a load-test directory or script, a CI job |
 | Code style       | formatter/linter config, and the idioms repeated across existing production classes           |
 | Version control  | `git log` — the real subject-line format and granularity, not a preferred one                 |
 | Documentation    | the existing READMEs and docs pages — how they are already written                            |
@@ -39,6 +40,9 @@ Rules for the survey:
   …` and collected for step 4. A TBD names the options it is choosing between, so it reads the same as a question
   to the user and as a line in the file.
 - **Name the setting, not its value.** A version or a timeout is referred to by the file that pins it.
+- **Performance is the one subject absence answers.** No tool in the tree means `not measured`, written as such
+  and never asked. Where a tool exists, the survey still owes where the figure is measured, how the test is run
+  outside the full suite, and where a test lives.
 - **One survey agent per module** when the repository has several, run in parallel, each reporting findings rather
   than writing files. A single-module repository is surveyed in this session. No conventions file exists yet to
   name a sub-agent model, so the session's own model applies.
@@ -72,7 +76,7 @@ A single-module repository keeps the build facts in the module tier, and may hav
 |-------------------|--------------------------------------------------------------------------------------------|------------------------------|
 | `orientation.md`  | tech stack, and the documentation worth reading before changing anything                   | anyone arriving cold         |
 | `architecture.md` | package layout, layer boundaries and the rule between them, file locations, diagram format | design, planning, guardrails |
-| `testing.md`      | which parts fall into unit / integration / system, tooling, naming, assertion and style   | every red and green phase    |
+| `testing.md`      | which parts fall into unit / integration / system, the performance tool or `not measured`, tooling, naming, assertion and style | every red and green phase, the performance step |
 | `code-style.md`   | production-code idioms, and what a refactoring pass prioritizes and must leave alone       | green and refactor phases    |
 | `build.md`        | this module's exact compile, single-test, full-suite and architecture-test commands        | every phase                  |
 | `follow-up.md`    | what runs once a change is complete, and what documents it earns                           | the last stage, archiving    |

@@ -36,8 +36,10 @@ one agent, whole diff;
 :Gate: still green,
 same test count;<<gate>>
 :Post-implementation
+performance figures,
 build, coverage;
 note right
+  the Performance section, then
   the steps your **follow-up.md**
   gave the plan
 end note

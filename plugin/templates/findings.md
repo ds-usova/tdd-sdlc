@@ -1,8 +1,8 @@
 # A findings file
 
-What a finished piece of work leaves open, written into its own `review/findings.md`. A person reading it learns
-what they are inheriting without opening a plan or a rework file. The skill that writes one says which sections
-its own kind of work may fill.
+What a finished piece of work found on the way and leaves open, written into its own `review/findings.md`. A
+person reading it learns what they are inheriting without opening a plan or a rework file. The skill that writes
+one says which sections its own kind of work may fill.
 
 ```
 # Review: <name>
@@ -18,22 +18,28 @@ way.
 
 Sections are these five, in this order, and a section with nothing in it is left out:
 
-| Section                   | Holds                                             | Shape                                    |
-|---------------------------|---------------------------------------------------|------------------------------------------|
-| **Critical**              | a risk that grows with every task landed on top   | one block per entry, in the form below   |
-| **Bug**                   | real, reproduced, and it can wait                 | one block per defect, in the form below  |
-| **Refactoring candidate** | nothing behaves wrong, and nothing should change  | table — # · Status · module · what · why |
-| **Deferred change**       | nothing is wrong, but the behaviour should differ | table — # · Status · module · what · why |
-| **Manual test**           | what no test can see, so a person must look       | one block per check, in the form below   |
+| Section                   | Holds                                             | Shape                                                   |
+|---------------------------|---------------------------------------------------|---------------------------------------------------------|
+| **Critical**              | a risk that grows with every task landed on top   | one block per entry, in the form below                  |
+| **Bug**                   | real, reproduced, and it can wait                 | one block per defect, in the form below                 |
+| **Refactoring candidate** | nothing behaves wrong, and nothing should change  | table — # · Status · module · what · why                |
+| **Deferred change**       | nothing is wrong, but the behaviour should differ | table — # · Status · module · what · why                |
+| **Performance**           | a measured figure past its threshold              | table — # · Status · module · test · threshold · figure |
 
-**Who may file what.** 
-- A bug: any agent, once it is reproduced. 
-- A refactoring candidate: the refactor pass, which read the whole diff, or the user. Never a step agent, which read one class. 
-- A deferred change: the run, or a decision the user made mid-run. 
-- A critical entry: whoever measured it. A manual test: the run.
+A check a person still has to make is not a finding: nothing was found. It is a **Manual checks** block in the
+report ([`report.md`](report.md)).
 
-**A candidate and a deferred change are numbered and carry a status**, because they outlive the work that raised
-them. `#` is `RX01` upward for a candidate and `DX01` upward for a deferred change, assigned once and never reused.
+**Who may file what.**
+- A bug: any agent, once it is reproduced.
+- A refactoring candidate: the refactor pass, which read the whole diff, or the user. Never a step agent, which
+  read one class.
+- A deferred change: the run, or a decision the user made mid-run.
+- A performance row: the run, from the figures its pipelines or module agents measured, and nothing else.
+- A critical entry: whoever measured it.
+
+**A candidate, a deferred change and a performance row are numbered and carry a status**, because they outlive
+the work that raised them. `#` is `RX01` upward for a candidate, `DX01` upward for a deferred change and `PX01`
+upward for a performance row, assigned once and never reused.
 `Status` is `open`, `done · <the rework or task that closed it>`, `done · directly` where it was taken without
 one, `withdrawn · <what the measurement found>` where a later reading showed the entry did not hold, or
 `wontfix · <why>` where the entry holds and the user decided against it. A `wontfix` closes the entry. Its
@@ -52,6 +58,11 @@ endpoint should also apply, a state the page should also show, a message a consu
 changes behaviour, so a rework may not do it; it becomes a task of its own through `design-task`. The test
 between the two tables is the suite: a candidate leaves every test's assertion as it is, a deferred change adds
 or alters one. A row that is really a request the run merely thought of belongs in neither table.
+
+**A performance row is a figure past its threshold**, and nothing else: the test, the threshold it carries and
+the figure the run measured — the same figure the report's **Measured** table shows. No *why*: the measurement
+is the evidence. It is closed by the run that measures the test under its threshold, which sets
+`done · <that run> <n>` — `done · task 9`, `done · fix 4` — as [`backlog.md`](backlog.md) says.
 
 **A bug is filed only once it is reproduced as a disabled test**, the way [`reproducing.md`](reproducing.md)
 says. The block names that test. A defect nobody could reproduce is not a block.
@@ -98,22 +109,7 @@ exercise the mechanism behind it, the line says `unverified` — the file-side f
 [`sub-agents.md`](sub-agents.md)'s **Reporting back**. A design records the same distinction as `Basis:`; a
 findings file without it reads a guess and a tested conclusion in one voice.
 
-**A manual check is the same block, minus what has not happened yet.** No `Actual`, since nobody has looked, and
-no `Fix`, since nothing is claimed to be wrong:
-
-```
-**[ ] `<module>` — <what this check decides, in one line>**
-
-- **Given** <the state to arrange, and where on screen>
-- **When** <what the person does; "it renders" where they only look>
-- **Then** <the one thing that must hold>
-```
-
-**`Then` states one observable.** A check that needs three is three blocks — bundled into one sentence, a person
-who sees two of them hold has no way to record the third failing, which is the whole reason the list exists. The
-tick rides on the heading, so a half-worked list still says where it stopped.
-
-**The module comes first** — in a defect's heading, in a check's heading, and in the first cell of a table row,
+**The module comes first** — in a defect's heading and in the first cell of a table row,
 unless every entry in the section shares one module, which the section's opening line then names. Nothing is
 *grouped* by module: a reader triages by what an entry costs them, and this tells them where to go once they
 have.

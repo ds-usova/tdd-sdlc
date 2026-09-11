@@ -170,7 +170,9 @@ guardrail reads them instead of running. Moved: exit 1, and the guardrail runs t
 | Duplicate IDs, items with no ID                                                                    | an item nothing can address                                  |
 | `after:` naming an ID nothing defines, dependency cycles                                           | a schedule that never becomes eligible                       |
 | `after:` reaching into a group the plan lists later                                                | a stage waiting on work a later stage owns                   |
-| A `given:` / `when:` / `then:` whose value is empty, `—`, `TBD` or `N/A`                           | a scenario a step agent cannot implement                     |
+| A `given:` / `when:` / `then:` / `threshold:` whose value is empty, `—`, `TBD` or `N/A`             | a scenario a step agent cannot implement                     |
+| A `PM` item outside a `Performance` section, or without `covers:`; a writing one without a `threshold:` or a `scenarios:`; a `rerun` carrying a `threshold:` | a measurement with no figure or no spec scenario behind it   |
+| A `Performance` section that is not the first of `Post-Implementation Steps`, or a non-`PM` item in it | a measurement scheduled before the feature exists            |
 | An `update:` bullet on an **open** item naming a method found nowhere                              | a plan written against remembered code                       |
 | No `plan-log.md` beside the plan                                                                   | a plan nothing reviewed and no run can record against        |
 | A `Review Findings` or `Run Log` section, an `RF` or `RL` entry, or a `Blockers` heading in the plan | the old shape — the log owns those now                       |

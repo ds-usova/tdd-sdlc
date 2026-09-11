@@ -82,6 +82,10 @@ Run `rework.sh validate <the directory>` until it exits 0 before presenting anyt
 Present the files and stop. Ask every Open Question in one batch via `AskUserQuestion`, and write each answer
 into the file as its `- A:`.
 
+**An affected module with performance tests gets one more question**: which of them to rerun once the rework
+is in, the tests found and read the way `plan-task` finds them (**Open Questions**), the ones whose entry point
+a step's files sit under recommended. The answer is read at the close.
+
 **Do not touch a source file until the user asks for the steps to be applied.** A step whose kind the user
 disputes is re-classified in the file first.
 
@@ -132,32 +136,37 @@ follows, and the commit is provisional: the closing full run proves the whole.
    stay true** that could not be kept, and a step abandoned — `abandoned — <why>` on its header, its `RL` entry
    in the log's Run Log — are reported here; `status` counts an abandoned step closed and lists it apart.
 2. **A refactor round per module** — see below. **Then one full build and full suite of every affected module,
-   green** — the one full run of the rework. **Skipped where item 6's list holds an entry that runs the suite
+   green** — the one full run of the rework. **Skipped where item 8's list holds an entry that runs the suite
    over this same tree**; the build conventions name it, and its verdict is this one. A red run belongs to the
    step or refactor that edited what failed.
-3. **Write `review/findings.md`** into the rework's directory, in the shape
-   [`findings.md`](../../templates/findings.md) gives: **Critical**, **Bug**, and **Manual test** where the change
-   needs a person to look. **What the module agents reported is measured before it is filed** (**Measured, Not
-   Noticed**): a defect an agent noticed and did not reproduce is reproduced here or left in the log, never turned
+3. **Run every performance test the user's `- A:` named**, the way the testing conventions say, and keep each
+   figure beside its threshold for the report. Then **write `review/findings.md`** into the rework's directory,
+   in the shape [`findings.md`](../../templates/findings.md) gives: **Critical**, **Bug** and **Performance** — a
+   figure past its threshold; a check the change needs a person to make is the report's, below. **What the
+   module agents reported is measured before it is filed** (**Measured, Not Noticed**): a defect an agent noticed and did not reproduce is reproduced here or left in the log, never turned
    into a block on its say-so. Reproducing is [`reproducing.md`](../../templates/reproducing.md). **Critical** takes
    what the refactor round measured as growing with every task on top, a copied block this rework touched in every
    copy included. Where the rework touched one module, the section's opening line names it instead of the
    module-first rule. **A rework files no refactoring candidates**; something worth doing later goes in the report,
    and the user decides whether it becomes a rework. **It may file a Deferred change**: a behaviour the code should
    have that this rework, being behaviour-preserving, could not add. A rework with nothing open still gets the file.
-   **Every critical block, bug block and `DX` row it files is appended to `docs/backlog.md`** — a `BC` row per
-   critical block, a `BB` row per bug, a `BT` row per deferred change, each taking the next id in its table, in the
-   shape [`backlog.md`](../../templates/backlog.md) gives, with the link written to the archived path. **Run `cost.sh
-   report docs/<n>-<name>/`** and show the person what it printed. Refused or absent: say so and go on.
-4. **Close the row this rework came from.** Where `Source:` names a findings file and a row, set the row's
+   **Every critical block, bug block, `DX` row and `PX` row it files is appended to `docs/backlog.md`** — a `BC`
+   row per critical block, a `BB` row per bug, a `BT` row per deferred change, a `BP` row per performance figure,
+   each taking the next id in its table, in the shape [`backlog.md`](../../templates/backlog.md) gives, with the
+   link written to the archived path.
+4. **Run `cost.sh report docs/<n>-<name>/`** and show the person what it printed. Refused or absent: say so and go on.
+5. **Then write `review/report.md`** as [`report.md`](../../templates/report.md) says. **Measured** holds what
+   item 3 ran; **Manual checks** holds every check the change needs a person to make. **A figure under an open
+   `BP` row's threshold closes that row** ([`backlog.md`](../../templates/backlog.md)).
+6. **Close the row this rework came from.** Where `Source:` names a findings file and a row, set the row's
    `Status`: `done · <this rework's number>`, or leave it `open` with one clause naming what remains. A row set
    to `done` leaves `docs/backlog.md` in the same edit — its `BR` row is removed, never
    struck through ([`backlog.md`](../../templates/backlog.md)); one left `open` keeps its backlog row. Nothing
    here blocks.
-5. **Archive** once the closing gate is clean and `rework.sh status` reports every steps file ticked — a manual
-   check open in `review/findings.md` never blocks: move `docs/<n>-<name>/` into `docs/implemented/`, and commit
+7. **Archive** once the closing gate is clean and `rework.sh status` reports every steps file ticked — a manual
+   check open in `review/report.md` never blocks: move `docs/<n>-<name>/` into `docs/implemented/`, and commit
    the move where the conventions commit at all.
-6. **What the conventions run over finished work.** Every affected module's conventions list what happens once a
+8. **What the conventions run over finished work.** Every affected module's conventions list what happens once a
    change is complete — a coverage guardrail, a formatting gate, a measurement, a documentation pass. Run that
    list in its order, passing each entry the archived `rework.md`. An entry listed by several modules runs once,
    and a gate item 2 already ran over the same tree is not run again.

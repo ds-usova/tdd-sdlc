@@ -202,6 +202,14 @@ fenced {
         }
     } else if ($0 ~ /^#### /) {
         section = substr($0, 6)
+        # The Performance section measures a finished feature, so it is the first section of the
+        # last group; validate reports one that is anywhere else.
+        n_sections_in[group]++
+        if (section == "Performance" && (group != "Post-Implementation Steps" || n_sections_in[group] != 1)) {
+            n_perf_bad++
+            perf_bad[n_perf_bad] = "the Performance section (line " FNR ") sits under '" group "' as section " \
+                n_sections_in[group] " - it is the first section of Post-Implementation Steps"
+        }
     }
     next
 }
@@ -328,6 +336,19 @@ cur != "" && /^[ \t]*-?[ \t]*(given|when|then):/ {
     if (is_placeholder(value_after_colon(scenario_line))) {
         n_placeholder++
         placeholder[n_placeholder] = cur " leaves \"" scenario_label ":\" empty at line " NR
+    }
+    next
+}
+
+# A performance step's threshold, copied from the spec. Recorded so validate can ask for it.
+cur != "" && /^[ \t]*-?[ \t]*threshold:/ {
+    in_header = 0
+    in_update = 0
+    end[cur] = NR
+    has_threshold[cur] = 1
+    if (is_placeholder(value_after_colon($0))) {
+        n_placeholder++
+        placeholder[n_placeholder] = cur " leaves \"threshold:\" empty at line " NR
     }
     next
 }
@@ -704,6 +725,45 @@ function emit_validate(   i, id, j, d, nd, problems) {
     if (cycle_found != "") {
         print "circular dependencies:" cycle_found
         problems++
+    }
+    # A performance step: PM items only under Post-Implementation Steps / Performance, which comes
+    # first in its group; each with a threshold and the spec scenarios it measures.
+    for (i = 1; i <= n_perf_bad; i++) {
+        print perf_bad[i]
+        problems++
+    }
+    for (i = 1; i <= n; i++) {
+        id = order[i]
+        if (substr(id, 1, 2) == "PM") {
+            if (section_of[id] != "Performance") {
+                print id " sits under '" group_of[id] " / " section_of[id] \
+                      "' - a performance step belongs under Performance"
+                problems++
+            }
+            if (header[id] !~ /covers:[ ]*`[^`]+`/) {
+                print id " names no entry point - write 'covers: `<entry point>`' on the step line"
+                problems++
+            }
+            # A rerun takes its threshold from the test in the tree and lists no scenario.
+            if (header[id] ~ /·[ ]*rerun([ ]|$)/) {
+                if (id in has_threshold) {
+                    print id " is a rerun and carries a 'threshold:' line - the test in the tree owns the threshold"
+                    problems++
+                }
+            } else {
+                if (!(id in has_threshold)) {
+                    print id " has no 'threshold:' line - copy the figure, its unit and the load from the spec"
+                    problems++
+                }
+                if (header[id] !~ /scenarios:[ ]*AC[0-9]+/) {
+                    print id " names no spec scenario - write 'scenarios: AC<nn>' on the step line"
+                    problems++
+                }
+            }
+        } else if (section_of[id] == "Performance") {
+            print id " sits under Performance - only PM items belong there"
+            problems++
+        }
     }
     if (problems == 0) {
         # plan.sh has its own checks to add and owns the verdict when it passes summary=0.

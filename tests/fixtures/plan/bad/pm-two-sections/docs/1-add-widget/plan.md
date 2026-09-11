@@ -251,6 +251,13 @@ public Settings loadSettings(long userId) {
           then: return 503
     - Validation: `name` — blank, null, exceeds max length
 
+#### Performance
+
+- [ ] RS09 · `Nothing` · covers: `GET /x` · scenarios: AC01
+  - given: a
+    when: b
+    then: c
+
 #### TDD System Test Red Phase
 
 - [ ] RS01 · `CreateWidgetTest` · covers: `POST /widgets` · scenarios: AC01, AC03
@@ -285,7 +292,12 @@ public Settings loadSettings(long userId) {
 
 #### Performance
 
-- [ ] PM01 · `ListWidgetsPerfTest` · covers: `GET /widgets` · rerun
+- [ ] PM01 · `CreateWidgetPerfTest` · covers: `POST /widgets` · scenarios: AC01
+  - threshold: 300 ms at the 95th percentile, 50 concurrent callers
+  - given: 10,000 widgets stored under one parent, 50 concurrent callers
+    when: each caller posts a valid widget
+    then: the 95th-percentile response time, bounded by the threshold
+- [ ] PM02 · `ListWidgetsPerfTest` · covers: `GET /widgets` · rerun
 
 #### Manual Request Files
 
@@ -296,7 +308,3 @@ public Settings loadSettings(long userId) {
 - **OQ01:** `module-a`'s integration tests need a containerized database; the CI runner has no container runtime
   configured, so `RI01` cannot run there until it does. Run it locally, or configure the runner first?
   - A:
-
-- **OQ02:** `module-a` has a performance test for `GET /widgets`, whose listing this task's new column reaches,
-  and none for `POST /widgets`. Rerun `ListWidgetsPerfTest` after the change?
-  - A: yes

@@ -67,8 +67,9 @@ The feature workflow ends at `implement-plan`: the task directory moves to `docs
 conventions list as running after a change is run. What a run could not finish — a bug it found, a refactoring it
 declined to do inside a feature, a behaviour the design never asked for — gets one row in `docs/backlog.md`, which
 outlives the archived task and feeds the next `fix-bug`, `rework` or `design-task` run. A task directory still under
-`docs/` is itself the record of unfinished work. What the run cost, per agent and per model, is `review/cost.md`
-beside the findings ([`cost-recording.md`](cost-recording.md)). Documentation, release notes, and everything else that
+`docs/` is itself the record of unfinished work. `review/report.md` is what a finished run says for itself: what
+was done, measured and left, linking the findings and `review/cost.md`, the run's cost per agent and per model
+([`cost-recording.md`](cost-recording.md)). Documentation, release notes, and everything else that
 outlives the plan are your repository's job, in whatever form it already keeps them.
 
 ## The ids
@@ -81,15 +82,15 @@ never reused; a withdrawn entry keeps its number.
 |---------------------------------|----------------------------------------------|---------------------------|-------------|
 | `RQ` `AC` `DN`                  | requirement, acceptance scenario, decision   | `spec.md`                 | the task    |
 | `DF`                            | design finding                               | `design-log.md`           | the task    |
-| `ST` `RU` `RI` `RS` `GU` `GI` `GS` `PI` | plan steps                           | `plan.md`                 | one plan    |
+| `ST` `RU` `RI` `RS` `GU` `GI` `GS` `PM` `PI` | plan steps                      | `plan.md`                 | one plan    |
 | `OQ`                            | open question                                | any steps-carrying file   | that file   |
 | `RF`                            | review finding                               | `plan-log.md`             | one plan    |
 | `RL` `AT`                       | run-log entry, attempt                       | every log                 | that log    |
 | `FS` `FR` `FG`                  | fix steps: stabilize, red, green             | `fix.md`                  | that file   |
 | `WK`                            | rework step                                  | `rework.md`, `steps.md`   | that file   |
 | `UP`                            | upgrade step                                 | `upgrade.md`, `steps.md`  | that file   |
-| `RX` `DX`                       | refactoring candidate, deferred change       | `review/findings.md`      | the task    |
-| `BB` `BR` `BT`                  | backlog bug, rework candidate, deferred task | `docs/backlog.md`         | the repository |
+| `RX` `DX` `PX`                  | refactoring candidate, deferred change, performance figure | `review/findings.md` | the task |
+| `BB` `BR` `BT` `BP`             | backlog bug, rework candidate, deferred task, performance figure | `docs/backlog.md` | the repository |
 
 The commit-message hook refuses exactly this list, and nothing shaped like it occurs in ordinary prose. The
 format number every file carries, and what changed between formats, is

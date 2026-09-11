@@ -14,6 +14,10 @@ What each test type targets, and how a test in this repository is written.
 - **System-test entry points:** none yet. A skill's prose is verified by reading; an end-to-end eval of a
   skill on a scratch repository is not in the tree.
 
+## Performance
+
+- Tool: not measured — a measurable scenario gets no step.
+
 ## Test Tooling
 
 - Test framework: `tests/run.sh` and `tests/lib.sh`, this repository's own. No external framework.

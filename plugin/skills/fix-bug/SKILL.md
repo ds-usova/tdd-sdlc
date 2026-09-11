@@ -107,8 +107,10 @@ Then write every `fix.md` with its `fix-log.md`, and run `fix.sh validate <the d
 Present the files and stop. Nothing touches a source file until the user asks for the steps to be applied.
 
 **Open Questions are rare here.** One is written only where the diagnosis needs a call the user must make, or
-where the fix settles a decision worth an ADR under the Follow-Up conventions. Ask them in one batch via
-`AskUserQuestion` and write each answer in as `- A:`.
+where the fix settles a decision worth an ADR under the Follow-Up conventions, or where an affected module has
+performance tests. Then one question lists them, found and read the way `plan-task` finds them (**Open
+Questions**), the ones whose entry point the fix's path reaches recommended, and asks which to rerun once the
+fix is in. Ask them in one batch via `AskUserQuestion` and write each answer in as `- A:`.
 
 **A change the user rules out of scope here is filed now.** Append a `BT` row to `docs/backlog.md`. Its owner
 is the answered `OQ` that records the decision ([`backlog.md`](../../templates/backlog.md)). Nothing else is
@@ -179,22 +181,27 @@ stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decisi
    and the last full suite run's figures with whether the tree has changed since. **It never touches a `red`
    step's test** — say so in the prompt. **It runs no suite**; step 4 is the run over its result.
 4. **Full build and full suite of every affected module, green** — the one full run of the fix. **Skipped where
-   step 9's list holds an entry that runs the suite over this same tree**; the build conventions name it, and its
+   step 12's list holds an entry that runs the suite over this same tree**; the build conventions name it, and its
    verdict is this one. A red run belongs to the step or refactor that edited what failed.
 5. **Whatever else the modules' build conventions require of a finished change** — a coverage guardrail, a
    formatting gate. A guardrail that fails blocks the archive.
 6. **`fix.sh attempts docs/<n>-<name>/`** — one line naming every attempt in every log, for the report.
-7. **Write `review/findings.md`**, in the shape [`findings.md`](../../templates/findings.md) gives. A fix files
-   **Critical**, **Bug** and **Manual test** only. Every case the module agents reported is reproduced here, as
-   [`reproducing.md`](../../templates/reproducing.md) says. A fix with nothing open still gets the file. **Every
-   critical block and every bug block is appended to `docs/backlog.md`** — a `BC` or a `BB` row, the next id in its
-   table, the link written to the archived path. **Run `cost.sh report docs/<n>-<name>/`** and show the person what
-   it printed. Refused or absent: say so and go on.
-8. **Close the row this fix came from**, where `Source:` names a findings file, in that file's own form. Its
+7. **Run every performance test the user's `- A:` named**, the way the testing conventions say, and keep each
+   figure beside its threshold for the report. Then **write `review/findings.md`**, in the shape
+   [`findings.md`](../../templates/findings.md) gives. A fix files **Critical**, **Bug** and **Performance** only.
+   Every case the module agents reported is reproduced here, as [`reproducing.md`](../../templates/reproducing.md)
+   says; a figure past its threshold is a **Performance** row. A fix with nothing open still gets the file. **Every
+   critical block, bug block and `PX` row is appended to `docs/backlog.md`** — a `BC`, a `BB` or a `BP` row, the
+   next id in its table, the link written to the archived path.
+8. **Run `cost.sh report docs/<n>-<name>/`** and show the person what it printed. Refused or absent: say so and go on.
+9. **Then write `review/report.md`** as [`report.md`](../../templates/report.md) says. **Measured** holds what
+   step 7 ran; **Manual checks** holds every check a module agent reported that the suite cannot cover. **A
+   figure under an open `BP` row's threshold closes that row** ([`backlog.md`](../../templates/backlog.md)).
+10. **Close the row this fix came from**, where `Source:` names a findings file, in that file's own form. Its
    `BB` or `BC` row leaves `docs/backlog.md` in the same edit ([`backlog.md`](../../templates/backlog.md)).
-9. **Archive**: move `docs/<n>-<name>/` into `docs/implemented/`, and commit the move where the conventions
+11. **Archive**: move `docs/<n>-<name>/` into `docs/implemented/`, and commit the move where the conventions
    commit at all.
-10. **What the conventions run over finished work**, in their order, each entry once, each handed the archived
+12. **What the conventions run over finished work**, in their order, each entry once, each handed the archived
    `bug.md`.
 
 ## Version Control

@@ -8,8 +8,8 @@ restating them.
 - **Verdict in one line** — fixed and archived, or what is still open and where.
 - **The symptom no longer reproduces**: the command from `## How it reproduces`, and one line on what it produces
   now.
-- **Where to read more** — the path of `bug.md`, and one line per module: steps landed out of steps written, and
-  the attempts its log holds, as `fix.sh attempts` prints them.
+- **Where to read more** — the path of `review/report.md`, then `bug.md`, and one line per module: steps landed
+  out of steps written, and the attempts its log holds, as `fix.sh attempts` prints them.
 - **What a reader would not expect from the files** — a struck or re-classified step, an effect no revert undid,
   a defect found and not fixed, a guardrail that failed, a manual check the suite cannot cover — each pointing at
   the `RL` entry that records it. Nothing here means the line is left out.

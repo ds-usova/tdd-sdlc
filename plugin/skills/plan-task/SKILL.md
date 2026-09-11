@@ -184,6 +184,10 @@ rule if it has one, its naming conventions, its file locations, and — the one 
 **A module whose conventions carry no test-type mapping cannot be planned.** Say so and ask for it, rather than
 reading a test type off a package name.
 
+**A performance tool is optional.** Where the conventions name none, or say performance is not measured, a spec
+scenario whose `Then:` is a measurement gets no step, and the plan says so as a coverage note
+([Post-Implementation Steps](#post-implementation-steps)). Never pick a tool for the module.
+
 If a module has no conventions file at all: use generic defaults, and add an entry under **Open Questions** in
 the generated plan asking the user to run `init-conventions`, or to fill in the templates at
 `templates/conventions/` under the plugin root by hand. Never fail silently and never guess module conventions.
@@ -276,20 +280,22 @@ fixed order — use only the groups the task actually needs:
    runtime; no production implementation happens here.
 3. **Green Phase** — GREEN-phase TDD steps across all three test layers, implemented against Red Phase's tests, unit
    and integration before system.
-4. **Post-Implementation Steps** — steps that only make sense once the feature is fully implemented and green (e.g.
-   updating manual `.http` request files). Always last.
+4. **Post-Implementation Steps** — steps that only make sense once the feature is fully implemented and green: the
+   performance measurement where the spec asks for one, then whatever the conventions say a finished change earns
+   (e.g. updating manual `.http` request files). Always last.
 
 Within each group, its sections appear as `#### <Section>` headings, in the fixed order listed below for that group
 — use only the sections that apply.
 
 **Under a group, items and nothing else.** The one prose a group admits is a coverage note — one line saying
 which spec scenario an existing test already holds, so a reader does not go looking for its step
-(`AC05 is held by the existing regression tests in SettingsPage.test.tsx`). A paragraph saying what a branch does,
-which case is folded into which, or why — is behaviour, and behaviour is the spec's and the design's. Where the
-design lacks it, it goes back there as a `DN` or a **Findings** row; where the design has it, the step's
-scenarios already carry it. An item says **what** is created or changed, in the terms the Components section
-names; the reasoning behind it is the design log's **Decision Bases**, cited by clause where a step needs it,
-never restated under the item.
+(`AC05 is held by the existing regression tests in SettingsPage.test.tsx`), or which measurable scenario the
+conventions leave unmeasured (`AC05 is a measurement; the conventions say performance is not measured`). A
+paragraph saying what a branch does, which case is folded into which, or why — is behaviour, and behaviour is
+the spec's and the design's. Where the design lacks it, it goes back there as a `DN` or a **Findings** row;
+where the design has it, the step's scenarios already carry it. An item says **what** is created or changed, in
+the terms the Components section names; the reasoning behind it is the design log's **Decision Bases**, cited
+by clause where a step needs it, never restated under the item.
 
 **Every checklist item carries an ID**, written immediately after the checkbox and separated from the rest by ` · `.
 The ID names the item everywhere else it comes up — `after:` dependencies, blocker records, sub-agent prompts, and
@@ -301,6 +307,7 @@ step reports:
 | `RU`   | TDD Unit Red Phase        | `GI`   | TDD Integration Green Phase |
 | `RI`   | TDD Integration Red Phase | `GS`   | TDD System Test Green Phase |
 | `RS`   | TDD System Test Red Phase | `PI`    | Post-Implementation Steps   |
+| `PM`   | Performance               |         |                             |
 
 Numbering restarts at `01` per prefix and follows the order the items are listed. An ID is never reused or
 renumbered once the plan is written — a dropped step leaves a gap.
@@ -320,11 +327,14 @@ bullet — the fact about the change and what follows for a test that meets it �
 test by test which bodies meet it. The forms are in `step-formats.md`'s **Existing-test updates rule**.
 
 `plan.sh validate` checks the result: duplicate IDs, items with no ID, `after:` naming an ID nothing defines,
-dependency cycles, a `given:`/`when:`/`then:` left as a placeholder, an `update:` bullet naming a test method that
-exists nowhere in the repository, a missing log or a finding left in the plan, and — once the review has run — a
+dependency cycles, a `given:`/`when:`/`then:` or `threshold:` left as a placeholder, an `update:` bullet naming a
+test method that exists nowhere in the repository, a `PM` item outside a **Performance** section or without its
+`covers:`, `threshold:` or `scenarios:`, a **Performance** section anywhere but first under
+**Post-Implementation Steps**, a missing log or a finding left in the plan, and — once the review has run — a
 finding in the log missing its `Resolution:`, or a `mechanical` one whose `Action:` was never written. Run it
-before handing the plan over, and again after applying findings. The script ships with these instructions at `scripts/plan/plan.sh` — under `${CLAUDE_PLUGIN_ROOT}` when
-installed as a plugin, under `.claude/` in a plain checkout.
+before handing the plan over, and again after applying findings. The script ships with these instructions at
+`scripts/plan/plan.sh` — under `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin, under `.claude/` in a plain
+checkout.
 
 #### Stabilization
 
@@ -335,8 +345,8 @@ is [`stabilizing.md`](../../templates/stabilizing.md) beside it.
 
 #### Red Phase
 
-The three types are separated by **what is real and what is faked**, and the module's conventions map its own parts
-onto them.
+The three red-phase types are separated by **what is real and what is faked**, and the module's conventions map
+its own parts onto them.
 
 - **TDD Unit Red Phase** — write meaningful unit tests that build for classes the conventions map to the unit type,
   with every dependency mocked; tests are expected to fail at this stage (stubs return null/defaults); no production
@@ -368,20 +378,24 @@ onto them.
 
 #### Post-Implementation Steps
 
+- **Performance** — one item per entry point a spec scenario measures, and one `rerun` item per existing test
+  the user said `yes` to under [Open Questions](#open-questions). When the section exists, where it sits and
+  both item formats are `step-formats.md`'s **Performance Step Format**. Where the conventions say performance
+  is not measured, the coverage note above stands in for the writing item.
 - **Manual Request Files** — manual request files (e.g. `.http`), only if the module's conventions file lists this
   as a convention
 
-Sections here come from the module's conventions — whatever they say a finished change earns, filtered to what this
-plan can produce, in the order they list it. Follow the conventions index to wherever that is stated. The framework
-prescribes none of them beyond the rule that they run last.
+The other sections come from the module's conventions — whatever they say a finished change earns, filtered to
+what this plan can produce, in the order they list it. Follow the conventions index to wherever that is stated.
+The framework prescribes none of them beyond **Performance** and the rule that they run last.
 
 Where the conventions put an artifact under the user's approval, that approval is a question under
 [Open Questions](#open-questions) like any other, and only an answered yes becomes an item here.
 
 ### Step Formats — reference
 
-The exact shape of every Red Phase and Green Phase item, **The Three Test Types** that decide which phase a step
-belongs to, and the scenario-authoring rules that bind them all, are
+The exact shape of every Red Phase, Green Phase and Performance item, **The Four Test Types** that decide which
+phase a step belongs to, and the scenario-authoring rules that bind them all, are
 [`templates/step-formats.md`](../../templates/step-formats.md). Read it before writing or reviewing a step;
 `plan.sh validate` checks what it can of the result.
 [`templates/example-plan.md`](../../templates/example-plan.md) is a complete worked plan in those formats.
@@ -413,6 +427,15 @@ and a new one takes the next unused value.
 conventions file says a post-implementation artifact is written only with the user's consent, the plan asks for it
 as a numbered question — what would be written, and what holds the same fact if it is not — and a `yes` becomes the
 item in **Post-Implementation Steps** that authorizes it.
+
+**A module with performance tests is asked which of them to rerun, once.** Read the tests where the testing
+conventions say they live, and read each one for the entry point it drives. Split them by whether this task's
+design touches that entry point — the flow diagram and the container diagram say which — and write one
+question: `OQ<nn>: the module has performance tests for POST /widgets and GET /widgets (this task touches
+their entry points) and for POST /exports (it does not). Rerun which after the change?`, with the touched ones
+recommended. Every test named in the answer becomes a `rerun` item under **Performance**; an unanswered
+question adds none, and the readiness gate stops on it like any other. A module with no performance tests
+gets no question.
 
 ### The Plan Log
 

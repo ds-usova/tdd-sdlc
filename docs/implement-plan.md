@@ -50,8 +50,9 @@ A fourth type has no red or green step:
 
 - A *performance* test drives the running module under a stated load and measures a figure — latency,
   throughput, memory — against the threshold the spec states. A post-implementation step writes it and runs it
-  once, after the refactor. The figure is recorded beside the threshold, never gated on. A missed threshold is
-  filed as a deferred change for a tuning pass.
+  once, after the refactor; another kind of step reruns a test that already exists, where you asked for a fresh
+  figure. The figure is recorded beside the threshold, never gated on. A missed threshold is a **Performance**
+  row in the findings file and a row in `docs/backlog.md`.
 
 Your module's testing conventions decide which parts of the code get which type, whether performance is
 measured and with what, and which model runs each step.
@@ -74,10 +75,11 @@ files moved after its guardrail is a defect. Its suite is rerun and the defect i
 
 ## After implement-plan
 
-The feature workflow ends here. The run writes `review/findings.md` into the task directory — what it found and
-could not do: bugs, refactoring candidates, deferred changes, checks that need a person — and every such row is
-appended to `docs/backlog.md`. The task directory moves to `docs/implemented/`, and whatever your module's
-conventions list as running after a change is run.
+The feature workflow ends here. The run writes `review/report.md` into the task directory — what was done, what
+was measured, what it cost, what is open, what a person still has to check, with a link to every file — and
+beside it `review/findings.md`: what it found and could not do — bugs, refactoring candidates, deferred changes
+— every row of which is appended to `docs/backlog.md`. The task directory moves to `docs/implemented/`, and
+whatever your module's conventions list as running after a change is run.
 
 Where this shape comes from and where it is going: [`strategy.md`](strategy.md) — the plugin's direction, not
 required reading for using it.

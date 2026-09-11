@@ -316,12 +316,12 @@ plan, written for this task.
 1. Implement the plan's **Post-Implementation Steps** group, in section order, one sub-agent per section.
 
    **The Performance section runs first, on the execution model, under `step-formats.md`'s Performance Step
-   Format** — name that file in the spawn as the rule. Pass the `plan.sh show` output of its items, the plan path
-   and the conventions index paths. The agent writes each test with the threshold in code, runs it the way the
+   Format** — name that file in the spawn as the rule. `plan.sh next --group post --section performance`
+   lists its items; pass their `plan.sh show` output, the plan path and the conventions index paths. The agent writes each test with the threshold in code, runs it the way the
    testing conventions say, and reports the figure per item. Tick an item whose test exists and ran, whatever
-   the figure. Record each figure beside its threshold in the **Run Log** — `- **RL<nn> (PM01):** measured 900 ms
-   against a threshold of 300 ms` — and carry the pair into your report. A missed threshold is not a blocker and
-   not a fix: the agent never tunes production code to reach it, and neither do you.
+   the figure. A `rerun` item writes nothing: the agent runs the test as it stands and reports the figure
+   against the threshold the test carries. Record each figure beside its threshold in the **Run Log** —
+   `- **RL<nn> (PM01):** measured 900 ms against a threshold of 300 ms` — and carry the pair into your report.
 
    **An item an Open Question authorized carries that question's answer verbatim.** The checklist item is a
    summary written when the answer arrived; the answer is what the user actually asked for, and the two drift in
