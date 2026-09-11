@@ -16,6 +16,8 @@ gets one too.
 |--------------------|----------|-----------------------|
 | `module-a/plan.md` | 24 of 24 | 312 green, 2 skipped  |
 
+Acceptance: 5 of 5 scenarios proved — [acceptance.md](acceptance.md)
+
 ## Measured
 
 | Test                   | Threshold                 | Figure | Previous          |
@@ -48,7 +50,9 @@ other file: the measurements and the manual checks.
 performance is not measured`, `Nothing open`, `No manual checks`.
 
 - **Done** — what the skill's own files count: a plan's steps landed out of steps written and its module's final
-  suite figures; a fix's or a rework's steps per module; an upgrade's survey. One row per plan or module.
+  suite figures; a fix's or a rework's steps per module; an upgrade's survey. One row per plan or module. A
+  task adds the acceptance line under the table: how many of the spec's scenarios `acceptance.md` shows
+  `covered` or `held`, and the link. A skill that writes no `acceptance.md` writes no line.
 - **Measured** — every performance test the work ran: its test, the threshold, the figure it produced, and
   the previous figure with the work that produced it — the `report.md` of the highest-numbered directory
   under `docs/implemented/` whose **Measured** names the test, read rather than remembered; `—` where none

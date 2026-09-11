@@ -1,9 +1,11 @@
 # plan fixtures
 
-`good/` is a complete repository for `plan.sh`: the worked example plan and log at `docs/1-add-widget/`, and the
-two source files the plan refers to. `src/WidgetUtilsTest.java` holds the method RU03's update bullet names;
-`src/CreateWidgetUseCase.java` carries a `stub-intent:` marker. `tests/cases/plan.sh` copies it, makes it a git
-repository and runs every command inside it.
+`good/` is a complete repository for `plan.sh`: the worked example plan and log at `docs/1-add-widget/`, the spec
+beside them, and the two source files the plan refers to. `src/WidgetUtilsTest.java` holds the method RU03's
+update bullet names; `src/CreateWidgetUseCase.java` carries a `stub-intent:` marker. `spec.md` numbers `AC01`
+to `AC06`; the plan's red steps name the first five, so `AC06` is the scenario `acceptance` reports as missing
+until the case file adds a coverage note. `tests/cases/plan.sh` copies it, makes it a git repository and runs
+every command inside it.
 
 Each `bad/<what-is-wrong>/` holds only the files that differ from `good/`, at the same relative path. The case file
 overlays one over a fresh copy of `good/` and points `plan.sh` at it with `--file`. `bad/` means "an overlay",

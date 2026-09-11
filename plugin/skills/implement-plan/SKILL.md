@@ -30,8 +30,8 @@ inventories drawn from the tree: read them, never recall them.
 
 A task owns a directory: `docs/<n>-<task-name>/`, holding `spec.md`, `design.md`, `design-log.md`, one plan per
 module with its `plan-log.md` beside it, and — where anything crosses between them — a `shared/plan.md`. Phase 3
-adds a `review/` folder to it: the report of what was done, and beside it what the task left open, what it cost,
-and the evidence that everything else was measured.
+adds a `review/` folder to it: the report of what was done, and beside it which test stands behind each
+acceptance scenario, what the task left open, what it cost, and the evidence that everything else was measured.
 
 | Invoked with     | The task directory is                                      |
 |------------------|------------------------------------------------------------|
@@ -168,7 +168,12 @@ When every pipeline has returned:
    pipeline writes only inside its module, so that run still answers. A module whose files moved after its
    pipeline returned is a defect: something wrote outside its own module. Record it in that plan's Run Log.
    Rerun that module's suite. Stop on red.
-2. **Write `review/findings.md`** — everything the task leaves open, from every plan at once. A person reading it
+2. **Ask `plan.sh acceptance docs/<n>-<task-name>/`.** It follows every `AC` scenario in `spec.md` to a ticked
+   step, that step's test class and the file in the tree that holds it
+   ([`scripts/plan/README.md`](../../scripts/plan/README.md), **Acceptance**). Write what it printed to
+   `review/acceptance.md`, verbatim. A scenario it reports as `missing` or `absent` is a Run Log entry for
+   the plan that named it, measured like any other in the next step. It never stops the phases.
+3. **Write `review/findings.md`** — everything the task leaves open, from every plan at once. A person reading it
    learns what they are inheriting without opening a plan.
 
    Each plan log's **Run Log** is the source. Lift what is **still open** — a confirmed defect no scenario
@@ -207,15 +212,15 @@ When every pipeline has returned:
    **Close the row this task came from.** Where the spec's **Objective** names a backlog `BT` row, set the
    owning findings row's `Status` to `done · task <n>` and remove the `BT` row from `docs/backlog.md` in the same
    edit.
-3. **Write `review/report.md`**, last, as [`report.md`](../../templates/report.md) says. Its **Done** and
+4. **Write `review/report.md`**, last, as [`report.md`](../../templates/report.md) says. Its **Done** and
    **Measured** rows come from the pipelines' reports. **A figure under an open `BP` row's threshold closes that
    row** ([`backlog.md`](../../templates/backlog.md)).
-4. **Archive**, on exit 0 and on nothing else: move the **whole task directory** — every `plan.md` and its
-   `plan-log.md`, the `design.md` they link, the `spec.md` and `design-log.md` beside it, `review/`, and
-   anything else the task accumulated — into `docs/implemented/`. Moving the directory rather than the files
-   keeps every link inside it working.
-5. **Commit** per the commit policy. This is where its **squash-before-archiving** setting applies.
-6. **What the conventions run over finished work.** Every affected module's conventions say what happens once a
+5. **Archive**, on exit 0 from `plan.sh task` and on nothing else: move the **whole task directory** — every
+   `plan.md` and its `plan-log.md`, the `design.md` they link, the `spec.md` and `design-log.md` beside it,
+   `review/`, and anything else the task accumulated — into `docs/implemented/`. Moving the directory rather
+   than the files keeps every link inside it working.
+6. **Commit** per the commit policy. This is where its **squash-before-archiving** setting applies.
+7. **What the conventions run over finished work.** Every affected module's conventions say what happens once a
    change is complete — a measurement, a documentation pass. Follow the conventions index to wherever they say
    it, and run that list in its order, passing each entry the archived plan. An entry listed by several affected
    modules runs once. Each states its own commit behaviour.

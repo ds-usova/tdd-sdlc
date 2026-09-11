@@ -78,8 +78,8 @@ restart per plan, so `GU07` can exist in two of them and is only meaningful with
 
 ### What `task` answers
 
-Every other command reads one plan. `task` reads the directory that holds them, which is the only place a
-question about the whole task can be answered.
+Every other command reads one plan. `task` and `acceptance` read the directory that holds them, which is the
+only place a question about the whole task can be answered.
 
 ```
 <plugin>/scripts/plan/plan.sh task docs/18-add-widget
@@ -162,6 +162,50 @@ module's hash.
 
 `check` rehashes the paths the last entry names. Unchanged: it prints that entry's figures and exits 0, and the
 guardrail reads them instead of running. Moved: exit 1, and the guardrail runs the suite and records it.
+
+### Acceptance
+
+The plan's traceability ends at the step line: a red step names the scenarios it covers and the test class that
+covers them. `acceptance` follows it one link further, into the tree, for every scenario the task's `spec.md`
+numbers.
+
+```
+<plugin>/scripts/plan/plan.sh acceptance docs/18-add-widget
+```
+
+```
+docs/18-add-widget · spec.md: 5 scenarios
+  AC01   covered   RU01 `CreateWidgetUseCaseTest` (module-a/src/test/.../CreateWidgetUseCaseTest.java)
+  AC02   absent    RI01 `WidgetRepositoryAdapterTest` not in the tree
+  AC03   open      RS01 open
+  AC04   held      AC04 is a measurement; the conventions say performance is not measured
+  AC05   missing   no step names it and no coverage note holds it
+not every scenario has a test class in the tree - see above
+```
+
+The argument is the task directory, a plan in it, or nothing when one task is in flight, as for `task`.
+
+One line per scenario. The steps are the `RU`, `RI`, `RS` and `PM` items of every plan in the task whose header
+carries `scenarios:`. The class is the name after `test:`, or the first backticked name where the header has no
+`test:`. The file is the first git sees, ignored files left out, whose basename is the class with or without an
+extension; where none is, the first whose text names the class as a word, which is how a pytest class or a Go
+test function is found. `docs/` is not searched, since the plan names the class itself.
+
+| Verdict   | Meaning                                                                                  |
+|-----------|------------------------------------------------------------------------------------------|
+| `covered` | every step naming it is ticked, and every such step's class is in the tree               |
+| `held`    | no step names it; a coverage note starts with it (`AC05 is held by …`, `AC05 and AC06 are …`) |
+| `open`    | a step naming it is not ticked                                                           |
+| `absent`  | a ticked step naming it has no `test:` class, or its class is not in the tree            |
+| `missing` | no step and no coverage note names it                                                    |
+
+A step naming a scenario the spec does not carry is reported on a line of its own.
+
+Exit 0 when every scenario is `covered` or `held` and no step names an unknown scenario. Anything else exits 1.
+It is a report, not a gate: what the calling skill does with a scenario nothing covers is its own rule.
+
+What it cannot check: whether the class ran, and whether the test in it asserts what the scenario's `Then:`
+says. The first is the plan log's **Suite Runs**; the second is a reading, and stays with a person.
 
 ### What `validate` checks
 

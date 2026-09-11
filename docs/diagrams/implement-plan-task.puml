@@ -41,7 +41,8 @@ fork again
 end fork
 :Gate: no open item
 in any plan;<<gate>>
-:review/findings.md,
+:review/acceptance.md,
+review/findings.md,
 review/report.md;
 :archive task directory;
 :commit;

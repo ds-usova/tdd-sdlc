@@ -37,6 +37,7 @@ Usage:
   <plugin>/scripts/plan/plan.sh suite    record --stage <s> --total <n> --skipped <n> --verdict green|red <path>... [--file <plan>]
   <plugin>/scripts/plan/plan.sh suite    check [--file <plan>] [--log <log>]
   <plugin>/scripts/plan/plan.sh task     [<task directory> | <plan>]
+  <plugin>/scripts/plan/plan.sh acceptance [<task directory> | <plan>]
 
 Commands:
   status    Done/total per group, and the IDs still open.
@@ -68,6 +69,12 @@ Commands:
             Takes the task directory, or nothing when only one task is in flight. A plan works
             too, for a caller that has one and not the directory. Exit 0 means nothing is open
             anywhere in the task.
+  acceptance
+            Every AC scenario the task's spec.md numbers, against the plans: the ticked red and
+            performance steps naming it, each step's test class, and the file in the tree that
+            class lives in - or a coverage note holding it. Exit 0 means every scenario is
+            covered or held. A report, not a gate: what to do with a scenario nothing covers is
+            the caller's.
 
 --file defaults to the single plan in flight under docs/. A task owns a directory holding the spec,
 the design and its log, and one plan per module it touches: plan.md for a single-module task,
@@ -263,6 +270,77 @@ suite_last() {
 # The target class of an item: the first backticked name after the ID on the header line.
 item_target_class() {
     sed -n "${1}p" "$plan_file" | sed -n 's/^- \[[ xX]\] [A-Za-z]*[0-9]* · `\([^`]*\)`.*/\1/p'
+}
+
+# The task directory and its plans, from a plan, a task directory, or nothing at all. Sets task_dir
+# and plans. A single plan cannot answer a question about the task it belongs to, and both `task`
+# and `acceptance` ask one.
+resolve_task() {
+    if [ -n "$plan_file" ] && [ -d "$plan_file" ]; then
+        task_dir="$(cd "$plan_file" && pwd)"
+    elif [ -n "$plan_file" ]; then
+        [ -f "$plan_file" ] || die "no such plan file or task directory: $plan_file"
+        task_dir="$(task_dir_of "$plan_file")"
+    else
+        local dirs=() f d
+        while IFS= read -r f; do
+            d="$(task_dir_of "$f")"
+            case " ${dirs[*]-} " in
+                *" $d "*) ;;
+                *) dirs+=("$d") ;;
+            esac
+        done < <(find "$repo_root_abs/docs" -maxdepth 3 -name 'plan.md' -type f \
+            -not -path '*/implemented/*' 2>/dev/null | sort)
+        case "${#dirs[@]}" in
+            0) die "no task directory under docs/ holds a plan - name one" ;;
+            1) task_dir="${dirs[0]}" ;;
+            *)
+                {
+                    echo "docs/ holds ${#dirs[@]} tasks in flight - name one:"
+                    printf '  %s\n' "${dirs[@]#"$repo_root_abs/"}"
+                } >&2
+                exit 2
+                ;;
+        esac
+    fi
+
+    plans=()
+    while IFS= read -r f; do
+        plans+=("$f")
+    done < <(find "$task_dir" -maxdepth 2 -name 'plan.md' -type f | sort)
+    [ "${#plans[@]}" -gt 0 ] || die "${task_dir#"$repo_root_abs/"} holds no plan.md" 1
+}
+
+# The scenario ids the spec's Acceptance Scenarios section numbers, one per line, in order.
+spec_scenarios() {
+    awk '
+        { sub(/\r$/, "") }
+        /^## / { in_ac = ($0 == "## Acceptance Scenarios"); next }
+        in_ac && /^- \*\*AC[0-9]+:\*\*/ {
+            id = $0
+            sub(/^- \*\*/, "", id)
+            sub(/:\*\*.*$/, "", id)
+            print id
+        }' "$1"
+}
+
+# The file that holds the class: the first whose basename is the class, with or without an
+# extension, else the first whose text names it as a word - a pytest class or a Go test function
+# lives in a file named otherwise. Only files git sees are searched, so build output and
+# dependencies are left to .gitignore; docs/ is left out too, since every plan names the class.
+class_file() {
+    local hit
+    hit="$(cd "$repo_root_abs" && git ls-files -co --exclude-standard 2>/dev/null \
+        | grep -v '^docs/' | awk -v c="$1" '{ b = $0; sub(/.*\//, "", b); if (b == c || index(b, c ".") == 1) print }' \
+        | sort | head -1)"
+    if [ -z "$hit" ] && [ -n "$1" ]; then
+        hit="$(cd "$repo_root_abs" && git ls-files -co --exclude-standard 2>/dev/null \
+            | grep -v '^docs/' | sort \
+            | while IFS= read -r f; do
+                grep -qIw -F -e "$1" "$f" 2>/dev/null && { printf '%s\n' "$f"; break; }
+            done)"
+    fi
+    [ -n "$hit" ] && printf '%s\n' "$repo_root_abs/$hit"
 }
 
 command="${1:-}"
@@ -575,40 +653,7 @@ case "$command" in
         # Given a plan, a task directory, or nothing at all: which plans the task holds, and whether
         # every one of them is finished. A single plan cannot answer that about the task it belongs
         # to, and archiving the directory is the decision that needs the answer.
-        if [ -n "$plan_file" ] && [ -d "$plan_file" ]; then
-            task_dir="$(cd "$plan_file" && pwd)"
-        elif [ -n "$plan_file" ]; then
-            [ -f "$plan_file" ] || die "no such plan file or task directory: $plan_file"
-            task_dir="$(task_dir_of "$plan_file")"
-        else
-            dirs=()
-            while IFS= read -r f; do
-                d="$(task_dir_of "$f")"
-                case " ${dirs[*]-} " in
-                    *" $d "*) ;;
-                    *) dirs+=("$d") ;;
-                esac
-            done < <(find "$repo_root_abs/docs" -maxdepth 3 -name 'plan.md' -type f \
-                -not -path '*/implemented/*' 2>/dev/null | sort)
-            case "${#dirs[@]}" in
-                0) die "no task directory under docs/ holds a plan - name one" ;;
-                1) task_dir="${dirs[0]}" ;;
-                *)
-                    {
-                        echo "docs/ holds ${#dirs[@]} tasks in flight - name one:"
-                        printf '  %s\n' "${dirs[@]#"$repo_root_abs/"}"
-                    } >&2
-                    exit 2
-                    ;;
-            esac
-        fi
-
-        plans=()
-        while IFS= read -r f; do
-            plans+=("$f")
-        done < <(find "$task_dir" -maxdepth 2 -name 'plan.md' -type f | sort)
-        [ "${#plans[@]}" -gt 0 ] || die "${task_dir#"$repo_root_abs/"} holds no plan.md" 1
-
+        resolve_task
         echo "${task_dir#"$repo_root_abs/"}"
         unfinished=0
         for f in "${plans[@]}"; do
@@ -635,6 +680,130 @@ case "$command" in
             exit 0
         fi
         echo "$unfinished of ${#plans[@]} plans still open"
+        exit 1
+        ;;
+
+    acceptance)
+        # Every scenario the spec numbers, and what in the tree stands behind it: the ticked red or
+        # performance steps that name it, each step's test class, and the file that class lives in.
+        # The plan's traceability ends at the step line; this follows it one link further, into the
+        # tree, and asks the last recorded suite run whether that tree is the one it saw.
+        resolve_task
+        spec="$task_dir/spec.md"
+        [ -f "$spec" ] || die "no spec.md in ${task_dir#"$repo_root_abs/"} - nothing to check the plans against" 1
+        scenarios="$(spec_scenarios "$spec")"
+        [ -n "$scenarios" ] || die "${spec#"$repo_root_abs/"} numbers no AC scenario under '## Acceptance Scenarios'" 1
+
+        # One record per (scenario, step): AC, plan, step id, open|done, class, file-or-empty.
+        # One record per (scenario, note): AC, plan, "note", text. Collected as lines: bash 3 has
+        # no associative arrays, and awk over a few dozen lines is as fast as anything.
+        records=""
+        unknown=""
+        # Fields are joined on a unit separator: a tab is whitespace to `read`, so an empty class
+        # or file would collapse and shift the fields after it.
+        us="$(printf '\037')"
+        for f in "${plans[@]}"; do
+            rel="${f#"$task_dir/"}"
+            while IFS="$us" read -r id state header; do
+                case "$id" in RU*|RI*|RS*|PM*) ;; *) continue ;; esac
+                acs="$(printf '%s\n' "$header" | awk '
+                    {
+                        if (!match($0, /scenarios:/)) exit
+                        tail = substr($0, RSTART + RLENGTH)
+                        cut = index(tail, " · ")
+                        if (cut > 0) tail = substr(tail, 1, cut - 1)
+                        while (match(tail, /AC[0-9]+/)) {
+                            print substr(tail, RSTART, RLENGTH)
+                            tail = substr(tail, RSTART + RLENGTH)
+                        }
+                    }')"
+                [ -n "$acs" ] || continue
+                class="$(printf '%s\n' "$header" | sed -n 's/.*test: `\([^`]*\)`.*/\1/p')"
+                [ -n "$class" ] || class="$(printf '%s\n' "$header" | sed -n 's/^`\([^`]*\)`.*/\1/p')"
+                file=""
+                [ -n "$class" ] && file="$(class_file "$class")"
+                file="${file#"$repo_root_abs/"}"
+                for ac in $acs; do
+                    if ! printf '%s\n' "$scenarios" | grep -qx "$ac"; then
+                        unknown="$unknown$rel $id names $ac, which the spec does not carry
+"
+                        continue
+                    fi
+                    records="$records$ac$us$rel$us$id$us$state$us$class$us$file
+"
+                done
+            done < <(awk -f "$parser" -v mode=items "$f" | awk -F'\t' -v OFS="$us" '{ print $1, $2, $8 }')
+
+            # A coverage note is the one prose a group admits: which scenario an existing test
+            # already holds, or which measurement the conventions leave unmeasured.
+            # Only the note's subjects - the ids before "is held by" / "are held by" - are held by
+            # it; an id the note merely mentions is not.
+            while IFS= read -r line; do
+                for ac in $(printf '%s\n' "$line" | awk '{
+                        match($0, /^(AC[0-9]+(, AC[0-9]+)*( and AC[0-9]+)?) (is|are) (held by|a measurement)/)
+                        subj = substr($0, 1, RLENGTH)
+                        while (match(subj, /AC[0-9]+/)) {
+                            print substr(subj, RSTART, RLENGTH)
+                            subj = substr(subj, RSTART + RLENGTH)
+                        }
+                    }'); do
+                    printf '%s\n' "$scenarios" | grep -qx "$ac" || continue
+                    records="$records$ac$us$rel${us}note$us$line
+"
+                done
+            done < <(awk '{ sub(/\r$/, "") } /^AC[0-9]+(, AC[0-9]+)*( and AC[0-9]+)? (is|are) (held by|a measurement)/' "$f")
+        done
+
+        echo "${task_dir#"$repo_root_abs/"} · ${spec#"$task_dir/"}: $(printf '%s\n' "$scenarios" | grep -c .) scenarios"
+        problems=0
+        for ac in $scenarios; do
+            rows="$(printf '%s' "$records" | awk -F"$us" -v ac="$ac" '$1 == ac')"
+            if [ -z "$rows" ]; then
+                printf '  %-6s %-9s %s\n' "$ac" "missing" "no step names it and no coverage note holds it"
+                problems=1
+                continue
+            fi
+            verdict="covered"
+            detail=""
+            while IFS="$us" read -r _ rel id state class file; do
+                [ -n "$id" ] || continue
+                if [ "$id" = "note" ]; then
+                    detail="$detail · $state"
+                    continue
+                fi
+                where="$rel"
+                [ "$rel" = "plan.md" ] && where=""
+                if [ "$state" != "done" ]; then
+                    detail="$detail · $id ${where:+$where }open"
+                    [ "$verdict" = "covered" ] && verdict="open"
+                elif [ -z "$class" ]; then
+                    detail="$detail · $id ${where:+$where }names no test class"
+                    verdict="absent"
+                elif [ -z "$file" ]; then
+                    detail="$detail · $id \`$class\` not in the tree"
+                    verdict="absent"
+                else
+                    detail="$detail · $id \`$class\` ($file)"
+                fi
+            done < <(printf '%s\n' "$rows")
+            # A note alone holds a scenario without a step; a note beside steps is just a note.
+            if [ "$verdict" = "covered" ] && ! printf '%s\n' "$rows" | awk -F"$us" '$3 != "note" { f = 1 } END { exit !f }'; then
+                verdict="held"
+            fi
+            [ "$verdict" = "covered" ] || [ "$verdict" = "held" ] || problems=1
+            printf '  %-6s %-9s %s\n' "$ac" "$verdict" "${detail# · }"
+        done
+        if [ -n "$unknown" ]; then
+            printf '  %s\n' "${unknown%
+}"
+            problems=1
+        fi
+
+        if [ "$problems" -eq 0 ]; then
+            echo "every scenario has a test class in the tree"
+            exit 0
+        fi
+        echo "not every scenario has a test class in the tree - see above"
         exit 1
         ;;
 

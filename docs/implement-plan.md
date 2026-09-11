@@ -77,7 +77,8 @@ files moved after its guardrail is a defect. Its suite is rerun and the defect i
 
 The feature workflow ends here. The run writes `review/report.md` into the task directory — what was done, what
 was measured, what it cost, what is open, what a person still has to check, with a link to every file — and
-beside it `review/findings.md`: what it found and could not do — bugs, refactoring candidates, deferred changes
+beside it `review/acceptance.md`: every scenario of the spec, and the test class in the tree that stands behind
+it — and `review/findings.md`: what it found and could not do — bugs, refactoring candidates, deferred changes
 — every row of which is appended to `docs/backlog.md`. The task directory moves to `docs/implemented/`, and
 whatever your module's conventions list as running after a change is run.
 
