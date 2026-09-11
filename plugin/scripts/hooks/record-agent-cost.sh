@@ -124,7 +124,11 @@ usage="$(jq -Rn '
         peak_ctx:       ($m | map(ctx) | max // 0),
         model:          ($a | last | .message.model // ""),
         started:        ($t | first | .timestamp // ""),
-        ended:          ($t | last  | .timestamp // "")
+        ended:          ($t | last  | .timestamp // ""),
+        idle:           (($t | map(.type == "user") | index(true)) as $p
+                         | [$t | to_entries[] | select($p != null and .key > $p)
+                            | select(.value.type == "user" and (.value.message.content | type) == "string")
+                            | [$t[.key - 1].timestamp, .value.timestamp]])
       }' < "$transcript" 2>/dev/null | tr -d '
 ')"
 [ -n "$usage" ] || exit 0
@@ -134,9 +138,12 @@ started="$(get started)"
 ended="$(get ended)"
 model="$(get model)"
 [ -n "$model" ] || model="$meta_model"
+idle="$(printf '%s' "$usage" | jq -c '.idle // []' | tr -d '\r')"
 
-# Wall time from first to last message. GNU `date -d` is absent on macOS, so the two stamps are
-# parsed and differenced by hand. Both are UTC, so no zone enters it.
+# Wall time from first to last message, and the active part of it: the wall time less every idle
+# window. An idle window ends at a user line whose content is a string, as docs/cost-recording.md says
+# under "Idle windows". GNU `date -d` is absent on macOS, so the stamps are parsed and differenced by
+# hand. All are UTC, so no zone enters it.
 seconds="$(awk -v a="$started" -v b="$ended" '
     function days(y, m, d,   era, yoe, doy, doe) {
         if (m <= 2) y = y - 1
@@ -157,6 +164,26 @@ seconds="$(awk -v a="$started" -v b="$ended" '
         d = y - x
         print (d < 0 ? 0 : d)
     }')"
+active="$(printf '%s' "$idle" | jq -r '.[] | @tsv' | tr -d '\r' | awk -F'\t' -v total="${seconds:-0}" '
+    function days(y, m, d,   era, yoe, doy, doe) {
+        if (m <= 2) y = y - 1
+        era = int((y >= 0 ? y : y - 399) / 400)
+        yoe = y - era * 400
+        doy = int((153 * (m + (m > 2 ? -3 : 9)) + 2) / 5) + d - 1
+        doe = yoe * 365 + int(yoe / 4) - int(yoe / 100) + doy
+        return era * 146097 + doe - 719468
+    }
+    function epoch(s,   p) {
+        if (s !~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/) return ""
+        return days(substr(s, 1, 4) + 0, substr(s, 6, 2) + 0, substr(s, 9, 2) + 0) * 86400 \
+            + substr(s, 12, 2) * 3600 + substr(s, 15, 2) * 60 + substr(s, 18, 2)
+    }
+    {
+        x = epoch($1); y = epoch($2)
+        if (x == "" || y == "" || y <= x) next
+        gap += y - x
+    }
+    END { d = total - gap; print (d < 0 ? 0 : d) }')"
 
 # The offset is the machine's at the moment the hook fires, as `date +%z` prints it. The report renders
 # local times from it.
@@ -168,6 +195,7 @@ line="$(jq -nc \
     --arg started "$started" --arg ended "$ended" \
     --arg session "$session_id" --arg agent "$agent_type" --arg model "$model" \
     --arg plan "$plan" --arg offset "$offset" --argjson seconds "${seconds:-0}" \
+    --argjson active "${active:-0}" --argjson idle "${idle:-[]}" \
     --argjson input "$(get input)" --argjson output "$(get output)" \
     --argjson cache_read "$(get cache_read)" \
     --argjson cache_create_5m "$(get cache_create_5m)" --argjson cache_create_1h "$(get cache_create_1h)" \
@@ -178,7 +206,7 @@ line="$(jq -nc \
        turns: $turns,
        tokens: {input: $input, output: $output, cache_read: $cache_read,
                 cache_create_5m: $cache_create_5m, cache_create_1h: $cache_create_1h},
-       peak_ctx: $peak_ctx, seconds: $seconds, offset: $offset}
+       peak_ctx: $peak_ctx, seconds: $seconds, active: $active, idle: $idle, offset: $offset}
     + (if $plan == "" then {} else {plan: $plan} end)' | tr -d '\r')"
 
 # One short printf per stop, appended; agents of one wave stop close together and each writes one line.

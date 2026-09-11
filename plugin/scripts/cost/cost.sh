@@ -348,7 +348,8 @@ agent_records() {
              (.tokens.cache_create_5m // 0), (.tokens.cache_create_1h // 0), (.tokens.cache_read // 0),
              (.turns // 0), (.peak_ctx // 0), (.offset // "")]
             + ($priced | split("\t"))
-            + [(.seconds // 0), (.plan // "")]
+            + [(.seconds // 0), (.plan // ""), (.active // .seconds // 0),
+               ((.idle // []) | map(join(">")) | join(";"))]
             | @tsv' | tr -d '\r'
     done < <(current_lines)
 }

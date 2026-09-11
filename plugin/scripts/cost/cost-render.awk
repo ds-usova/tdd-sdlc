@@ -5,7 +5,8 @@
 # Input records, tab separated:
 #   A  id  parent  started  ended  session  agent  model  input  output  cache_create_5m
 #      cache_create_1h  cache_read  turns  peak_ctx  offset  usd_read  usd_write  usd_out  window
-#      seconds  plan
+#      seconds  plan  active  idle
+# `idle` is the agent's idle windows as `from>to;from>to`, empty when it never waited.
 #   S  session  from  to  input  output  cache_create_5m  cache_create_1h  cache_read  turns
 #      peak_ctx  offset  usd_read  usd_write  usd_out  window  model  status
 # An S record whose status is not `ok` carries empty fields between session and status.
@@ -121,11 +122,87 @@ function mins(a, b) {
 }
 
 # "25m" above a minute, "20s" below it.
-function fdur(a, b,   d) {
-    if (a < 0 || b < 0) return "0s"
-    d = b - a
+function fsec(d) {
+    if (d < 0) d = 0
     if (d < 60) return sprintf("%ds", d)
     return sprintf("%dm", int(d / 60 + 0.5))
+}
+
+function fdur(a, b) {
+    if (a < 0 || b < 0) return "0s"
+    return fsec(b - a)
+}
+
+# Agent j's idle windows, parsed into aidl0[j, k] and aidl1[j, k], aidn[j] of them, sorted and merged
+# so that no two touch or overlap.
+function parse_idle(j, str,   np, p, k, ab, a, b, i, t0, t1) {
+    aidn[j] = 0
+    np = split(str, p, ";")
+    for (k = 1; k <= np; k++) {
+        if (split(p[k], ab, ">") != 2) continue
+        a = epoch(ab[1]); b = epoch(ab[2])
+        if (a < 0 || b < 0 || b <= a) continue
+        wn++; w0[wn] = a; w1[wn] = b
+    }
+    for (i = 2; i <= wn; i++) {
+        t0 = w0[i]; t1 = w1[i]; k = i - 1
+        while (k >= 1 && w0[k] > t0) { w0[k + 1] = w0[k]; w1[k + 1] = w1[k]; k-- }
+        w0[k + 1] = t0; w1[k + 1] = t1
+    }
+    for (i = 1; i <= wn; i++) {
+        if (aidn[j] > 0 && w0[i] <= aidl1[j, aidn[j]]) {
+            if (w1[i] > aidl1[j, aidn[j]]) aidl1[j, aidn[j]] = w1[i]
+        } else {
+            aidn[j]++
+            aidl0[j, aidn[j]] = w0[i]; aidl1[j, aidn[j]] = w1[i]
+        }
+    }
+    wn = 0
+    split("", w0); split("", w1)
+}
+
+# Appends agent j's active windows, its span less its idle windows, to w0[] and w1[] from wn + 1.
+function add_windows(j,   k, cur) {
+    cur = ast[j]
+    for (k = 1; k <= aidn[j]; k++) {
+        if (aidl0[j, k] > cur) { wn++; w0[wn] = cur; w1[wn] = aidl0[j, k] }
+        if (aidl1[j, k] > cur) cur = aidl1[j, k]
+    }
+    if (aen[j] > cur) { wn++; w0[wn] = cur; w1[wn] = aen[j] }
+}
+
+# The seconds covered by the windows in w0[] and w1[], an overlap counted once. Clears them.
+function union_secs(   i, j, t0, t1, total, cs, ce) {
+    for (i = 2; i <= wn; i++) {
+        t0 = w0[i]; t1 = w1[i]; j = i - 1
+        while (j >= 1 && w0[j] > t0) { w0[j + 1] = w0[j]; w1[j + 1] = w1[j]; j-- }
+        w0[j + 1] = t0; w1[j + 1] = t1
+    }
+    total = 0
+    for (i = 1; i <= wn; i++) {
+        if (i == 1 || w0[i] > ce) {
+            if (i > 1) total += ce - cs
+            cs = w0[i]; ce = w1[i]
+        } else if (w1[i] > ce) ce = w1[i]
+    }
+    if (wn > 0) total += ce - cs
+    wn = 0
+    split("", w0); split("", w1)
+    return total
+}
+
+# The seconds agents list[1..count] were running, overlapping minutes counted once.
+function active_of(list, count,   i) {
+    wn = 0
+    for (i = 1; i <= count; i++) add_windows(list[i])
+    return union_secs()
+}
+
+# Whether agent j was running at some moment of (a, b): inside its span and not idle over all of it.
+function running_in(j, a, b,   k) {
+    if (aen[j] <= a || ast[j] >= b) return 0
+    for (k = 1; k <= aidn[j]; k++) if (aidl0[j, k] <= a && aidl1[j, k] >= b) return 0
+    return 1
 }
 
 function ceil(x) {
@@ -198,6 +275,8 @@ $1 == "A" {
     aur[n] = $17 + 0; auw[n] = $18 + 0; auo[n] = $19 + 0; awin[n] = $20
     ausd[n] = apriced[n] ? aur[n] + auw[n] + auo[n] : ""
     asec[n] = $21 + 0; apl[n] = $22
+    aact[n] = ($23 == "" ? asec[n] : $23 + 0)
+    parse_idle(n, $24)
     if (atyp[n] == "implement-plan-module") kind_task = 1
     if (atyp[n] == "fix-bug-module") kind_fix = 1
     if (atyp[n] == "rework-module") kind_rework = 1
@@ -219,21 +298,32 @@ $1 == "S" {
 
 function rows_reset() {
     split("", rlabel); split("", rst); split("", ren); split("", rusd); split("", rpeak); split("", rstar)
-    split("", rind)
+    split("", rind); split("", rsec); split("", rmem); split("", rmc)
     rn = 0
 }
 
-function addrow(label, st, en, usd, peak, star, ind) {
+# `sec` is the row's running time. The bar draws the active windows of agents mem[1..count]: one
+# agent for its own row, the members for a group, none for a session.
+function addrow(label, st, en, usd, peak, star, ind, sec, mem, count,   k) {
     rn++
     rlabel[rn] = label; rst[rn] = st; ren[rn] = en; rusd[rn] = usd; rpeak[rn] = peak; rstar[rn] = star
-    rind[rn] = ind
+    rind[rn] = ind; rsec[rn] = sec
+    rmc[rn] = count
+    for (k = 1; k <= count; k++) rmem[rn, k] = mem[k]
+}
+
+# Whether any of row i's agents was running at some moment of (a, b).
+function row_running(i, a, b,   k) {
+    for (k = 1; k <= rmc[i]; k++) if (running_in(rmem[i, k], a, b)) return 1
+    return 0
 }
 
 # Agents of one type under one parent are grouped. `withmod` puts the plan's
 # module in the label, which the overview needs and a plan's own timeline does not. A group's dollars
 # are its priced members' sum, starred when a member is unpriced; its peak context is the members' largest.
 function group_rows(list, count, ind, withmod,
-                    i, j, k, m, mi, key, gn, gc, gs, ge, gu, gp, gnp, gpr, glabel, gmem, at, ord, tmp) {
+                    i, j, k, m, mi, key, gn, gc, gs, ge, gu, gp, gnp, gpr, glabel, gmem, at, ord, tmp,
+                    mem, one) {
     gn = 0
     for (i = 1; i <= count; i++) {
         j = list[i]
@@ -267,13 +357,15 @@ function group_rows(list, count, ind, withmod,
             gmem[k "," (j + 1)] = tmp
         }
         if (gc[k] == 1) {
-            j = gmem[k ",1"]
-            addrow(glabel[k], ast[j], aen[j], ausd[j], apeak[j], 0, ind)
+            j = gmem[k ",1"]; one[1] = j
+            addrow(glabel[k], ast[j], aen[j], ausd[j], apeak[j], 0, ind, aact[j], one, 1)
         } else {
-            addrow(glabel[k] " \303\227" gc[k], gs[k], ge[k], row_usd(gu[k], gpr[k]), gp[k], gnp[k] && gpr[k], ind)
+            for (mi = 1; mi <= gc[k]; mi++) mem[mi] = gmem[k "," mi]
+            addrow(glabel[k] " \303\227" gc[k], gs[k], ge[k], row_usd(gu[k], gpr[k]), gp[k], gnp[k] && gpr[k], ind,
+                   active_of(mem, gc[k]), mem, gc[k])
             for (mi = 1; mi <= gc[k]; mi++) {
-                j = gmem[k "," mi]
-                addrow("#" mi, ast[j], aen[j], ausd[j], apeak[j], 0, ind + 1)
+                j = gmem[k "," mi]; one[1] = j
+                addrow("#" mi, ast[j], aen[j], ausd[j], apeak[j], 0, ind + 1, aact[j], one, 1)
             }
         }
     }
@@ -310,12 +402,17 @@ function draw(title,   i, t0, t1, span, m, w, c, k, axis, line, sc, ec, ind, lab
         if (ec <= sc) ec = sc + 1
         if (ec > w) ec = w
         line = ""
-        for (c = 0; c < w; c++) line = line ((c >= sc && c < ec) ? "\342\226\210" : "\302\267")
+        for (c = 0; c < w; c++) {
+            if (c < sc || c >= ec) line = line "\302\267"
+            else if (rmc[i] > 0 && !row_running(i, t0 + c * m * 60, t0 + (c + 1) * m * 60))
+                line = line "\342\226\221"
+            else line = line "\342\226\210"
+        }
         ind = ""
         for (k = 0; k < rind[i]; k++) ind = ind "  "
         label = ind rlabel[i]
         printf "%s %-5s  %-5s  %s%6s %s %s\n", pad(label, 36), hhmm(rst[i]), hhmm(ren[i]), line,
-            fdur(rst[i], ren[i]), rpad(fusd(rusd[i], rstar[i]), 8), rpad(ftok(rpeak[i]), 9)
+            fsec(rsec[i]), rpad(fusd(rusd[i], rstar[i]), 8), rpad(ftok(rpeak[i]), 9)
     }
 }
 
@@ -331,11 +428,11 @@ function session_label(s) {
 
 # ---------------------------------------------------------------- timelines
 
-function overview(   i, list, count, title) {
+function overview(   i, list, count, title, none) {
     rows_reset()
     for (i = 1; i <= sn; i++) {
         if (sstat[i] != "ok") continue
-        addrow(session_label(i), sfrom[i], sto[i], susd[i], speak[i], 0, 0)
+        addrow(session_label(i), sfrom[i], sto[i], susd[i], speak[i], 0, 0, sto[i] - sfrom[i], none, 0)
     }
     count = 0
     for (i = 1; i <= n; i++) {
@@ -389,9 +486,10 @@ function descendants(root, list,   i, changed, mark, count) {
     return count
 }
 
-function one_plan(i, nth,   list, count) {
+function one_plan(i, nth,   list, count, one) {
     rows_reset()
-    addrow(atyp[i], ast[i], aen[i], ausd[i], apeak[i], 0, 0)
+    one[1] = i
+    addrow(atyp[i], ast[i], aen[i], ausd[i], apeak[i], 0, 0, aact[i], one, 1)
     count = descendants(i, list)
     group_rows(list, count, 1, 0)
     emit(plan_of(apl[i]) (nth > 1 ? " (" nth ")" : ""))
@@ -425,8 +523,9 @@ function task_total(   i, t) {
     return t
 }
 
-# One type per row across the task: count, dollars, counts, span, models. Sets tn and the t* arrays.
-function type_rows(   i, k, key, idx) {
+# One type per row across the task: count, dollars, counts, running time, models. Sets tn and the t*
+# arrays.
+function type_rows(   i, k, key, idx, mem) {
     tn = 0
     for (i = 1; i <= n; i++) {
         key = atyp[i]
@@ -445,6 +544,11 @@ function type_rows(   i, k, key, idx) {
         if (ast[i] < tmin[k]) tmin[k] = ast[i]
         if (aen[i] > tmax[k]) tmax[k] = aen[i]
         tmod[k] = add_model(tmod[k], amod[i])
+        tmem[k, ++tmc[k]] = i
+    }
+    for (k = 1; k <= tn; k++) {
+        for (i = 1; i <= tmc[k]; i++) mem[i] = tmem[k, i]
+        tact[k] = active_of(mem, tmc[k])
     }
     order_by(tmin, tn, tord)
 }
@@ -471,7 +575,7 @@ function cost_table(total,   i, k, u, st) {
         printf "| %s | %d | %s | %s | %s | %s | %s | %s | %s |\n", tk[k], tc[k],
             fusd(u, st), fpct(u, total),
             fusd(row_usd(tur[k], tpr[k]), st), fusd(row_usd(tuw[k], tpr[k]), st),
-            fusd(row_usd(tuo[k], tpr[k]), st), fdur(tmin[k], tmax[k]), commas(tmod[k])
+            fusd(row_usd(tuo[k], tpr[k]), st), fsec(tact[k]), commas(tmod[k])
     }
     print ""
     print "- `$`: what the run would cost at API rates. On a subscription plan it is not a bill."

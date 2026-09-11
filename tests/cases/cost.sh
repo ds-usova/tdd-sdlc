@@ -82,6 +82,11 @@ check "no directory is created for the cited task" "7-add-widget" "$(ls docs | t
 check_match "the record carries the parent from the meta file" '"id":"bk","parent":"a1"' "$(tail -1 "$JSONL")"
 check_match "the record carries the plan" '"plan":"docs/7-add-widget/module-a/plan.md"' "$(tail -1 "$JSONL")"
 
+agent rs
+rec sess-1 rs tdd-system-red-phase-step
+check_match "a resumed agent records its wall time and its active time" '"seconds":1320,"active":240,' "$(tail -1 "$JSONL")"
+check_match "and its idle window, from its last turn to the resume"   '"idle":\[\["2026-09-08T14:12:00.000Z","2026-09-08T14:30:00.000Z"\]\]' "$(tail -1 "$JSONL")"
+
 agent gr
 rec sess-1 gr grill-design
 check_match "a bare task directory files without a plan" '"id":"gr".*"agent":"grill-design"' "$(tail -1 "$JSONL")"
@@ -111,7 +116,7 @@ check "an empty session id records nothing" "$n0" "$(lines)"
 
 # --- the report: a golden rendering of a known set of records, priced by the fixture's own rates
 # table, seeded into the cache as fetched today so nothing is fetched and the bundled table is not read.
-records orph p2 self tiny
+records orph p2 self tiny gap
 mapping
 mkdir -p "$XDG_CACHE_HOME/tdd-sdlc"
 jq --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '.fetched = $now | .fetch_failed = null' \
@@ -130,6 +135,9 @@ check_match "an orphan parent renders as a row one level in" \
 check_match "a self parent renders as a row one level in" \
   '^  tdd-system-red-phase-step +16:22 +16:23 ' "$(cat "$MD")"
 check_match "a second pipeline on the same plan gets its own timeline" '^module-a/plan.md \(2\)$' "$(cat "$MD")"
+check_match "a resumed agent's bar shows its idle window and its time is the active part"   '^  tdd-system-red-phase-step +16:10 +16:32 +·██(░){18}██·· +4m ' "$(cat "$MD")"
+check_match "the type row's time is the running time, an idle window left out"   '^\| tdd-system-red-phase-step \| 2 \| .* \| 5m \| ' "$(cat "$MD")"
+check_match "a group of two legacy lines with a gap between them draws the gap and sums the two"   '^  tdd-integration-red-phase-step ×2 +16:20 +16:32 .*██(░){8}██.* +4m ' "$(cat "$MD")"
 check_match "a 40-second agent is shown in seconds" '`module-b/plan.md` \| 1 \| \$[0-9.]* \| 40s' "$(cat "$MD")"
 check_match "the task total is not starred when every agent is priced" '^\| \$[0-9.]+ \| [0-9]+m \(' "$(cat "$MD")"
 

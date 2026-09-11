@@ -33,7 +33,7 @@ row per agent type. The first answers "did this cost a lot":
 | grill-design            | 1 | $2.10  | 12% | $0.90  | $0.80   | $0.40 | 7m   | claude-opus-5   |
 | review-plan             | 1 | $1.40  | 8%  | $0.60  | $0.55   | $0.25 | 6m   | claude-opus-5   |
 | implement-plan-module   | 3 | $8.70  | 49% | $6.10  | $1.80   | $0.80 | 29m  | claude-opus-5   |
-| tdd-unit-red-phase-step | 5 | $1.60  | 9%  | $0.70  | $0.60   | $0.30 | 5m   | claude-sonnet-5 |
+| tdd-unit-red-phase-step | 5 | $1.60  | 9%  | $0.70  | $0.60   | $0.30 | 4m   | claude-sonnet-5 |
 ```
 
 - **session (own turns)** is the skill itself: the designer, the planner, the task level of `implement-plan`.
@@ -43,8 +43,9 @@ row per agent type. The first answers "did this cost a lot":
   share of the task's total.
 - **read $**, **write $** and **out $** split the dollars by what was priced: input and cache reads, cache
   writes, output.
-- **time** is the type's span from its first start to its last end. Times nest: a pipeline's minutes contain
-  its steps' minutes. Dollars add up across rows; minutes never do.
+- **time** is how long agents of that type were running, a minute two of them shared counted once. An
+  agent's idle windows ([below](#idle-windows)) are left out. A pipeline that stopped while a step ran shows
+  less time than the step. The session row is its span. Dollars add up across rows; minutes never do.
 - **model** lists every model the rows answered with. The session row lists each model its own messages
   used, and each message is priced at its own model.
 
@@ -152,14 +153,18 @@ zone or `TZ`:
 ### Reading a timeline
 
 One overview for the task, then one timeline per plan. A row is an agent: its name, the clock time it
-started and ended, a bar, its time, its dollars and its peak context. Each column of the bar is a slice of
-the timeline's span; a `█` is a column the agent was running in, a `·` one it was not. The axis above the
-bars carries clock times. Columns are one minute wide where the span fits in forty columns, wider where it
-does not.
+started and ended, a bar, its running time, its dollars and its peak context. Each column of the bar is a
+slice of the timeline's span; a `█` is a column the agent was running in, a `░` one it was stopped in
+between two runs, a `·` one outside its span. The axis above the bars carries clock times. Columns are one
+minute wide where the span fits in forty columns, wider where it does not. A column is `░` only where the
+whole column is idle. A wait shorter than a column leaves no mark and is still left out of the time.
 
-Agents of one type under one parent are grouped: a row `type ×3` carries the group's span, summed dollars
-and largest peak context, and its members follow as `#1`, `#2`, `#3`. A wave reads as members sharing a
-start time. A waiting pipeline reads as a long bar over short ones.
+Agents of one type under one parent are grouped: a row `type ×3` carries the group's span, its running
+time, summed dollars and largest peak context, and its members follow as `#1`, `#2`, `#3`. Its bar is `█`
+where any member was running and `░` where none was. A wave reads as members sharing a start time. A
+pipeline waiting on its steps reads as a long bar over short ones: `█` where it waits in a blocking call,
+`░` where it stopped and was woken. A step the pipeline sent back to rework its own work reads as two runs
+with `░` between them, as `tdd-system-red-phase-step` does below.
 
 The example is a two-module task with a seam: design and plan in the same session, the shared plan first and
 alone, then both module pipelines in parallel.
@@ -202,11 +207,11 @@ implement-plan-module                14:09  14:30  █████████�
   tdd-unit-red-phase-step ×2         14:12  14:14  ···██················    2m    $0.55       75k
     #1                               14:12  14:14  ···██················    2m    $0.30       75k
     #2                               14:12  14:13  ···█·················    1m    $0.25       60k
-  tdd-system-red-phase-step          14:12  14:17  ···█████·············    5m    $0.80      120k
+  tdd-system-red-phase-step          14:12  14:24  ···██░░░░░░░░██······    4m    $0.80      120k
   tdd-unit-green-phase-step ×2       14:18  14:20  ·········██··········    2m    $0.25       45k
     #1                               14:18  14:19  ·········█···········    1m    $0.10       40k
     #2                               14:18  14:20  ·········██··········    2m    $0.15       45k
-  tdd-system-green-phase-step        14:21  14:23  ············██·······    2m    $0.20       50k
+  tdd-system-green-phase-step        14:21  14:22  ············█········    1m    $0.20       50k
   tdd-refactor-phase                 14:24  14:29  ···············█████·    5m    $1.10      180k
 ```
 
@@ -255,7 +260,7 @@ Two hooks, registered by the plugin in `hooks/hooks.json`, and one script.
    spawns anything, so a framework session is always mapped. A session that never makes one is not a framework
    session. Mapping files older than 30 days are deleted on the next write; losing one only means later agents
    of that session without a plan path in their prompt go unrecorded.
-2. **`SubagentStop`** (`scripts/hooks/record-agent-cost.sh`) fires once, when a sub-agent ends. It decides
+2. **`SubagentStop`** (`scripts/hooks/record-agent-cost.sh`) fires each time a sub-agent stops. It decides
    whether and where to record ([below](#how-an-agent-is-attributed)), reads the agent's transcript, and
    appends one JSON line to `docs/<n>-<task>/review/cost.jsonl`. The start time is the transcript's first
    timestamp and the end time its last, so no start hook is needed. The file moves with the task at archive and is never
@@ -284,7 +289,9 @@ Both hooks are silent without `jq`, like the other hooks.
 | `turns`    | how many messages the agent sent: distinct `message.id`s                    | the transcript         |
 | `tokens`   | `input`, `output`, `cache_read`, `cache_create_5m`, `cache_create_1h`       | the transcript, summed |
 | `peak_ctx` | the largest one message's input + cache write + cache read                  | the transcript         |
-| `seconds`  | wall time from first to last message, waiting included                      | the transcript         |
+| `seconds`  | wall time from first to last message, idle windows included                 | the transcript         |
+| `active`   | `seconds` less the idle windows                                             | the transcript         |
+| `idle`     | the idle windows, each a `[from, to]` pair of timestamps, in order          | the transcript         |
 | `offset`   | the machine's UTC offset when the hook fired, as `date +%z` prints it       | the hook               |
 | `plan`     | the plan path the agent was spawned with, where its prompt names one        | the transcript         |
 
@@ -294,7 +301,15 @@ A line without a `message.id` is a group of its own. A message without the cache
 the 5-minute TTL.
 
 An agent can stop more than once: a pipeline that hands a wave back stops, is resumed, and stops again, and the
-hook fires each time. Every stop appends a line; the report keeps the last line per `id`.
+hook fires each time. Every stop appends a line summed over the whole transcript so far. The last line per
+`id` holds every earlier one. The report keeps that line and drops the rest.
+
+### Idle windows
+
+A resume is a `user` line whose content is a string: the message the parent sent, or the notification that
+woke the agent. An idle window runs from the timestamp of the line before such a `user` line to the `user`
+line itself. The first `user` line, the prompt, opens no window. A tool result is an array. A long tool call
+is running time.
 
 A line written before the hook recorded `turns`, `cache_create_5m`, `cache_create_1h`, `peak_ctx` and
 `offset` is skipped, after the last-per-id rule, and the report's header counts it: `N lines recorded before
