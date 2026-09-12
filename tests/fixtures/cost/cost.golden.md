@@ -15,7 +15,7 @@ Rates: fetched <date>.
 | implement-plan-module | 3 | $4.84 | 71% | $2.89 | $0.57 | $1.38 | 30m | claude-opus-5 |
 | tdd-system-red-phase-step | 2 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 5m | claude-opus-5 |
 | tdd-unit-red-phase-step | 3 | $0.12 | 2% | $0.01 | $0.03 | $0.08 | 4m | claude-haiku-4-5-20251001 |
-| tdd-unit-green-phase-step | 1 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 1m | claude-haiku-4-5-20251001 |
+| tdd-unit-green-phase-step | 2 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 1m | claude-haiku-4-5-20251001 |
 | tdd-integration-red-phase-step | 2 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 4m | claude-opus-5 |
 | tdd-refactor-phase | 1 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 20s | claude-opus-5 |
 
@@ -37,7 +37,7 @@ Rates: fetched <date>.
 | implement-plan-module | 4 | 510k | 55k | 80k | 680k | 500k | 50% |
 | tdd-system-red-phase-step | 4 | 72 | 30 | 0 | 0 | 42 | 0% |
 | tdd-unit-red-phase-step | 6 | 167 | 15k | 23k | 133k | 34k | 17% |
-| tdd-unit-green-phase-step | 1 | 10 | 10 | 0 | 0 | 10 | 0% |
+| tdd-unit-green-phase-step | 2 | 20 | 20 | 0 | 0 | 10 | 0% |
 | tdd-integration-red-phase-step | 2 | 20 | 0 | 0 | 0 | 10 | 0% |
 | tdd-refactor-phase | 1 | 100 | 0 | 0 | 0 | 100 | 0% |
 
@@ -49,7 +49,7 @@ Rates: fetched <date>.
 
 | plan | agents | $ | time |
 |------|--------|---|------|
-| `module-a/plan.md` | 11 | $4.91 | 30m |
+| `module-a/plan.md` | 12 | $4.91 | 30m |
 | `module-b/plan.md` | 1 | $0.04 | 40s |
 
 ## Task total
@@ -80,7 +80,9 @@ implement-plan-module                16:09  16:34  █████████�
   tdd-unit-red-phase-step ×2         16:13  16:16  ····███··················    3m    $0.12       34k
     #1                               16:13  16:15  ····██···················    2m    $0.05       31k
     #2                               16:13  16:16  ····███··················    3m    $0.06       34k
-  tdd-unit-green-phase-step          16:20  16:21  ···········█·············    1m    $0.00        10
+  tdd-unit-green-phase-step ×2       16:20  16:21  ···········█·············    1m    $0.00        10
+    #1                               16:20  16:21  ···········█·············    1m    $0.00        10
+    #2                               16:20  16:21  ···········█·············    1m    $0.00        10
   tdd-unit-red-phase-step            16:20  16:21  ···········█·············    1m    $0.00         7
   tdd-integration-red-phase-step ×2  16:20  16:32  ···········██░░░░░░░░██··    4m    $0.00        10
     #1                               16:20  16:22  ···········██············    2m    $0.00        10

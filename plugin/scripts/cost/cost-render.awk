@@ -449,11 +449,11 @@ function overview(   i, list, count, title, none) {
     emit(title)
 }
 
-# The pipeline an agent with no known parent joins: the one for its plan that had started last when
+# The pipeline a step or phase agent with no known parent joins: the one for its plan that had started last when
 # the agent started, else the first for that plan. 0 where no pipeline has its plan.
 function adopter(j,   i, best) {
     best = 0
-    if (apl[j] == "" || atyp[j] ~ /-module$/) return 0
+    if (apl[j] == "" || atyp[j] !~ /-(step|phase)$/) return 0
     if (apar[j] != "" && apar[j] != aid[j] && (apar[j] in idset)) return 0
     for (i = 1; i <= n; i++) {
         if (atyp[i] != "implement-plan-module" || apl[i] != apl[j]) continue

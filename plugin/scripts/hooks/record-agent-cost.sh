@@ -52,7 +52,7 @@ fi
 
 # The prompt is the first user line's content: a string, or an array whose first text block carries
 # the text.
-prompt="$(jq -Rn '
+prompt="$(jq -Rrn '
     [inputs | select(length > 0) | (fromjson? // empty)]
     | map(select(.type == "user")) | first | .message.content as $c
     | if ($c | type) == "string" then $c

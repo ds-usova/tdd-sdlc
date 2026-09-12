@@ -82,6 +82,10 @@ check "no directory is created for the cited task" "7-add-widget" "$(ls docs | t
 check_match "the record carries the parent from the meta file" '"id":"bk","parent":"a1"' "$(tail -1 "$JSONL")"
 check_match "the record carries the plan" '"plan":"docs/7-add-widget/module-a/plan.md"' "$(tail -1 "$JSONL")"
 
+agent ws
+rec sess-1 ws tdd-unit-green-phase-step
+check_match "a backslash plan path records the plan" '"id":"ws".*"plan":"docs/7-add-widget/module-a/plan.md"' "$(tail -1 "$JSONL")"
+
 agent rs
 rec sess-1 rs tdd-system-red-phase-step
 check_match "a resumed agent records its wall time and its active time" '"seconds":1320,"active":240,' "$(tail -1 "$JSONL")"
@@ -147,8 +151,13 @@ check_match "offline, the rates line names the plugin's table and the curl error
   "^Rates: the plugin's table, dated .*\(fetching current rates failed: curl: \(6\)" "$(report_offline)"
 
 # --- the report: a model in no table
-records gr2 unk
+records gr2 unk rp ad
 report_offline > /dev/null
+check_match "a parentless step agent on a plan joins that plan's timeline" \
+  '^  tdd-unit-green-phase-step +16:24 +16:25 ' "$(cat "$MD")"
+check_no_match "and leaves the overview" '^tdd-unit-green-phase-step ' "$(cat "$MD")"
+check_match "a parentless review agent on a plan stays in the overview" '^review-plan module-a +16:24 +16:26 ' "$(cat "$MD")"
+check_no_match "and is not adopted into the plan's timeline" '^  review-plan' "$(cat "$MD")"
 check_match "a row mixing a priced and an unpriced agent is starred" \
   '^\| grill-design \| 3 \| \$[0-9.]+\* \| [0-9]+% \| \$[0-9.]+\* ' "$(cat "$MD")"
 check_match "the task total is starred" '^\| \$[0-9.]+\* \| ' "$(cat "$MD")"
