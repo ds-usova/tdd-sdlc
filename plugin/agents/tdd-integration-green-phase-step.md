@@ -88,7 +88,7 @@ editing the test.
 ### Phase 3 — Verify GREEN
 
 **Skip this phase when the orchestrator said the wave is verified once, above you.** Then write, report what
-you wrote, and return; the orchestrator runs the suite and re-delegates what failed.
+you wrote, and return; the orchestrator runs the wave's test classes and re-delegates what failed.
 
 1. Compile the sources and fix every compilation error using the build commands from the conventions.
 2. Run the test class with the focused run command from the conventions and read its results.

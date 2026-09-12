@@ -86,7 +86,7 @@ assertion**:
 ### Phase 4 — Verify GREEN
 
 **Skip this phase when the orchestrator said the wave is verified once, above you.** Then write, report what
-you wrote, and return; the orchestrator runs the suite and re-delegates what failed.
+you wrote, and return; the orchestrator runs the wave's test classes and re-delegates what failed.
 
 1. Re-run the focused test class after each fix and iterate until **every test in the class passes** — including
    tests that were already green; breaking one is a regression this step introduced.
