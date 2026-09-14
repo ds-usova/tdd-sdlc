@@ -137,11 +137,11 @@ check_match "task: a plan path reaches the same directory" '^docs/1-add-widget$'
 
 echo "-- acceptance"
 check_rc "acceptance: an open red step exits 1" 1 plan acceptance
-check_match "acceptance: the open steps are named" '^  AC01 +open +RU01 open · RS01 open$' "$(plan acceptance)"
-check_match "acceptance: a scenario no step names is missing" '^  AC06 +missing +no step names it' "$(plan acceptance)"
+check_match "acceptance: the open steps are named" '^\| AC01 +\| open +\| RU01 open · RS01 open \|$' "$(plan acceptance)"
+check_match "acceptance: a scenario no step names is missing" '^\| AC06 +\| missing +\| no step names it' "$(plan acceptance)"
 plan tick RU01 RI01 RI02 RS01 > /dev/null
 check_match "acceptance: a ticked step whose class is not in the tree is absent" \
-  '^  AC04 +absent +RI01 `WidgetRepositoryAdapterTest` not in the tree$' "$(plan acceptance)"
+  '^\| AC04 +\| absent +\| RI01 `WidgetRepositoryAdapterTest` not in the tree \|$' "$(plan acceptance)"
 for c in CreateWidgetUseCaseTest WidgetControllerTest CreateWidgetTest; do
   echo "class $c {}" > "$REPO/src/$c.java"
 done
@@ -149,21 +149,22 @@ done
 echo "class WidgetRepositoryAdapterTest:" > "$REPO/src/test_widget_repository_adapter.py"
 out="$(plan acceptance)"
 check_match "acceptance: a class in the tree is covered, with its file" \
-  '^  AC01 +covered +RU01 `CreateWidgetUseCaseTest` \(src/CreateWidgetUseCaseTest.java\)' "$out"
+  '^\| AC01 +\| covered +\| RU01 `CreateWidgetUseCaseTest` \(src/CreateWidgetUseCaseTest.java\)' "$out"
 check_match "acceptance: a class in a file named otherwise is found by its text" \
-  '^  AC04 +covered +RI01 `WidgetRepositoryAdapterTest` \(src/test_widget_repository_adapter.py\)$' "$out"
+  '^\| AC04 +\| covered +\| RI01 `WidgetRepositoryAdapterTest` \(src/test_widget_repository_adapter.py\) \|$' "$out"
+check_match "acceptance: the table carries a header and a separator" '^\| ID +\| Verdict \| Evidence \|$' "$out"
 echo "build/" > "$REPO/.gitignore"; mkdir -p "$REPO/build"; echo "class WidgetRepositoryAdapterTest {}" > "$REPO/build/WidgetRepositoryAdapterTest.java"
 check_match "acceptance: an ignored file is not a hit" 'src/test_widget_repository_adapter.py' "$(plan acceptance)"
 check_rc "acceptance: one missing scenario still exits 1" 1 plan acceptance
 awk '{ print } /^### Red Phase/ { print ""; print "AC06 is a measurement; the conventions say performance is not measured" }' \
   "$PLAN" > "$WORK/tmp" && mv "$WORK/tmp" "$PLAN"
-check_match "acceptance: a coverage note holds a scenario" '^  AC06 +held +AC06 is a measurement' "$(plan acceptance)"
+check_match "acceptance: a coverage note holds a scenario" '^\| AC06 +\| held +\| AC06 is a measurement' "$(plan acceptance)"
 check_ok "acceptance: every scenario covered or held exits 0" plan acceptance
 awk '{ print } /^### Red Phase/ { print ""; print "AC03 is held by the tests written for AC05 in WidgetUtilsTest" }' \
   "$PLAN" > "$WORK/tmp" && mv "$WORK/tmp" "$PLAN"
 out="$(plan acceptance)"
-check_match "acceptance: a note holds its subject" '^  AC03 +covered +RI02 .* · AC03 is held by' "$out"
-check_no_match "acceptance: a note does not hold a scenario it merely mentions" '^  AC05 .*AC03 is held by' "$out"
+check_match "acceptance: a note holds its subject" '^\| AC03 +\| covered +\| RI02 .* · AC03 is held by' "$out"
+check_no_match "acceptance: a note does not hold a scenario it merely mentions" '^\| AC05 .*AC03 is held by' "$out"
 sed 's/scenarios: AC01, AC03$/scenarios: AC01, AC03, AC99/' "$PLAN" > "$WORK/tmp" && mv "$WORK/tmp" "$PLAN"
 check_match "acceptance: a step naming a scenario the spec lacks is reported" \
   'RS01 names AC99, which the spec does not carry' "$(plan acceptance)"

@@ -175,17 +175,21 @@ numbers.
 
 ```
 docs/18-add-widget · spec.md: 5 scenarios
-  AC01   covered   RU01 `CreateWidgetUseCaseTest` (module-a/src/test/.../CreateWidgetUseCaseTest.java)
-  AC02   absent    RI01 `WidgetRepositoryAdapterTest` not in the tree
-  AC03   open      RS01 open
-  AC04   held      AC04 is a measurement; the conventions say performance is not measured
-  AC05   missing   no step names it and no coverage note holds it
+
+| ID   | Verdict | Evidence |
+|------|---------|----------|
+| AC01 | covered | RU01 `CreateWidgetUseCaseTest` (module-a/src/test/.../CreateWidgetUseCaseTest.java) |
+| AC02 | absent  | RI01 `WidgetRepositoryAdapterTest` not in the tree |
+| AC03 | open    | RS01 open |
+| AC04 | held    | AC04 is a measurement; the conventions say performance is not measured |
+| AC05 | missing | no step names it and no coverage note holds it |
+
 not every scenario has a test class in the tree - see above
 ```
 
 The argument is the task directory, a plan in it, or nothing when one task is in flight, as for `task`.
 
-One line per scenario. The steps are the `RU`, `RI`, `RS` and `PM` items of every plan in the task whose header
+One row per scenario. The steps are the `RU`, `RI`, `RS` and `PM` items of every plan in the task whose header
 carries `scenarios:`. The class is the name after `test:`, or the first backticked name where the header has no
 `test:`. The file is the first git sees, ignored files left out, whose basename is the class with or without an
 extension; where none is, the first whose text names the class as a word, which is how a pytest class or a Go

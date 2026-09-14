@@ -754,12 +754,15 @@ case "$command" in
             done < <(awk '{ sub(/\r$/, "") } /^AC[0-9]+(, AC[0-9]+)*( and AC[0-9]+)? (is|are) (held by|a measurement)/' "$f")
         done
 
-        echo "${task_dir#"$repo_root_abs/"} · ${spec#"$task_dir/"}: $(printf '%s\n' "$scenarios" | grep -c .) scenarios"
+        # One row per scenario, held back until every verdict is known: the table's ID and Verdict
+        # columns are padded to their widest cell, and Evidence is last, so it needs no padding.
+        report=""
         problems=0
         for ac in $scenarios; do
             rows="$(printf '%s' "$records" | awk -F"$us" -v ac="$ac" '$1 == ac')"
             if [ -z "$rows" ]; then
-                printf '  %-6s %-9s %s\n' "$ac" "missing" "no step names it and no coverage note holds it"
+                report="$report$ac${us}missing${us}no step names it and no coverage note holds it
+"
                 problems=1
                 continue
             fi
@@ -791,14 +794,35 @@ case "$command" in
                 verdict="held"
             fi
             [ "$verdict" = "covered" ] || [ "$verdict" = "held" ] || problems=1
-            printf '  %-6s %-9s %s\n' "$ac" "$verdict" "${detail# · }"
+            report="$report$ac$us$verdict$us${detail# · }
+"
         done
+
+        idw=2
+        vw=7
+        while IFS="$us" read -r ac verdict detail; do
+            [ -n "$ac" ] || continue
+            [ "${#ac}" -gt "$idw" ] && idw="${#ac}"
+            [ "${#verdict}" -gt "$vw" ] && vw="${#verdict}"
+        done < <(printf '%s' "$report")
+
+        echo "${task_dir#"$repo_root_abs/"} · ${spec#"$task_dir/"}: $(printf '%s\n' "$scenarios" | grep -c .) scenarios"
+        echo
+        printf '| %-*s | %-*s | %s |\n' "$idw" "ID" "$vw" "Verdict" "Evidence"
+        printf '|%s|%s|----------|\n' \
+            "$(printf '%*s' "$((idw + 2))" '' | tr ' ' '-')" "$(printf '%*s' "$((vw + 2))" '' | tr ' ' '-')"
+        while IFS="$us" read -r ac verdict detail; do
+            [ -n "$ac" ] || continue
+            printf '| %-*s | %-*s | %s |\n' "$idw" "$ac" "$vw" "$verdict" "$detail"
+        done < <(printf '%s' "$report")
+
         if [ -n "$unknown" ]; then
-            printf '  %s\n' "${unknown%
+            echo
+            printf '%s\n' "${unknown%
 }"
             problems=1
         fi
-
+        echo
         if [ "$problems" -eq 0 ]; then
             echo "every scenario has a test class in the tree"
             exit 0
