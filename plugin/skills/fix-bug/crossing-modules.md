@@ -31,13 +31,12 @@ module on the seam, and its log is `shared/fix-log.md`, as for any other fix fil
 ```
 
 **The contract is shared; the behaviour behind it is not.** The handler a schema declares is fixed in its own
-module's file. A shape published over a protocol breaks no call site and still gets this file: written down, it
-holds both modules to one shape rather than to each other. Where a module's conventions give a test type that
+module's file. A shape published over a protocol breaks no call site and still gets this file. Where a module's
+conventions give a test type that
 drives the real counterpart, the seam gets one, in the module owning the entry point; where none does, the report
 says the seam is proven only by the written shape.
 
-**A schema edit no two modules must agree about** goes in the `files:` of the step that needs it, since a shared
-file serializes the run.
+**A schema edit no two modules must agree about** goes in the `files:` of the step that needs it.
 
 ## Where the reproduction lives
 
@@ -56,5 +55,4 @@ phase-0 figures. Its exit condition: every module on the seam compiles, passes i
 stands where phase 0 left it apart from exactly the tests this file's `disables:` turned off. A blocked shared
 fix stops the run there.
 
-**Each module agent is then told what the shared fix disabled in its module**, so its skipped count reconciles
-against a baseline taken before the shared fix landed.
+**Each module agent is then told what the shared fix disabled in its module.**

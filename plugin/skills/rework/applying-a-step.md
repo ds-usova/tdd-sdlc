@@ -8,9 +8,24 @@ the skill's.
 |-------------|------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
 | `inline`    | reshape or relocate only what `files:` names; in a test, only a mechanical edit    | `runs:` — they pass                                                                                       |
 | `extract`   | break the body in place first, then move it without rewriting, and wire the caller | `frozen:` goes red, then unedited and green · write `cover:` and **mutate** each · the architecture check |
-| `tests`     | move or reshape test code, with no `files:` at all                                 | the module's whole suite · then find every scenario in `survives:` running again                          |
-| `pin`       | add, tighten, or drop the check or setting, and nothing else                       | the module's whole suite · then **mutate**, where anything was added or tightened                         |
-| `stabilize` | carry each broken call site back to compiling, nothing more                        | the module's whole suite · the architecture check                                                         |
+| `tests`     | move or reshape test code, with no `files:` at all                                 | every class in `test-files:` · then find every scenario in `survives:` running again                       |
+| `pin`       | add, tighten, or drop the check or setting, and nothing else                       | the check itself and every class in `test-files:` · then **mutate**, where anything was added or tightened |
+| `stabilize` | carry each broken call site back to compiling, nothing more                        | the module compiles · every class in `test-files:` · the architecture check                               |
+
+## What A Step Runs
+
+**A step runs the module's compile and the test classes its own lines name**, with the focused run command the
+conventions give. `files:` and `test-files:` are the boundary. The run stays inside it.
+
+**No step runs the module's whole suite.** The whole suite runs where this skill says: Phase 0's baseline, the
+module agent after its last step, and Phase 4's close.
+
+The whole suite is still owed in two cases:
+
+- **a step editing shared test infrastructure** — a builder, a fixture, a composed annotation, anything under the
+  conventions' common test packages;
+- **a `pin` changing a setting the whole module builds or runs under** — a compiler flag, a test profile, a
+  dependency version. A `pin` whose check is one test runs that test and nothing wider.
 
 ## Mutation
 
@@ -34,28 +49,26 @@ line before and after.
 import, a package, a method name. An assertion, a fixture value, and the removal of a test are not mechanical.
 
 **`frozen:` must bite before it can vouch.** Break the body where it stands today and confirm `frozen:` goes
-red; restore, and only then move it. A `frozen:` that passes whatever the extraction did is not a net, and the
-step is refused. This asks only whether the tests reach the body, so one breakage answers it.
+red; restore, and only then move it. A `frozen:` that stays green under the breakage refuses the step. One
+breakage is enough.
 
 **`frozen:` is verified against the step's own start.** Where the run commits per step, that start is the last
-commit and version control answers it exactly. Where the conventions commit nothing there is no anchor, so copy
-each `frozen:` file before editing anything and compare against the copy.
+commit. Where the conventions commit nothing, copy each `frozen:` file before editing anything and compare
+against the copy.
 
 **`extract`, and an `inline` that relocates a file, run whatever the module's conventions name as the check on
 its layering rule.**
 
 **A `stabilize` step disables the least it can.** How each of its edits is made — the stub, the `TODO` on a changed
-signature, the disabled test — is `stabilizing.md` in the `templates` directory beside the skills, the one statement
-of it for every workflow that stabilizes.
+signature, the disabled test — is `stabilizing.md` in the `templates` directory beside the skills.
 
 ## Where a step refuses
 
 - **`inline` needing more than a mechanical test edit** is not `inline`.
 - **`extract` whose body cannot move unrewritten** is not `extract`. A connection, a transaction or a lock the
   original held across its statements travels with the body, passed in rather than acquired again, and the step
-  stays an `extract`. Where even that is impossible, stop and put it to the user: nothing about the behaviour
-  changed, so no other kind fits. A resource re-acquired inside the new class is the one case `frozen:` cannot
-  catch.
+  stays an `extract`. Where even that is impossible, stop and put it to the user. Never re-acquire the resource
+  inside the new class.
 - **`tests` with a scenario it cannot find running again** dropped it, and it is restored before anything else.
 - **`pin` that survives its own mutation** pins nothing. A `pin` that only drops something has no mutation, and
   this does not apply to it.

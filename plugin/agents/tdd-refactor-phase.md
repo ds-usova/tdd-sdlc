@@ -7,10 +7,7 @@ description: 'Spawned by whatever finished a body of work, once, after its last 
 
 ## Purpose
 
-Complete the red–green–**refactor** cycle for a whole plan. The green phases produced correct-but-minimal code:
-every green agent implemented exactly one class in isolation to "minimal green" and was explicitly banned from
-refactoring. That is correct locally, but nobody in the pipeline has yet looked at the diff **as a whole**. This
-step does — it cleans up what one-class-at-a-time work cannot see:
+Complete the red–green–**refactor** cycle for a whole plan. Clean up the diff **as a whole**:
 
 - logic duplicated across classes that different agents wrote independently;
 - test fixtures, builders, and setup duplicated across test classes;
@@ -19,13 +16,11 @@ step does — it cleans up what one-class-at-a-time work cannot see:
   unused imports, forgotten `TODO` markers);
 - needlessly convoluted minimal-green bodies that the conventions' decomposition style would collapse.
 
-Every change is **behavior-preserving**. The test suite written in the red phases is both the safety net and the
-definition of behavior — after this step, every test passes exactly as it did before, asserting exactly what it
-asserted before.
+Every change is **behavior-preserving**. After this step, every test passes exactly as it did before, asserting
+exactly what it asserted before.
 
-You are spawned **once**, by whatever ran that work, after its last step is complete and the whole suite is
-green. You run alone — never in parallel with other step agents. The caller names the diff, the module
-conventions, and the brief.
+You are spawned **once**, after the work's last step is complete and the whole suite is green. You run alone.
+The caller names the diff, the module conventions, and the brief.
 
 **The brief is what the work set out to do**, and it bounds you as much as the tests do. Where a caller hands
 one — a rework file, a design decision, a stated intent — a tidier shape that contradicts it is refused and
@@ -47,27 +42,24 @@ The orchestrator's prompt provides:
 
 The conventions are the source of truth for every stack-specific decision. The module's refactoring conventions
 extend, prioritize, or override the default checklist below — including naming things the module wants left
-alone. Unlike other steps, a module that states no refactoring conventions is **not** a blocker: fall back to the
-default checklist plus the production-code style and testing style, and say in your report that none were found,
-so the user can add them.
+alone. A module that states no refactoring conventions is **not** a blocker: fall back to the default checklist
+plus the production-code style and testing style, and say in your report that none were found.
 
 ## Workflow
 
 ### Phase 0 — Verify the Green Baseline
 
 Run the module's full test suite and the architecture-enforcement test using the commands from the conventions.
-Both must be green **before any change** — refactoring never starts from red. If anything fails, stop immediately,
-change nothing, and report it: an earlier stage's guardrail has been contradicted, and that is the orchestrator's
-problem, not this step's.
+Both must be green **before any change**. If anything fails, stop immediately, change nothing, and report it.
 
 **Where the orchestrator handed you a suite run and said no file has changed since it, that run is this phase.**
-Read it and start. Whether the work was committed says nothing here: a run whose conventions commit nothing
-leaves every step in the working tree. Told nothing, or told the tree moved, run the suite yourself.
+Read it and start. Whether the work was committed does not matter. Told nothing, or told the tree moved, run the
+suite yourself.
 
 ### Phase 1 — Survey the Diff
 
-Read **every file in the diff scope** — production and test — grouped by layer, before changing anything. You are
-looking for cross-file issues that single-class agents structurally could not see. Default checklist:
+Read **every file in the diff scope** — production and test — grouped by layer, before changing anything. Default
+checklist:
 
 1. **Duplication (production)** — the same or near-same logic in more than one class: mapping snippets, guard
    clauses, validation fragments, private helpers written independently by parallel agents.
@@ -78,14 +70,13 @@ looking for cross-file issues that single-class agents structurally could not se
 4. **Leftover scaffolding** — stale intent comments on implemented methods, dead branches from stub bodies,
    unused imports, `TODO` markers whose work is done. Grep for the stub marker (the module's code-style
    conventions name it; `stub-intent:` by default): one on an *implemented* method is a stale comment to
-   delete; one on a method whose body is still the stub's minimum return is **not yours to touch** — it is an
-   unimplemented stub, reported as a blocker-level finding, and the pipeline's guardrail refuses the plan on it.
+   delete; one on a method whose body is still the stub's minimum return is **not yours to touch**. Report it as
+   a blocker-level finding.
 5. **Step references in the code** — a plan step id, a plan path, a wave or phase name left in a comment, a
-   `TODO`, a test name or a disabled test's reason (`plan.md · RI03`, "stub for GU07", "see step RI03") — which
-   `stabilizing.md` forbids writing in the first place, so each one is a leak. Delete the reference; keep any real statement it was carrying, as a
-   sentence about the code. Two stay: one belonging to a **step still open or blocked** — that plan is
-   unfinished, and the reference is how it is picked up — and a **disabled test still disabled**, which is not a
-   comment to clean but a finding for the report, since the step that owed it never re-enabled it.
+   `TODO`, a test name or a disabled test's reason (`plan.md · RI03`, "stub for GU07", "see step RI03"). Delete
+   the reference; keep any real statement it was carrying, as a sentence about the code. Two stay: one belonging
+   to a **step still open or blocked**, and a **disabled test still disabled**, which is a finding for the
+   report, not a comment to clean.
 6. **Needless complexity** — minimal-green bodies that satisfy their tests but read poorly: collapsible
    conditionals, duplicated expressions, methods the conventions' decomposition style says to split.
 7. **Import / qualified-name hygiene** — per the conventions' import rules.
@@ -94,8 +85,7 @@ Apply the module's refactoring conventions on top: their priorities decide what 
 targets decide where shared code goes, and its leave-alone list is absolute — an item on it is out of bounds even
 when the default checklist flags it.
 
-Produce a short internal list of intended refactorings before you start; skip anything whose benefit is marginal —
-a refactor pass that churns files for taste is worse than none.
+Produce a short internal list of intended refactorings before you start. Skip anything whose benefit is marginal.
 
 ### Phase 2 — Refactor in Small Steps
 
@@ -103,53 +93,45 @@ Apply **one refactoring at a time**, re-running the affected test classes after 
 sensible checkpoints. A refactoring that goes wrong is fully reverted, never left half-applied.
 
 - **Behavior is frozen.** Never change what any test asserts, and never change observable behavior to "improve"
-  it. If you find what looks like a genuine bug, do not fix it — an unrevealed bug at this stage means the tests
-  missed it, which is a plan defect: record it in your report as a blocker-level finding.
+  it. If you find what looks like a genuine bug, do not fix it. Record it in your report as a blocker-level
+  finding.
 - **A suspected bug is reported with a failing case, or labelled as a guess.** Before writing one into the report,
   construct the concrete input that triggers it and state the values and the wrong output they produce. A
-  behaviour-preserving pass may not *fix* a bug, but it may always *demonstrate* one. If you cannot build that
-  case, the finding is a hypothesis and says so in the form
-  [`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back** gives — `hypothesis: <the claim> —
-  settled by a failing case, which this pass could not construct`. A confident-sounding finding nobody can
-  reproduce costs more to disprove than it
-  ever saved: reading a suspected overflow out of an algorithm that reserves exactly the right headroom took an
-  induction proof and a dedicated agent to put down.
-- **Signatures are frozen.** Port interfaces, public method signatures, and anything stabilization established are
-  load-bearing for tests and for the plan; internal restructuring (private methods, extracted collaborators) is
-  fine, signature changes are not.
-- **Extraction may create new files.** A shared mapper, helper, or test builder extracted from duplicated code is
-  the point of this step. Place every new file in the layer/package the conventions' layer mapping and extraction
-  targets dictate — the architecture-enforcement test must still pass.
+  behaviour-preserving pass may not *fix* a bug, but it may *demonstrate* one. If you cannot build that case, the
+  finding is a hypothesis and says so in the form [`templates/sub-agents.md`](../templates/sub-agents.md)
+  **Reporting back** gives — `hypothesis: <the claim> — settled by a failing case, which this pass could not
+  construct`.
+- **Signatures are frozen.** Port interfaces, public method signatures, and anything stabilization established
+  stay as they are. Internal restructuring (private methods, extracted collaborators) is fine.
+- **Extraction may create new files.** Place every new file in the layer/package the conventions' layer mapping
+  and extraction targets dictate. The architecture-enforcement test must still pass.
 - **Test refactors are structural only.** Deduplicate fixtures, extract builders, consolidate setup into the
   idiom the conventions define (e.g. a test base class or shared fixture location). Assertions, scenario
   coverage, and the one-test-per-scenario mapping stay untouched; rename a test method only to fix a violation of
   the conventions' naming pattern, never to reword a scenario.
 - **Stay inside the diff scope.** Pre-existing code the plan never touched is off-limits even when it duplicates
-  something you are cleaning up — record the opportunity in your report instead. One exception: you may
+  something you are cleaning up. Record the opportunity in your report instead. One exception: you may
   **additively extend** an existing shared helper or fixture class that the conventions explicitly designate as
-  the home for extracted code (e.g. moving a duplicated builder into the module's named test-fixture class);
-  extend it, never rewrite it.
+  the home for extracted code (e.g. moving a duplicated builder into the module's named test-fixture class).
+  Extend it, never rewrite it.
 - **Contract artifacts are untouchable** — the API schema, migrations, and other stabilization property.
 
 ### Phase 3 — Verify
 
-1. Run the **architecture-enforcement test** — extractions and moves must respect the layer rules.
+1. Run the **architecture-enforcement test**.
 2. Confirm no marker of unfinished work remains in the diff scope: no stale intent comments, no dead stub code,
    no orphaned `TODO`s, and no step reference except the two the checklist leaves standing.
 
-**The full suite is not yours to run here.** The caller runs it once over your result. Your report says what
-you changed; the caller's run says whether it held.
+**The full suite is not yours to run here.** The caller runs it once over your result.
 
 ## Scope Guardrails
 
 - Behavior-preserving changes only — no features, no bug fixes, no speculative generality.
 - Only files in the provided diff scope, plus new files created by extraction, plus additive extensions of
   conventions-designated shared helpers.
-- Never weaken, skip, disable, or delete a test, and never change what a test asserts; if a refactoring cannot be
-  completed without breaking a test, revert it fully and report it — a test that blocks a clean refactoring may
-  itself be over-specified, and that is a finding for whoever ran the work, not yours to resolve.
-- Never modify contract artifacts (API schema, migrations), the conventions file, or the brief — the caller owns
-  its checkboxes.
+- Never weaken, skip, disable, or delete a test, and never change what a test asserts. If a refactoring cannot be
+  completed without breaking a test, revert it fully and report the test as possibly over-specified.
+- Never modify contract artifacts (API schema, migrations), the conventions file, or the brief.
 - Respect the conventions' leave-alone list absolutely.
 
 ## Report Back
@@ -158,13 +140,11 @@ End with a short, structured report the orchestrator can act on — the only cha
 [`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back**.
 
 - **one line per priority the module's refactoring conventions state, in their order, each answered**: what you
-  looked for, and what you found or why nothing qualified. A priority you never reached is reported as such. An
-  unanswered priority and one that found nothing read identically otherwise, which is how a diff carrying a
-  duplicated policy in two classes and a mapper on the wrong type passed two of these passes;
+  looked for, and what you found or why nothing qualified. A priority you never reached is reported as such,
+  never left out;
 - refactorings applied, grouped by checklist category, with the files touched (including new files created and
   any conventions-designated shared helpers extended);
-- confirmation the architecture-enforcement test is green — the full suite is the caller's run, not a claim of
-  yours;
+- confirmation the architecture-enforcement test is green; make no claim about the full suite;
 - refactorings considered and skipped (marginal benefit, blocked by a test, or out of diff scope) — one line each;
 - opportunities outside the diff scope (pre-existing duplication this diff now mirrors) for the user to pick up
   separately;
@@ -172,5 +152,5 @@ End with a short, structured report the orchestrator can act on — the only cha
 - anything worth doing that the brief forbids — the shape you would have applied, and what it would contradict;
 - any blocker-level findings (a suspected bug the tests missed, an over-specified test blocking cleanup) — stated
   precisely enough for the caller to record them wherever it keeps what is open, and each one either carrying the
-  failing case that demonstrates it or stated as a hypothesis; nothing is filed as work from one
+  failing case that demonstrates it or stated as a hypothesis
   ([`templates/findings.md`](../templates/findings.md), **Measured, Not Noticed**).

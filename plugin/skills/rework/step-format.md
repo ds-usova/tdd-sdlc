@@ -71,8 +71,7 @@ A step given up on keeps its row and its open box, with `abandoned — <why>` at
 | `disables:`   | `stabilize`     | each test it turns off, and the step that clears it                           |
 | `docs:`       | any             | the pages this step invalidates — none on most `inline` and `tests` steps     |
 
-**A step whose claim is a number carries `measures:`.** Narrowing what a test boots is the case: every scenario
-still runs and the suite is green whether it happened or not.
+**A step whose claim is a number carries `measures:`.** Narrowing what a test boots is the case.
 
 **`files:` and `test-files:` are the boundary**, plus whatever a mutation temporarily breaks and restores.
 Anything outside is another step's. One path per bullet; the label line stays empty.
@@ -83,8 +82,8 @@ whose existing tests already reach the moved body writes `cover: none`.
 **`survives:` names behaviour, never a method.** "A proposal is accepted" survives being moved into a different
 class under a different name; `whenAccepted_thenRecorded` does not.
 
-**A scenario keeps what it was proven against.** Swapping the real thing for a mock changes what the test
-proves, so it is asked under **Open Questions**. An answered `yes` is written into the line as
+**A scenario keeps what it was proven against.** Swapping the real thing for a mock is asked under
+**Open Questions**. An answered `yes` is written into the line as
 `<before> -> <after>`, with an `RL` entry in the log's Run Log recording the change, and the step is then held to
 what the line now says.
 
@@ -93,7 +92,7 @@ what the line now says.
 and `validate` does not resolve what it cannot see. A bare ID always means this file, and `validate` refuses one
 no step here defines. Given the rework's directory rather than one file, `validate` checks every file in it.
 
-**`frozen:` is a claim about the moment its step ran**, so a later step may restructure the same class.
+**`frozen:` is a claim about the moment its step ran.** A later step may restructure the same class.
 
 **A step carries `docs:` where its change is visible outside the code** — a port, a contract, a stored shape, a
 configuration knob, an operation, or a conventions page whose rule the step invalidates.

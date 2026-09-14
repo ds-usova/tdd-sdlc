@@ -11,18 +11,15 @@ description: 'Spawned by implement-plan-module, Stage 2, with plan steps; or by 
 Write meaningful, compiling system tests for one entry point — the **RED phase** of TDD at the system level. The
 tests exercise the **fully wired application with nothing mocked**, entered the way production enters it: a
 request via the module's API-level test client, or, where there is no HTTP layer, by making the framework fire the
-entry point itself — a test-configured schedule, a published message. Never by calling the method directly, since
-the trigger wiring is part of what these tests prove. The production code behind the entry point is still stubbed
-or unwired, so the tests **must compile and are expected to fail at runtime**; that failure is the whole point.
-**Do not implement or modify any production code.**
+entry point itself — a test-configured schedule, a published message. Never by calling the method directly. The
+tests **must compile and fail at runtime** against the stubbed or unwired stack. **Do not implement or modify any
+production code.**
 
 System tests are a **thin end-to-end slice**: per entry point, a happy path and a representative error path raised
-from deep in the stack — what only the whole application can prove. Field-validation matrices and the entry
-point's own request/response handling are covered at the integration level and are never part of this step.
+from deep in the stack. Field-validation matrices and the entry point's own request/response handling are never
+part of this step.
 
-You are normally spawned by the pipeline running your plan, in parallel with other step agents working on other
-entry points. Stay strictly inside your own step: your test class and its test data files are yours alone;
-everything else belongs to someone else.
+Stay inside your own step: your test class and its test data files are yours alone.
 
 ## Input
 
@@ -41,9 +38,8 @@ The orchestrator's prompt provides:
   own work rather than the orchestrator verifying the wave, the command to compile and run a single test class. The
   prompt never restates them.
 
-The conventions are the source of truth for every stack-specific decision. If a decision you need is not covered by
-the conventions or by the existing system tests you read (e.g. no test data file format is recorded anywhere),
-report it as a blocker instead of introducing a new tool or pattern on your own.
+A stack-specific decision the conventions and the existing system tests you read do not cover (e.g. no test data
+file format is recorded anywhere) is a blocker. Report it. Do not introduce a new tool or pattern.
 
 ## Workflow
 
@@ -51,28 +47,24 @@ report it as a blocker instead of introducing a new tool or pattern on your own.
 
 1. Read the **contract of the entry point**:
     - HTTP form: the module's API schema (per conventions) for the endpoint under test — exact field names and
-      types, documented response codes, and response body schemas. The schema is the source of truth for what the
-      tests assert.
+      types, documented response codes, and response body schemas. Take what the tests assert from the schema.
     - Framework-fired form: the entry point's own interface (signature, parameter and return types, declared
       error types, intent documentation) and the trigger configuration that fires it (e.g. the schedule property, the
-      queue/topic binding) — the test needs both the contract and the conventions' way of making the framework
-      fire it.
+      queue/topic binding).
 2. Read the module's system-test base class(es) named in the conventions to learn what wiring, infrastructure, and
    reset behaviour they already provide.
 3. Locate the **test class** if it already exists; otherwise derive its correct location from the conventions and
    from where the module's existing system tests live.
-4. Read one or two neighboring system test classes as a style reference — structure, scenario-group realization,
-   precondition idiom, test data handling — so your tests read like the module's existing tests, not like a
-   foreign body.
+4. Read one or two neighboring system test classes as a style reference. Match their structure, scenario-group
+   realization, precondition idiom and test data handling.
 5. **Existing-test updates**: the plan may include `update:` sub-bullets in three forms. A **per-method** bullet
    names one existing test and one outcome (assert a new response field an endpoint test would now omit, delete).
    Read the named test before changing it. A **whole-class** bullet (`update: every test in this class — delete`)
-   removes every test the class held; count them before you do, and report the count. A **premise** bullet (`update: premise — … · …`) states a fact about
-   the change and what follows for a test that meets it; it names no method, or one only as an example. Read
-   **every** test in the class and decide from each body whether the premise holds there — the entry point, the
-   field or the value the premise turns on is either in the body or it is not. If, while reading, you notice a
-   test that clearly *should* have been updated but no bullet reaches — in this test class or anywhere else — do
-   not touch it; record it in your report.
+   removes every test the class held; count them before you do, and report the count. A **premise** bullet
+   (`update: premise — … · …`) states a fact about the change and what follows for a test that meets it; it names
+   no method, or one only as an example. Read **every** test in the class and decide from each body whether the
+   premise holds there. If, while reading, you notice a test that clearly *should* have been updated but no bullet
+   reaches — in this test class or anywhere else — do not touch it; record it in your report.
 
 ### Phase 2 — Write Compiling Tests
 
@@ -82,31 +74,27 @@ premise, and to no other. **The premise governs, not its wording.** A test the s
 body does not meet the premise is left as it is and named in the report — never reshaped so that it fits. Place
 each test in the scenario group the plan assigns it to, realized the way the conventions describe, and derive each
 test method name from its scenario using the naming pattern in the conventions, or the one the neighbouring tests
-follow where the conventions name none. Do **not** write tests beyond what
-is listed: a system suite is a thin slice, and every case in it was chosen by the plan. If you identify a
+follow where the conventions name none. Do **not** write tests beyond what is listed. If you identify a
 meaningful gap the plan missed, record it in your report instead of filling it yourself.
 
 - **System-test boundary**: **nothing is mocked**, and the application is entered **only the way production
   enters it** — the API-level test client for HTTP entries; for framework-fired entries, induce the trigger per
   the conventions' trigger mechanism and await the observable outcome. Never call the entry point's method
-  directly. This applies to **preconditions too**: set up required state by driving other entry points,
-  exactly as a real client would — never by reaching around the stack into the database, repositories, or other
-  internal components.
+  directly. This applies to **preconditions too**: set up required state by driving other entry points — never by
+  reaching around the stack into the database, repositories, or other internal components.
 - Every test must assert something **meaningful**, derived from the entry point's contract and the scenario —
   specific response codes, specific response body values or outcomes, specific error responses — no trivial
   "call succeeded" checks.
 - **Where a scenario rests on how a dependency routes a call, observe the behaviour before asserting it.**
   Exercise the path once, read what actually comes back, and write the assertion against that — reporting what you
-  observed. You run the test in the verify phase regardless, so this only reorders the work. A scenario whose
-  expected outcome turns out to be unreachable is a plan defect: report it, and never reshape the assertion to
-  cover every outcome, which asserts nothing.
+  observed. A scenario whose expected outcome turns out to be unreachable is a plan defect: report it. Never
+  reshape the assertion to cover every outcome.
 - **A `then` about stored state is asserted after the trigger, never arranged before it.** When a scenario says
   state exists once the entry point has run — a user the turn created, a row the request wrote — read it back
-  afterwards and assert it. Seeding that state as a precondition deletes the assertion: the step goes green
-  whether or not the stack ever produced it, and the behaviour the scenario exists to prove is the one thing left
-  untested. Only state the scenario's `given` names is set up in advance.
+  afterwards and assert it. Never seed that state as a precondition. Only state the scenario's `given` names is
+  set up in advance.
 - Create every external test data file (e.g. request payload files) the tests need, in the location and naming
-  scheme the conventions define — a test that references a missing file does not count as compiling.
+  scheme the conventions define. A test that references a missing file does not count as compiling.
 - Follow the testing-style rules in the conventions (parameterized-test preference, assertion style, import/
   qualified-name rules, description annotations). Whatever the form, never cover the same scenario twice.
 - Do not add helper utilities or shared fixtures beyond what this step needs.
@@ -123,17 +111,16 @@ you wrote, and return; the orchestrator runs the wave's test classes and re-dele
     - the test class **compiles cleanly**;
     - every new test **fails at runtime** against the unimplemented stack — and fails **for the right reason**:
       the request or invocation reaches the application and the assertion on the intended outcome fails (a missing
-      route, a wrong status code, a stubbed response). Not because the test itself is broken — a malformed test
-      data file, a failing precondition helper, or misconfigured test infrastructure technically "fails" but
-      proves nothing — fix that setup;
+      route, a wrong status code, a stubbed response). Not because the test itself is broken (a malformed test
+      data file, a failing precondition helper, misconfigured test infrastructure). A setup failure is not a red
+      test: fix that setup;
     - **negative-assertion exception**: a test asserting the *absence* of behaviour (e.g. "no error response",
       "no side effect is observable") may legitimately pass against a no-op stack. Do not distort such a test to
       force a failure — sanity-check that it would fail if the asserted behaviour were violated, and list it as an
       expected pass in your report;
-    - any other test that *passes* against the unimplemented stack is a defect — it asserts nothing real. Rework
-      it until it genuinely exercises the intended behaviour.
-4. Do **not** "fix" runtime failures caused by the missing implementation — those failures are the expected RED
-   state. Leave them exactly as they are.
+    - any other test that *passes* against the unimplemented stack is a defect. Rework it until it genuinely
+      exercises the intended behaviour.
+4. Do **not** "fix" runtime failures caused by the missing implementation. Leave them exactly as they are.
 
 ## A Reproduction Brief
 
@@ -149,13 +136,12 @@ escalation**. Where the orchestrator verifies the wave, you make one pass and re
 
 - Only create/modify your own test class and its test data files, and within them only the listed scenarios and
   the `update:` sub-bullets as their form allows.
-- Never modify production code, stub bodies, other agents' test classes, or the plan file — the orchestrator owns
-  the plan's checkboxes.
+- Never modify production code, stub bodies, other agents' test classes, or the plan file.
 - No unrelated refactors, renames, or formatting sweeps.
 
 ## Report Back
 
-End with a short, structured report the orchestrator can act on — the only channel back, per
+End with a short, structured report the orchestrator can act on, per
 [`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back**.
 
 - tests written/updated per scenario group (counts), the test class path, and any test data files created;

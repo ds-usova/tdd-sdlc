@@ -22,8 +22,8 @@ it.
 
 Every step writes its files and stops — `spec.md` with `design.md` and `design-log.md`, `plan.md` with
 `plan-log.md`, `rework.md` with `rework-log.md`, `upgrade.md` with `upgrade-log.md`; `fix-bug` writes `bug.md`,
-then `fix.md`, each with its log. The next step reads the file, not the conversation — it may run in the same session or
-a fresh one, and must work the same either way. An answer given in chat is written into the file before it
+then `fix.md`, each with its log. The next step reads the file, not the conversation. It may run in the same session
+or a fresh one, and must work the same either way. An answer given in chat is written into the file before it
 counts.
 
 That is also how each file is judged. A design a cold session cannot plan from was underspecified; a plan a cold
@@ -78,6 +78,11 @@ Every id is two capital letters and at least two digits, one prefix per kind, no
 files, so `DN03` can be cited from anywhere without saying which file it lives in. Numbers are assigned once and
 never reused; a withdrawn entry keeps its number.
 
+An id never appears in a commit message, a test name, a class, a file or a comment. Those outlive the task
+directory, which moves to `docs/implemented/` when the work lands, so the id would stop resolving exactly when a
+reader met it. The one exception is a disabled test's reason: it names the step that owes the rework, and it
+clears itself when that step lands.
+
 | Prefix                          | Names                                        | Lives in                  | Scope       |
 |---------------------------------|----------------------------------------------|---------------------------|-------------|
 | `RQ` `AC` `DN`                  | requirement, acceptance scenario, decision   | `spec.md`                 | the task    |
@@ -95,6 +100,44 @@ never reused; a withdrawn entry keeps its number.
 The commit-message hook refuses exactly this list, and nothing shaped like it occurs in ordinary prose. The
 format number every file carries, and what changed between formats, is
 [`scripts/README.md`](../plugin/scripts/README.md), **Formats**.
+
+## Rules that look stricter than they need to be
+
+Each of these is stated as a bare rule in a skill, an agent or a template. This is why.
+
+- **The author never reviews its own file.** The grill and the plan review run in spawned agents, never in
+  the session that wrote the design or the plan, and the planner never regrades a `Resolution:` the reviewer
+  assigned. The writing session holds the reasoning that produced the file; the reviewer must judge the file as
+  written. A planner grading the review of its own plan reclassifies real objections into things it can quietly
+  apply.
+- **System green steps run one agent at a time.** A system step's write scope is the whole production stack,
+  and two entry points routinely share a usecase or an outbound adapter. One class, one agent only protects a
+  step whose write scope is one class.
+- **A wave is spawned in the background and collected with `TaskOutput`, never as one blocking `Agent` call
+  per bundle.** Several blocking calls in one message run concurrently in principle, but nothing forces them
+  into one message. A wave issued that way once ran four bundles serially.
+- **The stub marker is one fixed string, and a stub's intent comment names the work, never the step id.**
+  `plan.sh stubs`, `plan.sh tick` and the archive hook find unimplemented stubs by grepping for the marker. A
+  marker that survives every green step is a method nobody implemented, and the suite cannot see it because
+  nothing calls a method no scenario covered. Nothing finds its work by grepping for a step id, and a module
+  whose conventions ban citing a plan step in a comment fails the build on one.
+- **A refused or absent script never stops a run.** A refusal is the operator's choice, and not running a
+  plugin's scripts on one's own machine is legitimate. The scripts add a mechanical, never-skipped check over
+  what reading the file gives; without them the run loses guardrails and nothing else. So the skill says so
+  once, continues by hand, and never re-runs a declined call.
+- **A `hypothesis:` is promoted only at task level, and coverage is measured only there.** A class-wide check
+  over a tree still being written answers nothing. The task level, after every step exists, is the first point
+  where either figure means anything.
+- **A pipeline never archives, and readiness is checked only above it.** Another pipeline may still be writing
+  to the task directory. The readiness gate promises that an unready plan changes no file, and a pipeline cannot
+  keep that promise once a sibling is already writing.
+- **A green step never edits the reproduction test.** A fix proven by a test the same step edited is proven by
+  nothing. If the test needs changing, the reproduction, and the diagnosis resting on it, was wrong.
+- **The refactor agent reports a suspected bug only with a constructed failing case, and answers every
+  refactoring priority in order, including the ones it did not reach.** Both are history. A confident overflow
+  finding on an algorithm with exactly the right headroom took an induction proof and a dedicated agent to put
+  down. An unanswered priority and one that found nothing read identically, which is how a diff with one policy
+  duplicated in two classes passed two refactor passes.
 
 ## The invariants
 

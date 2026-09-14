@@ -4,9 +4,8 @@ Which items the group holds and in what order. Written by [`plan-task`](../skill
 [`review-plan`](../agents/review-plan.md) and by whoever applies the group.
 
 How each item is *carried out* — the stub's intent comment, the `TODO` on a changed signature, what a comment may
-never name, how a broken test is disabled — is [`stabilizing.md`](stabilizing.md), the one statement of it for
-every workflow that stabilizes. An item here says *what* is created or changed; that file says *how*. The worked
-stub shape is in [`example-plan.md`](example-plan.md).
+never name, how a broken test is disabled — is [`stabilizing.md`](stabilizing.md). An item here says *what* is
+created or changed; that file says *how*. The worked stub shape is in [`example-plan.md`](example-plan.md).
 
 Sections appear in this order; use only the ones the task needs.
 
@@ -19,9 +18,8 @@ group when contract changes are involved.
 
 Migrations and schema changes, in the module's migration format (see conventions file).
 
-Contract artifacts — the API schema and migrations — are created entirely in these two sections. A red-phase test
-must fail on an assertion, never on a missing table or schema constraint, and TDD step agents never create or edit
-a contract artifact. A gap found later is a blocker back to the plan.
+Contract artifacts — the API schema and migrations — are created entirely in these two sections. TDD step agents
+never create or edit a contract artifact. A gap found later is a blocker back to the plan.
 
 ## Interface-First / Build Stabilization
 
@@ -43,14 +41,13 @@ not headings — in this order. Omit a sub-group entirely rather than leaving it
 
 - add or update any configuration this task's design requires — an outbound client's address, a schedule
   expression, a pool setting, a new environment variable and its default. Configuration belongs here, never inside
-  a step agent's scope: a red-phase test fails on an assertion, never on a missing property.
+  a step agent's scope.
 
 **Shared Test Infrastructure**
 
 - add or extend any test fixture, builder or base-class capability more than one upcoming Red Phase step will
   need. Every red-phase step agent is scoped to add no shared fixture beyond what its own step needs, so shared
-  test infrastructure has exactly one owner and gets written once. Listing it here is what stops two parallel
-  steps duplicating it or blocking on each other.
+  test infrastructure is listed here, once.
 
 ## Closing item
 

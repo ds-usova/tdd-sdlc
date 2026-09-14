@@ -100,9 +100,8 @@ documentation site. What each says binds the step:
 | several, through one version catalog | one more: `shared/steps.md`, holding the catalog's bumps, applied before any module's file |
 
 **Every steps file gets a log beside it**, `upgrade-log.md` or `steps-log.md`, written here as its title and an
-empty `## Attempts` — `## Run Log` is created at the first entry, never empty; it is where the run records what
-happened, and the steps file is never written past ticks, `abandoned — <why>`, `**Closed:**`, the survey's
-`Status` and `## Open Questions` once approved.
+empty `## Attempts` — `## Run Log` is created at the first entry, never empty. The steps file is never written
+past ticks, `abandoned — <why>`, `**Closed:**`, the survey's `Status` and `## Open Questions` once approved.
 
 **Each steps file and its log are owned by exactly one agent.** `upgrade.md` is what a fresh session resumes
 from. What each file holds is [`the-files.md`](the-files.md). `upgrade.sh` (`scripts/upgrade/` under the
@@ -148,9 +147,8 @@ answer written in Phase 2.
 
 **A step reaches an agent as `upgrade.sh show <ID> --file <steps>`**, never as a prompt retelling it.
 
-**A migration that cannot be finished is kept back, not forced.** A guide can ask for a class that carries a
-bug of its own, a setting the module's framework does not yet honour, an API the module's other dependencies
-still bind. After three failed attempts on one change the agent returns, and the change is escalated once
+**A migration that cannot be finished is kept back, not forced.** After three failed attempts on one change the
+agent returns, and the change is escalated once
 ([`templates/sub-agents.md`](../../templates/sub-agents.md), **Budget and escalation**). Where the escalated
 agent fails too, it stops on it: the version stays at the target
 where the module compiles and is green on the old API — the guide's change written into the log's `## Run Log`
@@ -172,7 +170,7 @@ starts at its first unticked step.
 - A test is never deleted or weakened to make a step green. A test that asserts a behaviour the new version
   changed is reported and the step goes back to the user; whether the assertion or the version moves is theirs.
 - Behaviour is never changed under cover of a `migrate` step. What the guide names is the boundary.
-- A dependency is never added, removed or replaced with another. That is a design decision.
+- A dependency is never added, removed or replaced with another.
 - Nothing outside the steps is improved because it was nearby.
 - A change that could not be applied is never dropped in silence.
 
@@ -184,8 +182,7 @@ starts at its first unticked step.
    step's `files:`. A version moved under no step is a defect whatever the suite says.
 3. **Re-run the survey** with the same tools as Phase 1. Every row selected in Phase 2 now reads `done`,
    `kept back` or `blocked`, read off the ticks, the `abandoned` headers and the logs' `kept back` entries; the
-   vulnerability list is empty of what the steps claimed to fix. Write the result into `## Survey` — the one
-   outcome written back into `upgrade.md` rather than the log, because the survey is what a reader opens.
+   vulnerability list is empty of what the steps claimed to fix. Write the result into `## Survey`.
 4. **Whatever the modules' build conventions require of a finished change** — a coverage guardrail, a formatting
    gate. A guardrail that fails blocks the archive.
 5. **Run every performance test the user's `- A:` named**, the way the testing conventions say, and keep each

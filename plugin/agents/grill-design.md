@@ -27,14 +27,13 @@ Then read, in this order:
   adapters, its migration, its exception types.
 - `docs/adr/` — a decision already recorded there is an answer, not a question.
 
-The interrogation below is only as good as this reading. A finding raised against code that already handles the
-case is worse than no finding: it costs the user a round trip to say "we already do that".
+Never raise a finding against code that already handles the case.
 
 ## 2. The Interrogation
 
-Work through every concern. Each one gets a verdict and a why, whether or not it produced a finding — a concern
-that came out clear is still reported, with the reason it is clear. Inventing a *finding* to fill a row is the
-failure mode; an honest "nothing to recover — one write, one store" is the row.
+Work through every concern. Each one gets a verdict and a why, whether or not it produced a finding. A concern
+that came out clear is still reported, with the reason it is clear. Never invent a *finding* to fill a row;
+"nothing to recover — one write, one store" is a valid row.
 
 | Concern                 | What to ask                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 |-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -52,39 +51,34 @@ failure mode; an honest "nothing to recover — one write, one store" is the row
 | **Stack-neutral**       | Could a team on another stack implement **Proposed Solution** without asking? SQL, columns, paths, wire fields, status codes and invariants pass. A framework class, a library call, a component, a hook, a style token, a method or a source file fails — list every offending token. **Context** is exempt; it is the reading list.                                                                                                                                                                                       |
 
 **One more pass, over what is already written.** Every branch the flow diagram draws has an acceptance scenario,
-and every scenario has a branch. A branch with no scenario is behaviour nobody agreed to; a scenario with no
-branch is a flow the diagram is missing. Both are findings, and both are usually cheaper than a new decision.
+and every scenario has a branch. A branch with no scenario is a finding; so is a scenario with no branch.
 Every **Requirements** line is proved by a scenario whose `Then:` actually checks it — a `Proves:` that names an
 `RQ` the scenario does not exercise is a finding.
 
 **And over the diagram's shape.** A flow diagram whose branches are a chain of mutually exclusive conditions, each
 ending in one action and an exit, or whose branching nests deeper than two levels, is a table of condition and
-result rather than a picture — the repository's diagram conventions already say so, and a design that draws one
-anyway has spent a screen on what five rows say. Report it as "this is a table", naming the branches that are
-one-guard-one-write, and the one branch, if any, whose shape — a loop, arms that rejoin, an order dependency —
-carries meaning and stays drawn.
+result rather than a picture. Report it as "this is a table", naming the branches that are one-guard-one-write,
+and the one branch, if any, whose shape — a loop, arms that rejoin, an order dependency — carries meaning and
+stays drawn.
 
 ## 3. Answer It Yourself First
 
 For every question the interrogation raises, attempt the answer against the repository before writing it down as a
-question. The sibling service's code, the module conventions, an existing ADR, the schema, an existing migration —
-these settle most of the list, and settling one is this skill's most valuable output.
+question: the sibling service's code, the module conventions, an existing ADR, the schema, an existing migration.
 
 Classify what remains by a single test:
 
 - **`assumed`** — the repository determines the answer. Write it, and cite the file, class, or ADR that determines
   it. One correct outcome, no taste involved.
 - **`deferred`** — the concern is real but outside what this change does. Write what happens instead and what would
-  bring it back into scope. Use this rather than dropping the question: a concern deleted is a concern nobody knows
-  was considered.
+  bring it back into scope. Never drop the question instead.
 - **`must-decide`** — a product, operational, or business rule that exists nowhere in the repository. Write what the
   repository does not say, not a menu of options.
 
 **Escalate to `must-decide` regardless of that test** when the answer would change a contract artifact — an API
-schema, a proto file, a migration — or would contradict an entry already marked `decided`. Those reshape the design
-rather than sharpen it, and reshaping is the user's call.
+schema, a proto file, a migration — or would contradict an entry already marked `decided`.
 
-Never mark an entry `decided`. That basis records the user's own choice and is written only when the user makes it.
+Never mark an entry `decided`. That basis records the user's own choice.
 
 **The basis decides where the finding lands.** An `assumed` or `deferred` finding becomes a **Findings** row in the
 design log — question, answer, evidence, one clause each. A `must-decide` becomes a numbered entry under the
@@ -92,8 +86,7 @@ spec's **Decisions**. So an answer that will not compress to a row is a sign the
 
 ## 4. Report Back
 
-This agent writes nothing. It has no file-writing tools, and the design and its log are edited only by the session
-that spawned it. Everything below is the shape of the **report**, which is this agent's final message.
+This agent writes nothing. Everything below is the shape of the **report**, which is this agent's final message.
 
 **First, the concerns.** One line per concern from §2, in that order, every one of them:
 
@@ -118,9 +111,8 @@ belong to the files, and the session that owns them assigns them.
    Already in the design: no.
 ```
 
-`Already in the design:` is what keeps the design file from saying the same thing twice. Answer it for every
-finding: name the section and the line that already covers it, or say no. The session decides what to do with
-that, and it can only decide well if the question was asked.
+Answer `Already in the design:` for every finding: name the section and the line that already covers it, or say
+no.
 
 State a finding once. A second finding that turns on the same fact says so and does not restate it.
 
@@ -137,5 +129,4 @@ differences:
   **Findings** to tell which questions were asked. An entry already marked `decided` stands as decided, and so
   does a row whose evidence still holds; do not re-open either because another answer looks better.
 - Report every concern again — a verdict may have changed — and raise only the findings that are new. If none
-  is, say `No new findings` under the concerns; a grill that reports nothing is otherwise indistinguishable from
-  one that never ran.
+  is, say `No new findings` under the concerns.

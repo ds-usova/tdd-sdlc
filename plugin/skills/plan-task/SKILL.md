@@ -33,9 +33,8 @@ the **Acceptance Scenarios** a person signed off, and the **Decisions** the user
 plan. The design is stack-neutral by rule; the class, the library and the file that hold each fact are this plan's
 to name.
 
-The `design-log.md` beside them is the record behind the two, not a third input. Open it only to chase a
-reference: a `DF<nn>` the spec or design cites, or the file a claim rests on when the step needs to mirror it.
-Everything binding is already in the spec and the design.
+The `design-log.md` beside them is not a third input. Open it only to chase a reference: a `DF<nn>` the spec
+or design cites, or the file a claim rests on when the step needs to mirror it.
 
 Cite a decision or a finding by its clause, never by its number alone — "DN02, a choice is never cleared", not "DN02".
 
@@ -45,9 +44,9 @@ Cite a decision or a finding by its clause, never by its number alone — "DN02,
   inline. Point the user at `design-task`.
 - **`design.sh settled` exits non-zero** — stop and repeat what it printed. Those entries decide what the
   steps are.
-- **`design.sh approved` exits non-zero** — the user starting this skill on the spec is the approval. Run `design.sh approve "<who>" <task>` with `<who>` the
-  output of `git config user.name`, or `the user` where that is empty. Then `approved` again, and go on. Say in
-  step 7 that the spec was marked approved.
+- **`design.sh approved` exits non-zero** — run `design.sh approve "<who>" <task>` with `<who>` the output of
+  `git config user.name`, or `the user` where that is empty. Then `approved` again, and go on. Say in step 7
+  that the spec was marked approved.
   The script ships with the `design-task` skill at `scripts/design/design.sh` — under `${CLAUDE_PLUGIN_ROOT}` when
   installed as a plugin, under `.claude/` in a plain checkout. Refused or absent is not non-zero: tell the user
   once as [`scripts/README.md`](../../scripts/README.md) says, then read the spec's `Basis:` lines yourself.
@@ -80,25 +79,22 @@ the spec with `Basis: must-decide` and ask the user in step 7. Once the answer i
 | `plan.md`     | the components, the step map, the open questions — everything that binds | every step agent, `plan.sh next`/`show`   |
 | `plan-log.md` | **Review Findings** and the **Run Log** — what was raised, what happened | the readiness gate, a re-review, a reader |
 
-The plan is what a step agent is handed and what `plan.sh` schedules from; nothing in it is history. The log is
-the record — a finding stays there after its fix is in the plan, and a blocker stays there after the run settled
-it. Create both when the plan is written: the log opens with a `## Review Findings` heading and nothing under it
-until step 5 fills it. `plan.sh validate` refuses a plan with no log beside it, a finding in the plan, or a
-blockers section in the plan.
+Nothing in the plan is history. A finding stays in the log after its fix is in the plan. A blocker stays there
+after the run settled it. Create both when the plan is written: the log opens with a `## Review Findings`
+heading and nothing under it until step 5 fills it. `plan.sh validate` refuses a plan with no log beside it, a
+finding in the plan, or a blockers section in the plan.
 
-**The design is never split; the plans always are.** A plan's unit is what gets implemented and verified — one
-module, one toolchain, one set of conventions. Each plan is implemented on its own, with its own verification
-between waves.
+**The design is never split; the plans always are.** One module, one toolchain, one set of conventions per plan.
 
 **A plan is self-contained.** Its own step IDs, its own dependency graph, its own Open Questions, its own log. IDs
-restart in each file, so the same ID can exist in two plans and means nothing without its path.
+restart in each file.
 
 **Affected Modules** in the header names the one module that plan implements.
 
 ### The Shared Plan
 
 Everything that crosses between modules goes in `shared/plan.md`, and nothing crosses any other way. It is
-implemented first, alone, before any module plan starts, so a module plan never waits on another and never names
+implemented first, alone, before any module plan starts. A module plan never waits on another and never names
 one.
 
 **What belongs in it**, in three layers:
@@ -107,8 +103,7 @@ one.
    generates sources from it or merely validates against it.
 2. **Each consuming module's wiring to it** — the generator invocation, the build hookup, the script that produces
    the generated sources.
-3. **Every call site the change to it breaks.** Those call sites are stabilized here, because no module plan can
-   compile until they are.
+3. **Every call site the change to it breaks.** Those call sites are stabilized here.
 
 **The artifact is shared; the behaviour it describes is not.** A schema both modules generate from goes here. The
 endpoint that schema declares does not — the module serving it implements it in its own plan, and the consumer
@@ -138,7 +133,7 @@ The plan is finished when **every module in that list** compiles, passes its arc
 green pre-existing suite. The list is where those commands come from, one set per module's build conventions.
 
 **It has a Stabilization group and no other.** Every item ID is an `ST`. It reads the repository-tier conventions
-plus each listed module's build section, and needs no layer or test mapping — it runs no test phase.
+plus each listed module's build section. It needs no layer or test mapping.
 
 **Write it only when the design names a shared artifact.** No file means nothing crosses.
 
@@ -174,12 +169,11 @@ findings (step 6), the hand-over (step 7). Before handing over, append one `RL` 
 ## 3. Read Module Conventions
 
 After determining the **Affected Modules**, read `<module>/docs/conventions.md` for **every** affected module before
-generating the plan's layer sections. Also read the repo-root `docs/conventions.md` if it exists — it holds
-conventions shared by all modules, and a module's own file overrides and extends it.
+generating the plan's layer sections. Also read the repo-root `docs/conventions.md` if it exists. A module's own
+file overrides and extends it.
 
-The conventions file tells the skill the module's tech stack and test tooling, how it organizes code, its dependency
-rule if it has one, its naming conventions, its file locations, and — the one this skill cannot proceed without —
-**which of its parts fall into which test type**.
+Read from the conventions: the module's tech stack and test tooling, how it organizes code, its dependency rule if
+it has one, its naming conventions, its file locations, and **which of its parts fall into which test type**.
 
 **A module whose conventions carry no test-type mapping cannot be planned.** Say so and ask for it, rather than
 reading a test type off a package name.
@@ -219,16 +213,14 @@ Three lines at the very top of the plan, immediately after the title:
 
 Never omit it. The design's own **Affected Modules** is the list of all of them.
 
-**No plan declares an order.** `shared/plan.md` finishes before any module plan starts, and nothing else crosses. So
-no plan has anything to wait for, and none says it does.
+**No plan declares an order.** `shared/plan.md` finishes before any module plan starts, and nothing else crosses.
 
-`after:` is for steps inside one file. It never names a step in another plan — `plan.sh validate` fails on an ID it
+`after:` is for steps inside one file. It never names a step in another plan; `plan.sh validate` fails on an ID it
 cannot find. The one place a plan mentions another is a disabled test's reason, which points at the step that will
-rework it. That is a note for a reader, not a dependency.
+rework it.
 
 **Design** links the design this plan translates; the spec sits beside it. The objective, the behaviour, the
-schema and the flow live there and are **not** repeated here. What lives here is the structure that behaviour gets
-built in.
+schema and the flow live there and are **not** repeated here.
 
 The link is relative and survives archiving: `design.md` from a single-module plan, `../design.md` from a per-module
 or shared one.
@@ -249,8 +241,7 @@ stdlib, fall back to
   no layers, group by whatever the module really organizes code by, and say in a line beneath the diagram what the
   grouping is.
 - **Draw the dependency between each pair**, pointing the way the dependency really runs. An arrow the conventions'
-  dependency rule forbids is a violation, and this is where it costs a line instead of a rewrite. Where they state
-  no such rule, the arrows are still drawn.
+  dependency rule forbids is a violation. Where they state no such rule, the arrows are still drawn.
 - **One diagram per subject, not one per change.** A change touching widgets and their parents draws one each.
   Where no arrow crosses between two groups of boxes, they were never one diagram.
 - **Keep it small.** An untouched class is drawn only where an arrow needs it. A class belonging to no subject — a
@@ -259,12 +250,11 @@ stdlib, fall back to
 The wiring is drawn, never written. Which class calls, implements, or wraps which never appears as a sentence or a
 table row. Beneath the diagram, a table carries only what a box cannot and the design does not: a port
 signature, an invariant a class enforces, an exception-to-status mapping. A record's fields are the design's
-**what is stored, exposed and exchanged**, and a table repeating them per class is a second copy that drifts;
-name the record, and let the stub item say what it holds. A table of what is gone and what replaced it is the
-Stabilization items' content, not a summary of them.
+**what is stored, exposed and exchanged**; never repeat them per class. Name the record, and let the stub item
+say what it holds. A table of what is gone and what replaced it is the Stabilization items' content, not a
+summary of them.
 
-**This is the plan's own content, not a copy of anything.** The design named responsibilities; naming the classes
-that hold them is this section's work, and the step map below targets exactly the classes drawn here.
+**Naming the classes is this section's work.** The step map below targets exactly the classes drawn here.
 
 ### Step-by-Step Implementation Map (To-Do List)
 
@@ -291,11 +281,11 @@ Within each group, its sections appear as `#### <Section>` headings, in the fixe
 which spec scenario an existing test already holds, so a reader does not go looking for its step
 (`AC05 is held by the existing regression tests in SettingsPage.test.tsx`), or which measurable scenario the
 conventions leave unmeasured (`AC05 is a measurement; the conventions say performance is not measured`). A
-paragraph saying what a branch does, which case is folded into which, or why — is behaviour, and behaviour is
-the spec's and the design's. Where the design lacks it, it goes back there as a `DN` or a **Findings** row;
-where the design has it, the step's scenarios already carry it. An item says **what** is created or changed, in
-the terms the Components section names; the reasoning behind it is the design log's **Decision Bases**, cited
-by clause where a step needs it, never restated under the item.
+paragraph saying what a branch does, which case is folded into which, or why, is behaviour. Where the design
+lacks it, it goes back there as a `DN` or a **Findings** row. Where the design has it, the step's scenarios
+already carry it. An item says **what** is created or changed, in the terms the Components section names. The
+reasoning behind it is the design log's **Decision Bases**, cited by clause where a step needs it, never
+restated under the item.
 
 **Every checklist item carries an ID**, written immediately after the checkbox and separated from the rest by ` · `.
 The ID names the item everywhere else it comes up — `after:` dependencies, blocker records, sub-agent prompts, and
@@ -313,18 +303,14 @@ Numbering restarts at `01` per prefix and follows the order the items are listed
 renumbered once the plan is written — a dropped step leaves a gap.
 
 **An ID never leaves those places.** Not a commit message, not a test or display name, not a class, a file or a
-comment. Each of those outlives the plan directory, which moves into `docs/implemented/` the moment the work
-lands — so an ID written into one stops resolving exactly when a reader meets it. The same holds for a design's
-`DN`, `DF` and `AC` entries, an Open Question's `OQ`, and a findings file's `RX`. Say what the thing does instead. A
-`@Disabled` reason is the one exception, since it names the step that owes the rework and clears itself when that
-step lands.
+comment. The same holds for a design's `DN`, `DF` and `AC` entries, an Open Question's `OQ`, and a findings
+file's `RX`. Say what the thing does instead. A `@Disabled` reason is the one exception.
 
 **An `update:` bullet is written from the test's body, never from its name.** Open the method, read what it
-asserts, and say what changes about those assertions. `plan.sh validate` only checks that the method exists, so
-a bullet written off the name passes and reaches a step agent describing work nobody verified. Where the same
-change reaches many tests of one class, do not stretch one sentence over a list of names: write a **premise**
-bullet — the fact about the change and what follows for a test that meets it — and let the step agent decide
-test by test which bodies meet it. The forms are in `step-formats.md`'s **Existing-test updates rule**.
+asserts, and say what changes about those assertions. Where the same change reaches many tests of one class, do
+not stretch one sentence over a list of names: write a **premise** bullet — the fact about the change and what
+follows for a test that meets it — and let the step agent decide test by test which bodies meet it. The forms
+are in `step-formats.md`'s **Existing-test updates rule**.
 
 `plan.sh validate` checks the result: duplicate IDs, items with no ID, `after:` naming an ID nothing defines,
 dependency cycles, a `given:`/`when:`/`then:` or `threshold:` left as a placeholder, an `update:` bullet naming a
@@ -404,10 +390,9 @@ phase a step belongs to, and the scenario-authoring rules that bind them all, ar
 
 **Scope:** this section holds questions about *executing* the plan — a blocker foreseen in a step, a tool or
 credential that may be missing, an approval a conventions file requires. Questions about what the change should
-**do** belong in the spec's **Decisions** section and are settled before this plan exists; a design question
-appearing here means step 1's gate was skipped. What happens *while* the plan runs — a step blocked, a test that
-passed red for a reason, a boundary widened — is the log's **Run Log**, never this section: a question is
-something the run waits on, and a record is not.
+**do** belong in the spec's **Decisions** section and are settled before this plan exists. What happens *while*
+the plan runs — a step blocked, a test that passed red for a reason, a boundary widened — is the log's **Run
+Log**, never this section.
 
 Generate placeholders for the user's answers beneath each open question, nested under it, for example:
 
@@ -417,11 +402,10 @@ Generate placeholders for the user's answers beneath each open question, nested 
 - **OQ02:** [Next question]?
   - A:
 
-The answer is nested and a blank line separates the questions: flat bullets render as one undifferentiated list.
+The answer is nested and a blank line separates the questions.
 
-**Number every question** (`OQ01`, `OQ02`, …) so it can be referenced in conversation, in a commit, or from another
-document. Numbers are assigned once and never renumbered: a question that is answered or withdrawn keeps its number,
-and a new one takes the next unused value.
+**Number every question** (`OQ01`, `OQ02`, …). Numbers are assigned once and never renumbered: a question that is
+answered or withdrawn keeps its number, and a new one takes the next unused value.
 
 **An artifact the module's conventions put under the user's approval is asked here, never assumed.** Where a
 conventions file says a post-implementation artifact is written only with the user's consent, the plan asks for it
@@ -472,28 +456,23 @@ continuing past the highest existing number on a re-review.
 
 `Resolution:` is the reviewer's classification of **who** resolves the finding — `mechanical` when a written rule or
 the code already determines the fix, `decision` when it is a genuine choice. The reviewer assigns it; the
-orchestrator acts on it in step 6. It is deliberately not the planner's call: a planner grading the review of its
-own plan is how a real objection gets reclassified into something that can be quietly applied.
+orchestrator acts on it in step 6. It is never the planner's call.
 
 If the review has nothing to report, this section still contains a single "No issues found" statement (or
-equivalent) — its presence must be consistent across every log, clean or not.
+equivalent).
 
 ## 5. Invoke the Review Subagent
 
 Once every section in **4. Plan Structure** is written, spawn the **`review-plan` agent** against the just-created
-plan file, on the model the module conventions name for deciding work (reviewing a
-plan is exactly that); where they name none, the default model.
+plan file, on the model the module conventions name for deciding work; where they name none, the default model.
 
-Never review the plan in this context instead — the reviewer must verify the plan's claims against the repository
-unbiased by the reasoning that produced them, and this session holds that reasoning.
+Never review the plan in this context instead.
 
 **The reviewer writes nothing.** It reports, and this session writes its findings into the log's **Review
-Findings** section. Assign the `RF` numbers here, past the highest already in the section
-— this session is the only one that knows them all. Carry each finding's `Resolution:` across unchanged: regrading
-the reviewer's verdict is what step 6 forbids, and it is no more allowed while transcribing it.
+Findings** section. Assign the `RF` numbers here, past the highest already in the section. Carry each finding's
+`Resolution:` across unchanged.
 
-A finding the plan already answers is written down anyway, with that answer as its `Action:`. The record of it being
-raised is what stops the next review raising it again.
+A finding the plan already answers is written down anyway, with that answer as its `Action:`.
 
 Only then proceed to **6. Resolve the Mechanical Findings** below.
 
@@ -510,23 +489,18 @@ It still gets **attempted against the repository**: the sibling service's code, 
 ADR, the schema. Answer it when the evidence is there and write the evidence into `Action:`
 (`resolved — the sibling service's own `WidgetPort` imposes no `UPDATE` rule`). Leave `Action:` empty for the user only
 when the answer is a product, operational, or business rule that exists nowhere yet — and add a
-`- Missing: [what the repository does not say]` line beside it, nested under the finding like the rest, so the user
-answers a question rather than picking from a menu.
+`- Missing: [what the repository does not say]` line beside it, nested under the finding like the rest.
 
 **An `Action:` prescribing a mechanism this session did not exercise ends `— unverified`.** Reading that a thing
-exists is evidence that it exists, and nothing more; whether it behaves as the fix assumes is a separate claim, and
-the two reach a step agent in one voice unless the line separates them. The agent that consumes an `unverified`
-`Action:` tests it before building on it.
+exists does not verify how it behaves.
 
 How to apply them:
 
-- **Batch by affected step, not by finding.** Two findings often rewrite the same checklist item; applied one at a
-  time they produce an incoherent step. Group the findings by the item each one touches and rewrite that item once,
-  satisfying all of them together.
-- **Compress the finding as you apply it.** In the same edit, cut it to one sentence — keeping the `- **RF<nn>:**` /
-  `- Resolution:` / `- Action:` shape, so `plan.sh validate` and the readiness gate are unaffected. A `decision`
-  finding resolved against the repository keeps one clause of evidence in its `Action:`, not the trail: the
-  file it rests on, named, is the evidence; the reasoning that read it is not:
+- **Batch by affected step, not by finding.** Group the findings by the item each one touches and rewrite that
+  item once, satisfying all of them together.
+- **Compress the finding as you apply it.** In the same edit, cut it to one sentence, keeping the `- **RF<nn>:**` /
+  `- Resolution:` / `- Action:` shape. A `decision` finding resolved against the repository keeps one clause of
+  evidence in its `Action:`, the file it rests on, not the trail:
 
   ```
   - **RF01:** RU01's scenarios omitted the unknown `parentId` and the duplicate name under one parent.
@@ -535,33 +509,29 @@ How to apply them:
   ```
 
   Keep the ID and its number, one sentence of what was wrong, and the `Action:` line. Drop the reasoning, the
-  file-and-line citations, and the instruction of what to change — the plan now carries all three. A finding that
-  was **not** applied keeps its full text: an empty `Action:`, a `- Missing:` line, an `- Escalated:` line.
+  file-and-line citations, and the instruction of what to change. A finding that was **not** applied keeps its
+  full text: an empty `Action:`, a `- Missing:` line, an `- Escalated:` line.
 - **Stay inside the finding.** Apply what the finding says to change and nothing adjacent that looks improvable.
 - **Escalate rather than guess.** If a `mechanical` finding does not say clearly enough what to change, or applying
   it would cross one of the boundaries `review-plan` lists (adding or removing a checklist item, changing a step's
   target class, touching a contract artifact, contradicting an answered Open Question), do not apply it: leave
   `Action:` empty, add a line `- Escalated: [why]` beneath it, and let the user decide.
-- **Re-run `plan.sh validate`** afterwards. Rewriting steps in bulk is exactly when an ID or an `after:` reference
-  breaks.
+- **Re-run `plan.sh validate`** afterwards.
 
 ## 7. Review Only — Do NOT Implement
 
 - Present the generated plan file to the user.
 - **Say that the spec was marked approved**, where step 1 wrote the line.
-- **Report what step 6 applied** — the findings' IDs and a clause each, in one short list. An automatic edit the
-  user cannot see is an automatic edit the user cannot catch.
+- **Report what step 6 applied** — the findings' IDs and a clause each, in one short list.
 - **Ask what is still open, in one batch, via `AskUserQuestion`** — every unanswered Open Question, every `decision`
   finding, and anything escalated, each with the options that are actually defensible and a recommendation first. Do
   not print them and wait for the file to come back edited.
 - **Write each answer into the files verbatim**, as the `- A:` under its question in the plan or the `- Action:`
   under its finding in the log, and correct anything elsewhere in the plan that the answer invalidates in the
-  same edit. The conversation is not the record; the files are, and the readiness gate reads them. An answer that
-  prescribes content is quoted, not summarized — the implementing step is given those words.
+  same edit. An answer that prescribes content is quoted, not summarized.
 - **A question the user leaves unanswered stays in the file, unanswered.** Do not guess one to fill the gate, and do
   not ask again in a second round.
 - **Stop here. Do not implement anything.** Do not write code, create files, or run commands.
 - Wait for the user to explicitly ask you to start implementation before doing any work.
 - Tell the user that implementation will not start while any Open Question lacks an `A:` or any Review Finding lacks
-  an `Action:` — the `implement-plan` skill's plan-readiness gate checks exactly this, so resolving them now saves a
-  blocked run later.
+  an `Action:`; the `implement-plan` skill's plan-readiness gate checks exactly this.

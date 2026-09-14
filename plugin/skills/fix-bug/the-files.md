@@ -12,11 +12,11 @@ What Phase 1 writes. They follow the repository's documentation conventions like
 | several                             | `bug.md`, `<module>/fix.md` for each |
 | several, on a contract between them | one more: `shared/fix.md`            |
 
-**Every file has a log beside it under its own stem** — `bug-log.md`, `fix-log.md`, `shared/fix-log.md`. The
-file binds; the log is what happened to it, and `fix.sh validate` refuses a file with no log beside it.
+**Every file has a log beside it under its own stem** — `bug-log.md`, `fix-log.md`, `shared/fix-log.md`.
+`fix.sh validate` refuses a file with no log beside it.
 
 **`bug.md` holds the bug. Each `fix.md` holds one module's work and, with its log, is owned by exactly one
-agent** — the module agents run concurrently, so two of them never write the same file.
+agent.**
 
 ## `bug.md`
 
@@ -76,7 +76,7 @@ language, is added only where the fix moves responsibility between classes. **`#
 `## Run Log` heading appears with its first entry. An entry is `- **RL<nn> (<what it is about>):** what
 happened`, numbered from 1 in the order written and never renumbered, appended after the last — a fix file's
 step ID in the parenthesis where it concerns one, `diagnosis` or a module where it does not. An `RL` entry here
-records a fact; nothing waits on it, so it carries no `Resolved:` line.
+carries no `Resolved:` line.
 
 `fix.sh attempts <the directory>` prints every log's attempt numbers as one line — `bug-log.md · AT01–AT03,
 module-a/fix-log.md · AT01, module-b/fix-log.md · —` — for the report.
@@ -98,10 +98,9 @@ module-a/fix-log.md · AT01, module-b/fix-log.md · —` — for the report.
 <the checklist — see step-format.md>
 ```
 
-**The table is the whole fix to anyone not applying it.** `What changes` starts with a verb and is one clause —
-a row that needs two is two steps. `Touches` is the one class or package the step reaches, so the blast radius
-is read down one column. What proves a step is its kind's, and is not repeated per row. Write the table from
-the steps, never the steps from the table.
+**The table.** `What changes` starts with a verb and is one clause — a row that needs two is two steps.
+`Touches` is the one class or package the step reaches. What proves a step is its kind's, and is not repeated
+per row. Write the table from the steps, never the steps from the table.
 
 **`## Open Questions`** appears in a `fix.md` only when its agent returns blocked and writes the question it
 needs answered. `OQ` numbers are per file, starting at `OQ01` in each `fix.md` however many `bug.md` asked;
@@ -128,9 +127,9 @@ run records goes in the log beside it.
   - Resolved: <how it was settled, filled by whoever settles it>
 ```
 
-**`In flight:` is what a stopped run otherwise leaves nowhere.** `fix.sh start` writes it when a step starts,
-`fix.sh tick` empties it. A resumed run reads it for what was being tried and for nothing else — the first
-unticked step, not this line, says where to pick up. Phase 1 writes the line with nothing after it.
+**`In flight:`.** `fix.sh start` writes it when a step starts, `fix.sh tick` empties it. A resumed run reads
+it for what was being tried and for nothing else — the first unticked step, not this line, says where to pick
+up. Phase 1 writes the line with nothing after it.
 
 **The Run Log is where the run writes.** An entry is `- **RL<nn> (<ID>):** what happened`, `<ID>` the step it
 concerns, numbered from 1 and appended after the last. `fix.sh block` writes one for a blocked return, with a
@@ -140,7 +139,7 @@ a step the level above struck as abandoned, a schema a revert left migrated — 
 
 ## A Test That Pins the Wrong Behaviour
 
-**The commonest bug is one an existing test asserts.** That test is the `red` step's: it goes in `test-files:`,
-the step changes its assertion to the reported symptom, and the run fails as any `red` step must. This is not
-weakening a test. The test is named in `## What the fix must not break`, with what it was protecting and why that
-is not lost.
+**Where an existing test asserts the wrong behaviour**, that test is the `red` step's: it goes in
+`test-files:`, the step changes its assertion to the reported symptom, and the run fails as any `red` step must.
+This is not weakening a test. The test is named in `## What the fix must not break`, with what it was protecting
+and why that is not lost.

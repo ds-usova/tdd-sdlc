@@ -32,9 +32,8 @@ feature.
 ## The Files
 
 The fix owns `docs/<n>-<name>/`: one `bug.md`, one `fix.md` per module, and `shared/fix.md` where two modules
-must agree on a contract — and beside each, its log: `bug-log.md`, `fix-log.md`, `shared/fix-log.md`. The file
-is what binds; the log is what happened to it — its **Attempts**, its **Run Log** and, for a fix, the `In
-flight:` line. What each carries is [`the-files.md`](the-files.md). Where the diagnosis reaches more than one
+must agree on a contract — and beside each, its log: `bug-log.md`, `fix-log.md`, `shared/fix-log.md`. What each
+carries is [`the-files.md`](the-files.md). Where the diagnosis reaches more than one
 module, [`crossing-modules.md`](crossing-modules.md) decides which module the fix is cut in and what
 `shared/fix.md` holds. `fix.sh` (`scripts/fix/` under the plugin root, README beside it) reads, ticks and
 validates the files, and writes the log: `start` and `tick` keep `In flight:`, `block` appends to the Run Log.
@@ -60,8 +59,8 @@ elsewhere, and untracked leavings that are nobody's work, are named and left alo
 - **It fails every time** — run it twice to know that. Record the exact output; `reproduces:` is written against
   it.
 - **There is nothing to run yet.** Write the test that shows the symptom and take its failure as the reproduction.
-  Then disable it, as [`disabling-a-test.md`](../../templates/disabling-a-test.md) says, so it stays in the tree —
-  uncommitted — and the baseline is green. The `red` step names it in `test-files:` and its work is to enable it. Take
+  Then disable it, as [`disabling-a-test.md`](../../templates/disabling-a-test.md) says. It stays in the tree,
+  uncommitted. The `red` step names it in `test-files:` and its work is to enable it. Take
   the cheapest test type that fails for the bug's own reason, and say in the diagnosis why a cheaper one does not.
 - **It fails some runs and not others.** Run until it has failed twice and record `<failures> in <runs>`; that
   pair goes into `reproduces:`. The `red` step then runs until it has failed twice, giving up at three times that
@@ -84,15 +83,15 @@ the row claims ([`findings.md`](../../templates/findings.md), **Measured, Not No
 
 **Baseline.** Full build and full suite of every affected module, with the reproduction test disabled or
 reverted. Record the commit and, per module, the total and skipped counts, plus any machine state a skip depends
-on. **The disabled reproduction test is named beside them**: it is the one skip the baseline carries that the
-`red` step will clear, so the closing gate expects the count one lower than measured. Green, or red only on the test
+on. **Name the disabled reproduction test beside them.** The closing gate expects the skipped count one lower
+than measured. Green, or red only on the test
 the report already names, is a baseline; anything else red stops the run. A whole-suite run that already answers
 for this commit is read, not repeated.
 
 ## Phase 1 — Diagnose, and Write the Files
 
-**Write `bug.md` and `bug-log.md` as soon as the symptom and the reproduction are known**, so the attempts have
-somewhere to land as they happen. Then work out why the bug happens: `## Why it happens` is a chain from the
+**Write `bug.md` and `bug-log.md` as soon as the symptom and the reproduction are known.** Then work out why
+the bug happens: `## Why it happens` is a chain from the
 symptom to the line that is wrong, every link proved. A probe — a log line, a counter, a query by hand, a seam a
 test can drive — is how a link is proved. **A probe that failed is an attempt**, phase `diagnosis`, in the log's
 `## Attempts`. A probe the fix needs again becomes a `stabilize` step. Every probe's edits are reverted before
@@ -136,8 +135,8 @@ line — is left where it is, and is reported as closed. The disabled reproducti
 
 **An agent that returns on an exhausted budget is escalated once before anything is amended**
 ([`templates/sub-agents.md`](../../templates/sub-agents.md), **Budget and escalation**): re-spawn that module's
-agent on the deciding model; it reads the log's **Attempts** and starts at that step. Only its exhausted
-budget is a blocked return.
+agent on the deciding model; it reads the log's **Attempts** and starts at that step. Only the escalation's
+exhausted budget is a blocked return.
 
 **An agent that returns blocked changes the plan, not the rules.** It returns for one of: an exhausted budget
 after escalation, a symptom that survives a correct `green` step, a cause in another module, a step whose kind is wrong,
@@ -151,8 +150,8 @@ module's agent; it starts at its first unticked step. An abandoned step is close
 
 **A fix the user calls off** is reverted step by step, newest first, in the skill and never in an agent, until
 every module's suite is back at its baseline figures. A revert that conflicts stops and reports. The directory
-stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decision lives there alone —
-`bug-log.md`'s Run Log takes an `RL` entry for every effect the revert did not undo, and nothing is archived.
+stays with its logs intact, `bug.md` takes its `**Closed:**` line, `bug-log.md`'s Run Log takes an `RL` entry
+for every effect the revert did not undo, and nothing is archived.
 
 ### What Is Never Done
 
@@ -180,7 +179,7 @@ stays with its logs intact, `bug.md` takes its `**Closed:**` line — the decisi
    the diff from `**Baseline:**`, `bug.md` and every `fix.md` as its brief, the module's conventions by name,
    and the last full suite run's figures with whether the tree has changed since. **It never touches a `red`
    step's test** — say so in the prompt. **It runs no suite**; step 4 is the run over its result.
-4. **Full build and full suite of every affected module, green** — the one full run of the fix. **Skipped where
+4. **Full build and full suite of every affected module, green.** **Skipped where
    step 12's list holds an entry that runs the suite over this same tree**; the build conventions name it, and its
    verdict is this one. A red run belongs to the step or refactor that edited what failed.
 5. **Whatever else the modules' build conventions require of a finished change** — a coverage guardrail, a

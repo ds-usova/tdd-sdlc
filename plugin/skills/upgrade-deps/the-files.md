@@ -53,14 +53,13 @@ reaches Phase 4.
 - **`Vulnerabilities`** is the identifiers the scanner reported and the version that fixes each, or `—`.
 - **`Guide`** is a link, or `none found`.
 - **`Status`** is one of `proposed`, `deferred`, `not offered` (a major the policy keeps for its own story),
-  `done`, `kept back`, `blocked`. Written `proposed` at Phase 1, settled at Phase 2, finalized at Phase 4. It is
-  the one place the run's outcome is written back into the steps file: the survey is what a reader opens.
+  `done`, `kept back`, `blocked`. Written `proposed` at Phase 1, settled at Phase 2, finalized at Phase 4.
 
 ### What changes
 
-The upgrade to a person: a reader who agrees with the survey and these tables can stop. Rows grouped by the move
-they make. `What changes` starts with a verb — `bump`, `rename`, `replace call`, `move setting`. `Touches` is
-the manifest, or the one package a `migrate` change reaches.
+The upgrade to a person. Rows grouped by the move they make. `What changes` starts with a verb — `bump`,
+`rename`, `replace call`, `move setting`. `Touches` is the manifest, or the one package a `migrate` change
+reaches.
 
 ### Open Questions
 
@@ -112,10 +111,10 @@ entry is appended, never inserted above an older one. `upgrade.sh block` writes 
 line beneath it, and whoever settles the blocker fills that line. An entry recording a fact nobody has to act
 on — a boundary a step widened, a deprecation the build printed — carries no `Resolved:`.
 
-**A kept-back change is an `RL` entry** — the section that keeps a half-done migration honest. One entry per
+**A kept-back change is an `RL` entry.** One entry per
 change a guide asked for that stays undone at the target version: the note is `kept back — <what the guide
 said>`, `Kept because:` is the attempt IDs in one clause, and `Would unblock:` is what would let the next run
 finish it. `validate` refuses one missing either line. A step abandoned gets `abandoned — <why>` on its header
 in the steps file and an `RL` entry here saying what was reverted.
 
-Absent on most upgrades' logs. Never removed once written.
+Never removed once written.

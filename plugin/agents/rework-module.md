@@ -37,15 +37,13 @@ as a plugin, under `.claude/` in a plain checkout — README beside it, and is h
 | Leave it open, record why | `rework.sh block WK01 "<reason>" --file <steps>` — the log's next `RL`    |
 | Check the grammar         | `rework.sh validate --file <steps>` — reads the log too                 |
 
-**Name your file on every call**; several are in flight at once. The log is found beside it; `--log` names
-another. **Read a step from `rework.sh show`**, never by
-extracting it by hand. **Tick a step only once you have verified it yourself.** Where the script is absent or the
-call is refused — by a hook or by the user at the prompt — edit the file directly under the same rules, write
-the log's **Caveats** entry and put the case as one line in your final report, as
-[`scripts/README.md`](../scripts/README.md) says; never stop for it.
+**Name your file on every call.** The log is found beside it; `--log` names another. **Read a step from
+`rework.sh show`**, never by extracting it by hand. **Tick a step only once you have verified it yourself.**
+Where the script is absent or the call is refused — by a hook or by the user at the prompt — edit the file
+directly under the same rules, write the log's **Caveats** entry and put the case as one line in your final
+report, as [`scripts/README.md`](../scripts/README.md) says; never stop for it.
 
-**Run a suite in the foreground and wait for it.** Backgrounding it ends the turn mid-step, and nothing restarts
-you.
+**Run a suite in the foreground and wait for it.** Never background it.
 
 **A resumed run starts at the first unticked step**, from its own beginning, having read the log's Run Log
 first: an `RL` entry with its `Resolved:` filled is a decision already made, and an abandoned step is skipped.
@@ -56,9 +54,8 @@ Steps in ID order. A step whose `needs:` names an unticked step is skipped and r
 ticked; a cycle is reported, not resolved.
 
 **After every step**: whatever the conventions require before a commit, `rework.sh tick <ID>`, and — where the
-conventions commit — commit the steps file with the paths that step named. Another module's agent is committing
-into the same history at the same time; follow what the commit policy says about scoping and about a
-concurrent commit, and report a refusal it does not cover rather than retrying.
+conventions commit — commit the steps file with the paths that step named. Follow what the commit policy says
+about scoping and about a concurrent commit. Report a refusal it does not cover rather than retrying.
 
 **After the last step**: the module's whole suite is green, and nothing in any `disables:` is still off.
 
@@ -84,7 +81,7 @@ Into the log's **Run Log**, as `- **RL<nn> (<ID>):** what happened`, appended af
 - **A mutation that did not bite** — the target that stayed green.
 - **A defect found and not fixed**, with enough to reproduce it.
 
-The last four carry no `Resolved:` line; nothing waits on them.
+The last four carry no `Resolved:` line.
 
 ## Where You Stop And Return
 
@@ -106,13 +103,12 @@ to reproduce, not treated as a step failure.** A test this rework broke is never
   never open.
 - **Any module but the one your file names** — except a `shared/steps.md`, whose modules are all of them.
 - **The refactor round, `review/findings.md` and archiving** — the level above's, over the whole diff.
-- **A page a `docs:` line names.** The line records what the step invalidates; the finished-work pass rewrites
-  the page against the code.
+- **A page a `docs:` line names.**
 - **A second defect you find along the way.** Report it; never fix it.
 
 ## What To Report
 
-Short. The level above assembles the closing report from it:
+Short:
 
 - **Every step by ID**, ticked, abandoned or open, and the files it touched.
 - **Every mutation** — what was broken, and what caught it or failed to.
@@ -121,6 +117,6 @@ Short. The level above assembles the closing report from it:
 - **Every `RL` entry you wrote**, by number.
 - **What is blocked, and the decision you need.**
 
-**A defect you noticed rather than ran — like anything else unexercised — is a hypothesis**, in the form
+**A defect you noticed rather than ran is a hypothesis**, in the form
 [`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back** gives. One a mutation or a suite run
 demonstrated is reported as that result.

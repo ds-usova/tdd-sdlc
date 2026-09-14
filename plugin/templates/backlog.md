@@ -2,9 +2,8 @@
 
 `docs/backlog.md`, at the repository root of `docs/`: every critical entry, every bug still unfixed, every
 refactoring candidate, every deferred change and every performance figure past its threshold still open, across
-every archived task, fix, rework and upgrade, in five tables. A person opens it to learn what the repository
-owes itself without opening a `review/findings.md`. A `fix-bug` starts from a bug row, a `rework` from a
-candidate row, a `design-task` from a deferred-change row. A performance row waits for a run that measures the
+every archived task, fix, rework and upgrade, in five tables. A `fix-bug` starts from a bug row, a `rework` from
+a candidate row, a `design-task` from a deferred-change row. A performance row waits for a run that measures the
 test under its threshold. A critical row starts whichever of the three its kind says.
 
 **A record, not an offer.** A run that files a row says "recorded, not started" and stops. It never proposes
@@ -14,9 +13,9 @@ to take the row next.
 — [`findings.md`](findings.md)'s **Measured, Not Noticed**. An observation a run merely reported gets no row
 here and no id.
 
-**A row is measured once more by whoever starts from it**, before that run writes a file: the same pass, over a
-tree that has moved since, by the only reader who did not write the row. What does not hold is reported, its
-owner's status set to `withdrawn`, and the row removed — never worked.
+**A row is measured once more by whoever starts from it**, before that run writes a file: the same pass, over
+the tree as it stands now. What does not hold is reported, its owner's status set to `withdrawn`, and the row
+removed — never worked.
 
 **It holds pointers, never a second copy.** The owner holds the text, the status and the reasoning. The
 backlog carries one clause and a link. A row leaves the backlog when the owner closes it, by `done`,
@@ -26,11 +25,11 @@ backlog carries one clause and a link. A row leaves the backlog when the owner c
 the moment the user decides it. Its owner is where the decision was written: a `deferred` `DF` row in a
 design log, an answered `OQ` in a rework or fix file, a `DN` entry. The `Where` column links there.
 
-**No backlog id is written into the tree.** The rule and its reason are [`reproducing.md`](reproducing.md).
+**No backlog id is written into the tree.** The rule is [`reproducing.md`](reproducing.md).
 
 **The backlog assigns the id.** A findings file numbers its candidates `RX01` upward, its deferred changes
 `DX01` upward and its performance rows `PX01` upward within itself and gives a bug or a critical entry no number
-at all, so none of them names a row across the repository. The backlog gives every row one id on append —
+at all. The backlog gives every row one id on append —
 `BC<nn>` for a critical entry, `BB<nn>` for a bug, `BR<nn>` for a refactoring candidate, `BT<nn>` for a deferred
 change, `BP<nn>` for a performance figure — each counted from 1 and never reused. That id is what a fix, a
 rework or a design is started from.
@@ -87,7 +86,7 @@ candidate, `BT<nn>` deferred change, `BP<nn>` performance — and it never chang
 - **Where** — a relative link from `docs/` to the owning `findings.md`.
 
 Rows are appended in the order they are filed and never renumbered; a closed row is removed, not struck through.
-A table with no rows keeps its heading and header line, so a reader sees it is empty rather than missing.
+A table with no rows keeps its heading and header line.
 
 Who writes it:
 

@@ -9,8 +9,7 @@ user wants it reopened, the `**Closed:**` line goes and the run continues from h
 
 `bug.md`, every `fix.md` beside it, and the log beside each — every entry of its `## Attempts` and its
 `## Run Log`. **Nothing in a `ruled-out:` line is tried again**, and an `RL` entry whose `Resolved:` is empty is a
-blocker still standing. The value of the logs is that this session starts where the last one stopped, with new
-hypotheses rather than the old ones.
+blocker still standing.
 
 The original `**Baseline:**` stands. Three things on disk are the run working, not a reason to stop:
 

@@ -8,14 +8,13 @@ step agent into one module.
 
 **Bundle by grouping and layer, not by class.** A grouping is the source grouping the module conventions name —
 a package, a directory, a feature folder. Steps whose target classes share a grouping *and* a layer go to one
-sub-agent: the classes of one grouping are each other's context. The layer half of the key keeps the agent types
-intact where a grouping holds both (a pure mapper beside its adapter's slice test).
+sub-agent. A grouping that holds both layers (a pure mapper beside its adapter's slice test) gets one bundle per
+layer.
 
 A bundle starts only when every step in it is eligible; leave a step out rather than hold the bundle for it. The
 bundled agent **reports per step ID**, and each is ticked separately.
 
-**Never hand one production class to two parallel agents.** Two classes in one grouping routinely pull on a
-third; the bundle gives that third one owner.
+**Never hand one production class to two parallel agents.**
 
 ## The cap
 
@@ -23,17 +22,15 @@ The module conventions set how many step agents run at once. Spawn up to the cap
 queue the rest, launching a queued bundle as a running one finishes. Where they state no cap, the default in
 [`sub-agents.md`](sub-agents.md) applies.
 
-**When the cap forces a choice, keep one grouping in one wave.** Two eligible bundles from the same grouping and
-different layers write beside each other; take bundles from different groupings first, and put the second of a
-pair in the next wave. Among the rest, take them in the order the scheduler gives — it ranks by longest remaining
-dependency chain, which is what sets the phase's wall time.
+**When the cap forces a choice, keep one grouping in one wave.** Take bundles from different groupings first,
+and put the second bundle of a grouping in the next wave. Among the rest, take them in the order the scheduler
+gives.
 
 ## Launching a wave
 
-A wave is launched as [`sub-agents.md`](sub-agents.md) says for running several agents at once — and which shape
-that is depends on whether the pipeline runs as a session or as a sub-agent, since only the first can block on a
-spawn. Bundles spawned and awaited one at a time are not a wave; they are the phase run serially at the wave's
-cost.
+A wave is launched as [`sub-agents.md`](sub-agents.md) says for running several agents at once. Which shape
+that is depends on whether the pipeline runs as a session or as a sub-agent. Bundles spawned and awaited one at
+a time are not a wave.
 
 **A pipeline running as a sub-agent takes the parallel shape of the two that file offers**, and hands the wave
 back.
@@ -54,12 +51,12 @@ back.
 at the end of the green batch, and at the stage guardrails. A wave whose classes pass and whose module compiles is
 done.
 
-Never let an agent wait out or work around a compile error in a file it does not own. That is the other agent's
-work in progress, and the wave's single verification is where it resolves.
+Never let an agent wait out or work around a compile error in a file it does not own. It resolves at the wave's
+single verification.
 
 ## Ticking
 
 Tick each item as its sub-agent reports success and the wave's verification confirms it. If one reports a
-blocker, leave the item unchecked, record the blocker, and let the rest of the wave continue: one failed step does
-not stop the stage, but the stage is complete only when every item is ticked or recorded as blocked. A blocked
-step's dependents are not spawned; they are recorded as blocked by that dependency.
+blocker, leave the item unchecked, record the blocker, and let the rest of the wave continue. The stage is
+complete only when every item is ticked or recorded as blocked. A blocked step's dependents are not spawned;
+they are recorded as blocked by that dependency.

@@ -66,7 +66,7 @@ defines. Given the upgrade's directory rather than one file, `validate` checks e
 with the log beside it.
 
 **A dependency moving several majors is one step per major** where each has its own guide, `needs:` chaining
-them, so a kept-back change names the release that asked for it.
+them.
 
 **`docs:` is owed where a version is visible outside the manifest** — a conventions file that names it, a
 configuration page whose keys a `change:` renamed, a README that quotes the version.

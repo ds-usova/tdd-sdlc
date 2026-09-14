@@ -39,25 +39,22 @@ the files:
 | Leave a step blocked    | `upgrade.sh block UP01 "<why>" --file <steps>` |
 | Check both files' shape | `upgrade.sh validate --file <steps>`          |
 
-**Name your file on every call**; several are in flight at once; the log is found beside it. **Read a step
-from `upgrade.sh show`**, never by extracting it by hand. **Tick a step only once you have verified it
-yourself.** Run `validate` after every attempt or run-log entry you write. Where the script is absent or the
-call is refused — by a hook or by the user at the prompt — edit the files directly under the same rules, write
-the log's **Caveats** entry and put the case as one line in your final report, as
-[`scripts/README.md`](../scripts/README.md) says; never stop for it.
+**Name your file on every call.** The log is found beside it. **Read a step from `upgrade.sh show`**, never by
+extracting it by hand. **Tick a step only once you have verified it yourself.** Run `validate` after every
+attempt or run-log entry you write. Where the script is absent or the call is refused — by a hook or by the
+user at the prompt — edit the files directly under the same rules, write the log's **Caveats** entry and put the
+case as one line in your final report, as [`scripts/README.md`](../scripts/README.md) says; never stop for it.
 
 ## The Sequence
 
 Steps in ID order. A step whose `needs:` names an unticked step is skipped and returned to once that step is
 ticked; a cycle is reported, not resolved.
 
-**Run a suite in the foreground and wait for it.** Backgrounding it ends the turn mid-step, and nothing restarts
-you.
+**Run a suite in the foreground and wait for it.** Never background it.
 
 **After every step**: whatever the conventions require before a commit, tick the step, and — where the
-conventions commit — commit the steps file with the paths that step named. Another module's agent is committing
-into the same history at the same time; follow what the commit policy says about scoping and a concurrent
-commit, and report a refusal it does not cover rather than retrying.
+conventions commit — commit the steps file with the paths that step named. Follow what the commit policy says
+about scoping and a concurrent commit. Report a refusal it does not cover rather than retrying.
 
 **After the last step**: the module's whole suite is green, at the baseline's total and skipped counts.
 
@@ -98,7 +95,7 @@ revert the step it concerns, then return and say what you need.
 - **A `change:` that lands outside your module.** Name where. Never edit another module; never a shared catalog
   unless your file is `shared/steps.md`.
 - **A test asserting the old behaviour.** Name the test and the assertion; never edit it.
-- **A step abandoned** — the level above decides whether the upgrade continues without it.
+- **A step abandoned.**
 
 **A failure on a code path the dependency never reaches, or clearly environmental, is reported with enough
 detail to reproduce, not treated as a step failure.**
@@ -114,15 +111,14 @@ detail to reproduce, not treated as a step failure.**
 
 ## What To Report
 
-Short. The level above assembles the closing report from it:
+Short:
 
 - **Every step by ID**, ticked, abandoned or blocked, the versions it moved between, and the files it touched.
 - **Every kept-back change**, by its `RL` number, and what would unblock it.
-- **Every deprecation warning the build printed** on the new versions — quoted from the output, not summarized
-  from what the guide led you to expect.
+- **Every deprecation warning the build printed** on the new versions, quoted from the output.
 - **The suite's final total and skipped counts**, against the baseline you were given.
 - **What is blocked, and the decision you need.**
 
-**A defect you noticed rather than ran — like anything else unexercised — is a hypothesis**, in the form
+**A defect you noticed rather than ran is a hypothesis**, in the form
 [`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back** gives. One a run produced is reported
 as that output.

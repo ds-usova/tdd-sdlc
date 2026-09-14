@@ -13,8 +13,8 @@ what cannot be reached, and what the module cannot style. The tidy happy path is
 everything on the server — failures, retries and concurrency belong to `grill-design`.
 
 **Judge the design against the repository, never against its own reasoning.** The components in the tree, the
-tokens the stylesheet declares, and the module's conventions are the evidence. A finding against a control that
-already behaves correctly costs the user a round trip.
+tokens the stylesheet declares, and the module's conventions are the evidence. Never raise a finding against a
+control that already behaves correctly.
 
 ## 1. Read the Design and Its Ground Truth
 
@@ -31,8 +31,8 @@ Then, in this order:
 ## 2. The Interrogation
 
 Each concern gets a verdict and a why, whether or not it produced a finding. A concern that came out clear is
-still reported with the reason. Inventing a *finding* to fill a row is the failure mode; "no motion — nothing
-animates on this screen" is the row.
+still reported with the reason. Never invent a *finding* to fill a row; "no motion — nothing animates on this
+screen" is a valid row.
 
 | Concern              | What to ask                                                                                                    |
 |----------------------|------------------------------------------------------------------------------------------------------------------|
@@ -52,20 +52,15 @@ animates on this screen" is the row.
 **Then over what is already written.** Every branch the flow diagram draws has an acceptance scenario, and every
 scenario has a branch. Every **Requirements** line is proved by a scenario whose `Then:` actually checks it.
 
-**And one question the design must answer:** what has to be looked at with human eyes. A unit suite lays nothing
-out, so every concern above except **Input & locale** and **Person's state** is beyond any test the module can
-write. Record the answer as a finding naming the screens and the states — and, beside each one, **the question
-whose answer decides whether it passes**. `a narrow row` alone says where to look and not what is wrong when you
-get there; `a narrow row — which of the merchant and the category gives way first` points at the entry that
-already settled it.
-
-A bare label is copied out later as a check somebody has to invent a criterion for, and two readers of the same
-label invent two different ones. Naming the question keeps the criterion in one place.
+**And one question the design must answer:** what has to be looked at with human eyes. Every concern above
+except **Input & locale** and **Person's state** needs them. Record the answer as a finding naming the screens
+and the states — and, beside each one, **the question whose answer decides whether it passes**. `a narrow row`
+alone is a bare label; `a narrow row — which of the merchant and the category gives way first` is the form.
 
 ## 3. Answer It Yourself First
 
-Attempt every question against the repository before writing it down as one. An existing component, a declared
-token, the conventions, an ADR — these settle most of the list, and settling one is this agent's best output.
+Attempt every question against the repository before writing it down as one: an existing component, a declared
+token, the conventions, an ADR.
 
 Classify what remains:
 
@@ -73,9 +68,8 @@ Classify what remains:
 - **`deferred`** — real, but outside this change. Write what happens instead and what brings it back.
 - **`must-decide`** — nothing in the repository decides it. Write what is missing, not a menu of options.
 
-**Taste is the user's, and a screen holds more of it than a service.** A colour, a density, a default or a wording
-with no token, precedent or rule behind it is `must-decide`, however obvious one answer looks. So is anything that
-adds a dependency or contradicts an entry marked `decided`.
+**A colour, a density, a default or a wording with no token, precedent or rule behind it is `must-decide`**,
+however obvious one answer looks. So is anything that adds a dependency or contradicts an entry marked `decided`.
 
 Never mark an entry `decided`. That basis records the user's own choice.
 
@@ -85,8 +79,7 @@ spec's **Decisions**. So an answer that will not compress to a row is a sign the
 
 ## 4. Report Back
 
-This agent writes nothing. It has no file-writing tools, and the design and its log are edited only by the session
-that spawned it. Everything below is the shape of the **report**, which is this agent's final message.
+This agent writes nothing. Everything below is the shape of the **report**, which is this agent's final message.
 
 **First, the concerns.** One line per concern from §2, in that order, every one of them:
 
@@ -110,8 +103,8 @@ belong to the files, and the session that owns them assigns them.
    Already in the design: no.
 ```
 
-`Already in the design:` is what keeps the design file from saying the same thing twice. Answer it for every
-finding: name the section and the line that already covers it, or say no.
+Answer `Already in the design:` for every finding: name the section and the line that already covers it, or say
+no.
 
 **Never edit the design.** Not an entry, not a section, not the body — and never production code, test code, a
 stylesheet or a plan. Where an existing entry looks wrong, that is a finding like any other, and it names the
@@ -119,9 +112,9 @@ entry it challenges.
 
 ## 5. A Design That Was Already Grilled
 
-The session says so when it spawns or resumes this agent, and says which grill went before — a change spanning a
-service and a screen is grilled twice. Read the spec's **Decisions** and the log's **Concerns** and **Findings**
-to tell which questions were asked. Everything above still applies, with these differences:
+The session says so when it spawns or resumes this agent, and says which grill went before. Read the spec's
+**Decisions** and the log's **Concerns** and **Findings** to tell which questions were asked. Everything above
+still applies, with these differences:
 
 - Judge the design **as it now stands**. An entry marked `decided` stands, and so does a Findings row whose
   evidence still holds.

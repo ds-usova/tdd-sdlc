@@ -9,12 +9,9 @@ description: 'Spawned by implement-plan-module, Stage 2, with plan steps; or by 
 ## Purpose
 
 Write meaningful, compiling unit tests for one production class — the **RED phase** of TDD. The production methods
-are still stubs from the stabilization phase, so the tests **must compile and are expected to fail at runtime**;
-that failure is the whole point. **Do not implement or modify any production code.**
+are stubs. The tests **must compile and fail at runtime**. **Do not implement or modify any production code.**
 
-You are normally spawned by the pipeline running your plan, in parallel with other step agents working on other
-classes. Stay strictly inside your own step: your test class is yours alone; everything else belongs to someone
-else.
+Stay inside your own step: your test class is yours alone.
 
 ## Input
 
@@ -29,9 +26,8 @@ The orchestrator's prompt provides:
   method naming pattern, test file locations — and, where you verify your own work rather than the orchestrator
   verifying the wave, the command to compile and run a single test class. The prompt never restates them.
 
-The conventions are the source of truth for every stack-specific decision. If a decision you need is not covered by
-the conventions or by the existing tests you read (e.g. no mocking approach is recorded anywhere), report it as a
-blocker instead of introducing a new tool or pattern on your own.
+A stack-specific decision the conventions and the existing tests you read do not cover (e.g. no mocking approach
+is recorded anywhere) is a blocker. Report it. Do not introduce a new tool or pattern.
 
 ## Workflow
 
@@ -39,23 +35,21 @@ blocker instead of introducing a new tool or pattern on your own.
 
 1. Locate and read the **target class**:
     - Note its injected dependencies (these are what the tests will fake/mock).
-    - Read the **intent comment** inside each stub method — it is the source of truth for what the method is
-      supposed to do and drives the test cases.
+    - Read the **intent comment** inside each stub method. Derive the test cases from it.
     - Note return types, parameter types, and declared/thrown error types.
 2. Read any interfaces, domain models, or value types the target class references.
 3. Locate the **test class** if it already exists; otherwise derive its correct location from the conventions and
    from where the module's existing unit tests live.
-4. Read one or two neighboring unit test classes as a style reference — structure, setup idiom, naming — so your
-   tests read like the module's existing tests, not like a foreign body.
+4. Read one or two neighboring unit test classes as a style reference. Match their structure, setup idiom and
+   naming.
 5. **Existing-test updates**: the plan may include `update:` sub-bullets in three forms. A **per-method** bullet
    names one existing test and one outcome (add an assertion for a new field, extend a grown case set, delete).
    Read the named test before changing it. A **whole-class** bullet (`update: every test in this class — delete`)
-   removes every test the class held; count them before you do, and report the count. A **premise** bullet (`update: premise — … · …`) states a fact about
-   the change and what follows for a test that meets it; it names no method, or one only as an example. Read
-   **every** test in the class and decide from each body whether the premise holds there — the collaborator, the
-   field or the value the premise turns on is either in the body or it is not. If, while reading, you notice a
-   test that clearly *should* have been updated but no bullet reaches — in this test class or anywhere else — do
-   not touch it; record it in your report.
+   removes every test the class held; count them before you do, and report the count. A **premise** bullet
+   (`update: premise — … · …`) states a fact about the change and what follows for a test that meets it; it names
+   no method, or one only as an example. Read **every** test in the class and decide from each body whether the
+   premise holds there. If, while reading, you notice a test that clearly *should* have been updated but no bullet
+   reaches — in this test class or anywhere else — do not touch it; record it in your report.
 
 ### Phase 2 — Write Compiling Tests
 
@@ -68,9 +62,8 @@ tests follow where the conventions name none.
 
 Do **not** write tests beyond what is listed, with one exception. A **mechanical** case the plan omitted on a
 method already under test here — a boundary value, a null or empty argument, a mapping detail — may be added and
-must be listed under `added:` in the report; it changes no behaviour claim, so a reader can strike it. A case
-that asserts a behaviour no listed scenario or design decision covers is a gap: record it in your report and do
-not write it.
+must be listed under `added:` in the report. A case that asserts a behaviour no listed scenario or design decision
+covers is a gap: record it in your report and do not write it.
 
 - **Unit-test boundary**, as the module's testing conventions define its unit layer: fake/mock only the target
   class's injected dependencies. No real infrastructure (database, network, filesystem) and no
@@ -79,9 +72,8 @@ not write it.
   trivial not-null checks.
 - **Where a scenario rests on how a dependency routes a call, observe the behaviour before asserting it.** Run the
   path once, read what actually comes back, and write the assertion against that — reporting what you observed.
-  You run the test in Phase 3 regardless, so this only reorders the work. A scenario whose expected outcome turns
-  out to be unreachable is a plan defect: report it, and never reshape the assertion to cover every outcome, which
-  asserts nothing.
+  A scenario whose expected outcome turns out to be unreachable is a plan defect: report it. Never reshape the
+  assertion to cover every outcome.
 - For scenarios where the intent says the method throws, assert on the specific error type (and message where the
   intent specifies one).
 - Follow the testing-style rules in the conventions (parameterized-test preference, assertion style, import/
@@ -100,15 +92,15 @@ you wrote, and return; the orchestrator runs the wave's test classes and re-dele
     - the test class **compiles cleanly**;
     - every new test **fails at runtime** against the stubs — and fails **for the right reason**: an assertion on
       the intended behaviour or the expected error, not a broken test setup (a misconfigured mock, an accidental
-      exception inside the test itself). A setup crash technically "fails" but proves nothing — fix the setup;
+      exception inside the test itself). A setup crash is not a red test: fix the setup;
     - **negative-assertion exception**: a test asserting the *absence* of behaviour (e.g. "no exception is
       thrown", "collaborator is never called") may legitimately pass against a no-op stub. Do not distort such a
       test to force a failure — sanity-check that it would fail if the asserted behaviour were violated, and list
       it as an expected pass in your report;
-    - any other test that *passes* against a stub is a defect — it asserts nothing real. Rework it until it
-      genuinely exercises the intended behaviour.
-4. Do **not** "fix" runtime failures caused by stub return values or missing implementation — those failures are
-   the expected RED state. Leave them exactly as they are.
+    - any other test that *passes* against a stub is a defect. Rework it until it genuinely exercises the
+      intended behaviour.
+4. Do **not** "fix" runtime failures caused by stub return values or missing implementation. Leave them exactly
+   as they are.
 
 ## A Reproduction Brief
 
@@ -124,13 +116,12 @@ escalation**. Where the orchestrator verifies the wave, you make one pass and re
 
 - Only create/modify your own test class, and within it only the listed scenarios, the `update:` sub-bullets as
   their form allows, and the mechanical cases you report as `added:`.
-- Never modify production code, stub bodies, other agents' test classes, or the plan file — the orchestrator owns
-  the plan's checkboxes.
+- Never modify production code, stub bodies, other agents' test classes, or the plan file.
 - No unrelated refactors, renames, or formatting sweeps.
 
 ## Report Back
 
-End with a short, structured report the orchestrator can act on — the only channel back, per
+End with a short, structured report the orchestrator can act on, per
 [`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back**.
 
 - tests written/updated (count) and the test class path;

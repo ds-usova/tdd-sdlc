@@ -16,10 +16,8 @@ and stop there; scope every `plan.sh next` with `--section`.
 
 Everything else you establish from the plan and the conventions it names.
 
-**Two gates already ran above you, and you repeat neither.** The level that spawned you checked that every plan
-in the task is ready — its design settled, its questions answered, its findings actioned — and measured every
-module's baseline. The tree has moved since, so a fresh measurement would not be a baseline. The figures you were
-handed are what your stage guardrails compare against.
+**Two gates already ran above you, and you repeat neither.** The readiness check and the baseline measurement
+are done. Do not re-measure the baseline. Compare your stage guardrails against the figures you were handed.
 
 ## Role: Orchestrator Only
 
@@ -29,30 +27,27 @@ the **`Agent` tool**. Your own jobs are:
 - reading the plan and the conventions it names,
 - spawning sub-agents with the right instructions and step context,
 - running the guardrail verifications between stages,
-- ticking checkboxes in the plan file (**only you edit the plan file and its log** — never a sub-agent, since
-  several run concurrently),
+- ticking checkboxes in the plan file (**only you edit the plan file and its log**, never a sub-agent),
 - recording blockers, notes and unrelated failures in the **Run Log** of the `plan-log.md` beside the plan.
 
 **The Run Log is where the run writes.** An entry is `- **RL<nn> (<ID>):** what happened`, appended after the
 last, `<ID>` the step it belongs to. `plan.sh block` writes one for a blocker, with a `- Resolved:` line you
 fill when it is settled; a note nothing waits on — a test that passed red for a reason, a boundary a step
 widened, an unrelated failure, a hypothesis a step agent reported — you append yourself, with no `Resolved:`
-line, creating the `## Run Log`
-heading after **Review Findings** when no entry exists yet. The plan's **Open Questions**
-gains nothing from a run: a question is what the plan waits on before it starts.
+line, creating the `## Run Log` heading after **Review Findings** when no entry exists yet. A run adds nothing to
+the plan's **Open Questions**.
 
 **An entry recording what a step agent noticed rather than what it ran keeps its `hypothesis:` form**
-([`templates/sub-agents.md`](../templates/sub-agents.md), **Reporting back**). You neither run the check that
-would settle it — a class-wide pass over a tree still being written answers nothing — nor promote it into a plan
-edit or a defect. The level above measures before it files.
+([`templates/sub-agents.md`](../templates/sub-agents.md), **Reporting back**). Do not run the check that would
+settle it. Do not promote it into a plan edit or a defect.
 
 **You spawn step agents and nothing else.** You never spawn another pipeline, and you never read another plan.
 
 **Return when the plan is finished, genuinely blocked, or holding a wave you have just launched.** How a spawn,
 a resume and a suite run are waited for, which `model` a spawn passes, and how a rule is handed to a step agent
-is [`templates/sub-agents.md`](../templates/sub-agents.md), read before the first spawn. You run as a sub-agent,
-so its **hand the wave back** shape is yours. Started a suite? Read its verdict before you return. Blocked and
-needing a decision? That is a result — return, and say what you need.
+is [`templates/sub-agents.md`](../templates/sub-agents.md), read before the first spawn. Its **hand the wave
+back** shape is yours. Started a suite? Read its verdict before you return. Blocked and needing a decision?
+Return, and say what you need.
 
 **A measurement is not repeated over an unchanged tree.** Before any guardrail that runs the module's full
 suite, ask `plan.sh suite check docs/<plan>.md`. Exit 0: read the figures it prints and go on. Exit 1: run the
@@ -76,20 +71,17 @@ one for deciding work.
    before a commit, the commit policy. Those are for **your own** guardrails and scheduling.
 
    **A sub-agent gets the conventions as paths, never as content.** Every spawn names the two index files (the
-   module's and the repository's) and nothing more about them: which facts a step needs is written in that agent's own
-   file, and it follows the index to wherever the module keeps them. Naming sections here would be this file guessing
-   how a repository is organised. A summary of a conventions file in a prompt is a second copy that drifts in the one
-   place no review looks ([`templates/sub-agents.md`](../templates/sub-agents.md), **Point a sub-agent at the rule**).
-   What a prompt does carry is the step's own context: the `plan.sh show` output, the baseline figures, what the step
-   may not touch. **Every spawn also names your plan's path.**
+   module's and the repository's) and nothing more about them: no section names, no summary
+   ([`templates/sub-agents.md`](../templates/sub-agents.md), **Point a sub-agent at the rule**). What a prompt
+   does carry is the step's own context: the `plan.sh show` output, the baseline figures, what the step may not
+   touch. **Every spawn also names your plan's path.**
 
-**Addressing the plan.** Every checklist item carries an ID (`GU07`), and `plan.sh` — which ships with these
-instructions at `scripts/plan/plan.sh`, under `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin and under
-`.claude/` in a plain checkout — is how you read and write them. Its README sits beside it.
+**Addressing the plan.** Every checklist item carries an ID (`GU07`). Read and write them with `plan.sh`, at
+`scripts/plan/plan.sh` under `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin and under `.claude/` in a plain
+checkout. Its README sits beside it.
 
 **The plan file is a positional argument on every call, and it comes last.** There is no `--plan` flag. `tick` and
-`show` take any number of IDs in one call and reject a shell loop around them, so batch the IDs rather than
-iterating:
+`show` take any number of IDs in one call and reject a shell loop around them. Batch the IDs:
 
 | Need                          | Command                                                                    |
 |-------------------------------|----------------------------------------------------------------------------|
@@ -103,8 +95,8 @@ iterating:
 current one is fully ticked; scoped, `every item in scope is ticked` is the stage's completion signal.
 `--section` narrows further and may be repeated. The flags' matching rules are the script's README.
 
-Refer to items by ID in every sub-agent prompt and ask for the ID back in the report, so a tick is never matched
-against wording that may have changed mid-run.
+Refer to items by ID in every sub-agent prompt and ask for the ID back in the report. Match a tick against the
+ID, never against wording.
 
 **Budget.** A step agent that returns `budget exhausted`, or a step the wave's verification has failed on
 three times, is escalated once before it is blocked ([`templates/sub-agents.md`](../templates/sub-agents.md),
@@ -114,49 +106,45 @@ three times, is escalated once before it is blocked ([`templates/sub-agents.md`]
 hand-edit a checkbox. Completed and verified in this run → `- [x]`; not done or blocked → keep `- [ ]`. An item
 with several sub-tasks is ticked only when all are done. Never tick on a sub-agent's claim alone if the stage
 guardrail later contradicts it — the guardrail wins. **`tick` refuses a green item whose target class still
-carries the stub marker** in a file the **Stubs** section records: the agent left a stub unimplemented. Re-delegate
-that class; never remove a marker to make a tick go through.
+carries the stub marker** in a file the **Stubs** section records. Re-delegate that class; never remove a marker
+to make a tick go through.
 
 **`plan.sh show <ID>` is also how a step's text reaches its sub-agent** — its target class, its test class, its
-`covers:` list and its scenarios verbatim. Read it from there rather than extracting it from the plan file by
-hand, which is a chance to paraphrase a scenario the agent is supposed to implement literally.
+`covers:` list and its scenarios verbatim. Pass its output. Never extract the step from the plan file by hand.
 
 A plan whose items have no IDs predates this format: `plan.sh validate` will say so item by item. Add the IDs
 first (you own plan edits), then proceed.
 
 If the script is absent or the call is refused — by a hook or by the user at the prompt — fall back to editing
 the checkboxes directly, write the log's **Caveats** entry and put the case as one line in your final report,
-as [`scripts/README.md`](../scripts/README.md) says. Everything
-below still applies; only the mechanics change, and `validate` is never run. Never stop for it — the skill that
-spawned you has already told the user.
+as [`scripts/README.md`](../scripts/README.md) says. Everything below still applies; only the mechanics change,
+and `validate` is never run. Never stop for it.
 
 ## Version Control
 
-Whether this run commits at all, and how, is the conventions' commit policy — read it with the
-other conventions in step 2 above, following the conventions index to wherever it lives. A repository has one
-history however many modules it has, so expect it at the level that binds all of them. Where a stage below says
-"commit per the commit policy," that policy is what it means.
+Whether this run commits at all, and how, is the conventions' commit policy. Read it with the other conventions
+in step 2 above, following the conventions index to wherever it lives. Expect it at the repository level. Where a
+stage below says "commit per the commit policy," that policy is what it means.
 
 **Missing or silent means no commits.** Never invent a commit policy.
 
-**Another plan may be running beside yours, and its commits land in the same history.** That is a constraint on
-the policy, not something you resolve: rules written for one plan at a time may need to say how a commit is
-scoped, and what to do when a concurrent one is mid-flight. Follow whatever they say and report a refusal they do
-not cover, rather than improvising a scope or a retry.
+**Another plan may be running beside yours, and its commits land in the same history.** Follow what the policy
+says about commit scope and a concurrent commit mid-flight. Report a refusal it does not cover. Never improvise a
+scope or a retry.
 
 ## No Automatic Re-Review
 
-A plan is reviewed once, by `plan-task`; the readiness gate above you may offer the user one more before you
-start. Editing it afterwards triggers no second pass, not even when a mid-run blocker forces a change. When a
-step agent reports a plan defect, record it in the **Run Log** and fix the plan text in place. Do not spawn a
-review to confirm it.
+Editing the plan mid-run triggers no second review, not even when a blocker forces a change. When a step agent
+reports a plan defect, record it in the **Run Log** and fix the plan text in place. Do not spawn a review to
+confirm it.
 
 ## At Every Stage Boundary — Reproduce What the Stage Reported
 
 A step report may carry a defect as a case. Deal with it as soon as the stage's guardrail holds, before the
-stage's commit. What to decide, what to spawn and what to record is `reproducing.md` in the `templates` directory beside the skills. Two things are yours: this task's
-own defect is a scenario added to the owning red step, or a new red/green pair where no step owns the class;
-and every reproduction is recorded in the Run Log before the stage commits.
+stage's commit. What to decide, what to spawn and what to record is `reproducing.md` in the `templates` directory
+beside the skills. Two things are yours: this task's own defect is a scenario added to the owning red step, or a
+new red/green pair where no step owns the class; and every reproduction is recorded in the Run Log before the
+stage commits.
 
 **A scope gap is not a finding.** A step report may say a requirement of this task reaches files the plan never
 named. Check it against the spec. Where a requirement covers it, the plan is short. Write the missing items
@@ -169,9 +157,9 @@ requirement covers it, report it as a case or a hypothesis like anything else.
 Covers the plan's **Stabilization** group — its **API Contract**, **Database**, and **Interface-First / Build
 Stabilization** sections, in that order. Spawn **one `stabilization-step` agent** for the whole group, on the
 execution model, passing the plan path, every item id in listed order, the ids of the red steps whose scenarios
-the stubs must agree with, the module's baseline figures and the conventions index paths. What it may and may not do is
-`stabilizing.md` in the `templates` directory beside the skills — the agent reads it as its brief; you verify
-against it below.
+the stubs must agree with, the module's baseline figures and the conventions index paths. What it may and may
+not do is `stabilizing.md` in the `templates` directory beside the skills. The agent reads it as its brief; you
+verify against it below.
 
 **Stabilization guardrail** — verify yourself before ticking. Tick each item the agent reports done;
 `plan.sh block` the rest with the reason it gave, and record every widened boundary it reports in the **Run
@@ -188,25 +176,22 @@ Log**. The checks:
 3. **Record the stubbed files.** `plan.sh stub <path>... --marker <token> docs/<plan>.md`, with every file
    the agent's report names a stub in, and the marker the module's code-style conventions name (omit
    `--marker` for the default). That writes the log's **Stubs** section, which `plan.sh tick`, `plan.sh stubs`
-   and the archive hook read: a green item whose class still carries the marker cannot be ticked, and a task
-   whose files still carry it cannot be archived. Record even when the report names no stub, so the section
-   exists and says so.
+   and the archive hook read. Record even when the report names no stub.
 
 If any check fails for a reason caused by this plan's changes, re-delegate to `stabilization-step` until it holds.
-If it fails for a reason **unrelated to the plan**, apply the [Unrelated Failures](#unrelated-failures--report-dont-fail) rule.
+If it fails for a reason **unrelated to the plan**, apply the
+[Unrelated Failures](#unrelated-failures--report-dont-fail) rule.
 
 Once the guardrail holds, commit per the commit policy.
 
 ## Stage 2 — RED Phase (parallel)
 
 Covers the plan's **Red Phase** group — its **TDD Unit Red Phase**, **TDD Integration Red Phase**, and **TDD
-System Test Red Phase** sections. Writing tests has no cross-dependencies — the stubs they compile against all
-exist after Stage 1 — so:
+System Test Red Phase** sections. Red steps have no cross-dependencies:
 
-- Collect the unchecked items across all three red sections — `plan.sh next --group red` lists them, and reports
-  the stage finished rather than rolling into Green — and spawn them in waves under `waves.md` in the `templates`
-  directory beside the skills: bundled by grouping and layer, capped by the conventions, verified by the agent
-  alone or by you once per wave, ticked per step ID.
+- Collect the unchecked items across all three red sections with `plan.sh next --group red`. Spawn them in
+  waves under `waves.md` in the `templates` directory beside the skills: bundled by grouping and layer, capped by
+  the conventions, verified by the agent alone or by you once per wave, ticked per step ID.
 - Spawn each bundle on the agent matching its layer, passing every one of its steps' context (target class, test
   class, covered methods, the given/when/then scenarios and the `update:` bullets verbatim) and the conventions
   index paths:
@@ -214,16 +199,14 @@ exist after Stage 1 — so:
     - integration steps → `tdd-integration-red-phase-step`
     - system steps → `tdd-system-red-phase-step`
 - When a report comes back, carry two of its lists into the plan before ticking: every `added:` case becomes a
-  scenario sub-bullet under its step, marked `(added)`, so the plan stays the record of what the suite holds;
-  every `left:` entry whose reason names a plan defect — a premise that fits no test, a consequence that does not
-  follow — goes in the **Run Log** like any other defect a step agent reports. A `left:` entry that merely says
-  the premise did not hold there needs nothing.
+  scenario sub-bullet under its step, marked `(added)`; every `left:` entry whose reason names a plan defect — a
+  premise that fits no test, a consequence that does not follow — goes in the **Run Log**. A `left:` entry that
+  only says the premise did not hold there is not recorded.
 
 **Per-step guardrail**: the test classes written **compile cleanly and fail at runtime**. A red test that passes
-against a stub is as much a defect as one that doesn't compile — it means the test asserts nothing — with one
-exception: tests asserting the *absence* of behaviour (e.g. "no exception is thrown") may legitimately pass
-against a no-op stub, and are listed as expected passes rather than reworked. Production code must not be touched
-in this stage.
+against a stub is a defect, with one exception: a test asserting the *absence* of behaviour (e.g. "no exception
+is thrown") may pass against a no-op stub, and is listed as an expected pass rather than reworked. Production
+code must not be touched in this stage.
 
 **Stage guardrail — RED exit check**: once every item is ticked or recorded as blocked, run `red-exit.md` in the
 `templates` directory yourself. Do not start Stage 3 until it holds for every non-blocked item.
@@ -236,12 +219,8 @@ Covers the plan's **Green Phase** group — its **TDD Unit Green Phase**, **TDD 
 System Test Green Phase** sections.
 
 Ordering constraint: green steps run in parallel **except where the plan declares a dependency**. A green step
-may carry `after:` naming other green target classes its tests exercise as real, unmocked collaborators (e.g. an
-integration adapter whose execution path runs through a mapper implemented at unit level, or a usecase whose unit
-tests use a real domain entity another unit step implements) — such a step cannot go green before those steps are
-done. **System green depends on everything** (a system test drives the full stack — usecase logic *and* adapters
-must exist), so it starts only after every unit and integration green item is ticked. The final production
-implementation lands here.
+may carry `after:` naming other green target classes. It starts only after those steps are ticked. **System green
+depends on everything**: it starts only after every unit and integration green item is ticked.
 
 1. Take the unchecked items of **TDD Unit Green Phase** and **TDD Integration Green Phase** as one batch and
    schedule it in **dependency waves**:
@@ -250,10 +229,8 @@ implementation lands here.
    plan.sh next --group green --section unit --section integration
    ```
 
-   That is the scheduler: it lists exactly the items whose `after:` dependencies are all ticked, so re-running it
-   after each tick is what reveals the next wave. Never spawn a step `next` does not list. The two `--section`
-   flags keep system green out of this batch: a system item depends on everything by position, not by `after:`,
-   and would otherwise come back eligible in the first wave.
+   It lists the items whose `after:` dependencies are all ticked. Re-run it after each tick for the next wave.
+   Never spawn a step `next` does not list. Keep both `--section` flags: they keep system green out of this batch.
 
    Each wave runs under `waves.md`, as in Stage 2 — bundled, capped, verified once, ticked per step ID, a blocked
    step's dependents never spawned. Unit items run on `tdd-unit-green-phase-step` and integration items on
@@ -263,13 +240,10 @@ implementation lands here.
    before proceeding. Once green, commit per the commit policy (if its granularity commits per wave —
    otherwise this checkpoint is a no-op and the commit happens at stage end).
 3. Only then run the **TDD System Test Green Phase** steps — **sequentially, one sub-agent at a time, in plan
-   order**, on `tdd-system-green-phase-step`. These fix remaining production bugs until the
-   system tests pass; they never modify test classes. System green steps are never parallelized: their fixes may
-   land in any production layer, and two entry points routinely share a usecase or an outbound adapter — parallel
-   agents would race on the same production files. The one-class-one-agent rule only protects steps whose write
-   scope is one class; a system step's write scope is the whole stack. Spawn the next step only after the previous
-   one's report is in and its item is ticked (or its blocker recorded), passing along which production classes
-   earlier system steps already modified.
+   order**, on `tdd-system-green-phase-step`. These fix remaining production bugs until the system tests pass;
+   they never modify test classes. System green steps are never parallelized. Spawn the next step only after the
+   previous one's report is in and its item is ticked (or its blocker recorded), passing along which production
+   classes earlier system steps already modified.
 
 **Per-step guardrail**: every test in the step's test class passes.
 
@@ -278,84 +252,70 @@ Control policy.
 
 ## Stage 4 — Refactor (single sub-agent, whole diff)
 
-Runs only when every unit, integration,
-and system green item is ticked (blocked items excluded — a partially blocked plan still gets its completed part
-refactored) and the module's full suite is green.
+Runs only when every unit, integration, and system green item is ticked (blocked items excluded; a partially
+blocked plan still gets its completed part refactored) and the module's full suite is green.
 
-The diff is **this plan's, so one module's**. A task with several plans gets one refactor pass each, under that
-module's own conventions — never one pass across two stacks, which is a diff no single set of refactoring
-conventions describes.
+The diff is **this plan's, so one module's**. Never one pass across two modules.
 
-Spawn **one** `tdd-refactor-phase` sub-agent for the entire plan — never in parallel with anything **in this
-pipeline**; another module's pipeline is unaffected and keeps running. Pass it:
+Spawn **one** `tdd-refactor-phase` sub-agent for the entire plan, never in parallel with anything **in this
+pipeline**. Pass it:
 
 - the **diff scope**: every production and test file this plan created or modified, compiled from the plan's step
   targets plus the file lists in the step agents' reports (and a version-control diff against the pre-plan
   baseline, if one is available);
 - the plan file path (read-only context);
-- the conventions index paths, with a note whether the module states refactoring conventions — a module
-  without them is fine (the agent falls back to its defaults plus the style rules it finds).
+- the conventions index paths, with a note whether the module states refactoring conventions. A module without
+  them is fine.
 
 **Stage guardrail** — verify yourself after the agent reports: the full suite is green with the **same test count**
-as before the stage (a changed count means a test was lost or duplicated), and the architecture-enforcement test
-passes (extractions may have created or moved files). This stage changes no behavior and ticks no checkboxes — if
-the agent reports blocker-level findings (a suspected bug the tests missed, an over-specified test), record them
-in the **Run Log**.
+as before the stage, and the architecture-enforcement test passes. This stage ticks no checkboxes. If the agent
+reports blocker-level findings (a suspected bug the tests missed, an over-specified test), record them in the
+**Run Log**.
 
 Once the guardrail holds, commit per the commit policy.
 
 ## Stage 5 — Wrap-Up and Whole-Plan Guardrail
 
 **Your wrap-up ends at your plan.** Archiving the task directory, and whatever the conventions run over finished
-work, belong to the level that spawned you — they are about a directory you cannot see, and they take an archived
-plan you never produce. Do steps 1 to 3 and report.
+work, belong to the level that spawned you. Do steps 1 to 3 and report.
 
-Your plan's **Post-Implementation Steps** group is a different list, and it is yours: checklist items inside the
-plan, written for this task.
+Your plan's **Post-Implementation Steps** group is yours: checklist items inside the plan, written for this task.
 
 1. Implement the plan's **Post-Implementation Steps** group, in section order, one sub-agent per section.
 
    **The Performance section runs first, on the execution model, under `step-formats.md`'s Performance Step
    Format** — name that file in the spawn as the rule. `plan.sh next --group post --section performance`
-   lists its items; pass their `plan.sh show` output, the plan path and the conventions index paths. The agent writes each test with the threshold in code, runs it the way the
-   testing conventions say, and reports the figure per item. Tick an item whose test exists and ran, whatever
-   the figure. A `rerun` item writes nothing: the agent runs the test as it stands and reports the figure
-   against the threshold the test carries. Record each figure beside its threshold in the **Run Log** —
+   lists its items; pass their `plan.sh show` output, the plan path and the conventions index paths. The agent
+   writes each test with the threshold in code, runs it the way the testing conventions say, and reports the
+   figure per item. Tick an item whose test exists and ran, whatever the figure. A `rerun` item writes nothing:
+   the agent runs the test as it stands and reports the figure against the threshold the test carries. Record
+   each figure beside its threshold in the **Run Log** —
    `- **RL<nn> (PM01):** measured 900 ms against a threshold of 300 ms` — and carry the pair into your report.
 
-   **An item an Open Question authorized carries that question's answer verbatim.** The checklist item is a
-   summary written when the answer arrived; the answer is what the user actually asked for, and the two drift in
-   exactly the direction that drops half of it. Quote the `- A:` text into the prompt, and before ticking the
-   item, read what was produced against that text rather than against the item. The same holds for any
-   `- Action:` on a Review Finding that prescribes content.
+   **An item an Open Question authorized carries that question's answer verbatim.** Quote the `- A:` text into
+   the prompt. Before ticking the item, read what was produced against that text, not against the item. The same
+   holds for any `- Action:` on a Review Finding that prescribes content.
 2. **Whole-plan guardrail** — run yourself, from the conventions' commands: the module(s) fully compile, the
    architecture-enforcement test passes, and **the entire test suite is green** — not just the classes this plan
-   touched. The performance tests are outside the suite command by the conventions' own rule, so a missed
-   threshold does not turn this red. If the module conventions name a **coverage guardrail**, run it here too — this is the first point at
-   which every step exists, so it is the only point where a coverage figure means anything. Coverage below the
-   minimum is a blocker: spawn a step agent for the tests that close the gap, or record why in the **Run Log**.
-   Then **`plan.sh stubs`** must report no marker left in the recorded files: a stub no `covers:` list reached is
-   a method that ships returning its stub value, and the suite cannot see it because nothing calls it. One left
-   is a plan defect — a method stabilized and never planned — recorded in the **Run Log** and implemented by a
-   step agent against the intent comment, or reported as a blocker; the archive hook will refuse the task
-   otherwise.
+   touched. A missed performance threshold does not turn this red. If the module conventions name a **coverage
+   guardrail**, run it here too. Coverage below the minimum is a blocker: spawn a step agent for the tests that
+   close the gap, or record why in the **Run Log**. Then **`plan.sh stubs`** must report no marker left in the
+   recorded files. One left is a plan defect: record it in the **Run Log**, then have a step agent implement it
+   against the intent comment, or report it as a blocker.
 3. **Hand up what was reproduced.** Every reproduction the Run Log names, with its class and method and the
    case behind it, goes into your report. The level above files it.
 4. Commit per the commit policy, then **report your plan complete**. Leave the task directory exactly
-   where it is. Whether the task as a whole is finished is a fact only the level above can see, and archiving on
-   the first plan to finish would move the directory out from under a run still writing to it.
+   where it is.
 
    If unchecked items or blockers remain, say so instead: what is open, and why.
 
 ## Unrelated Failures — Report, Don't Fail
 
-The baseline taken above you guarantees the run starts green, so this rule covers failures that surface
-**mid-run** yet turn
-out to be **unrelated to this plan** (verify: it reproduces on a code path this plan never touched, or is clearly
-environmental/flaky). In that case:
+This rule covers a failure that surfaces **mid-run** and is **unrelated to this plan** (verify: it reproduces on
+a code path this plan never touched, or is clearly environmental/flaky). In that case:
 
 - do **not** treat it as a stage failure and do **not** abandon the run — continue with the plan's own work;
-- do **not** silently fix it either — unrelated fixes don't belong to this plan's diff;
+- do **not** fix it either;
 - record it in the **Run Log** with enough detail to reproduce (test name, error, suspected cause), and call it
   out in the final summary.
 
@@ -364,8 +324,7 @@ environmental/flaky). In that case:
 - Any plan but yours.
 - Any module but the one your plan implements.
 - Archiving the task directory.
-- Whatever the conventions run over finished work — your plan's **Post-Implementation Steps** are yours; that
-  list is not.
+- Whatever the conventions run over finished work.
 
 ## What To Report
 

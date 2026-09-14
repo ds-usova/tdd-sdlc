@@ -53,9 +53,8 @@ ID, its lines and its table row. `fix.sh` counts it closed rather than open; a `
 | `needs:`      | any                  | what must already be true for this step's run to be green               |
 | `docs:`       | any                  | the pages this step invalidates                                         |
 
-**`green` carries no `test-files:`.** A fix proven by a test the same step edited is proven by nothing. The test
-was written by the `red` step and stays as it was written. A `green` step that cannot pass without changing it
-goes back to the user: the reproduction was wrong, and the diagnosis rests on it.
+**`green` carries no `test-files:`.** The test was written by the `red` step and stays as it was written. A
+`green` step that cannot pass without changing it goes back to the user: the reproduction was wrong.
 
 **`reproduces:` names the symptom, not the assertion.** "The second call charges the account twice" is the
 symptom. `assertEquals(1, charges.size())` is how a test says it, and how it says it is `runs:`. The symptom is
@@ -76,12 +75,11 @@ either step runs. The order the kinds run in is the skill's, and it is the same 
 **Together `files:` and `test-files:` are the boundary.** Anything outside them is another step's, or another
 fix's.
 
-**A path under `files:` or `test-files:` is written from the repository root**, so a step in one module's file
-and a step in another's read the same way. A reference to another fix file names it as it sits beside this one:
-`shared/fix.md · FS01`.
+**A path under `files:` or `test-files:` is written from the repository root.** A reference to another fix
+file names it as it sits beside this one: `shared/fix.md · FS01`.
 
-**A `stabilize` step may carry no `files:` at all.** Preparing a stub, a fixture or a builder so the `red` step
-can be written is what the kind is for, and that work is all `test-files:`.
+**A `stabilize` step may carry no `files:` at all.** A stub, a fixture or a builder the `red` step needs is all
+`test-files:`.
 
 **A step lives in the file of the module it edits.** A bug crossing two services has a `stabilize` step in
 `shared/fix.md` for the contract, and its own `red` and `green` steps in each module's file.
@@ -95,9 +93,7 @@ step here defines.
 refuses a `fixes:` naming anything but a `red` step in the same file.
 
 **A step carries `docs:` where its change makes a page wrong** — a port, a contract, a stored shape, a
-configuration knob, or an operation. Often a `green` step does, because the page described the old behaviour as
-the behaviour. **A page that already says what the fix makes true carries no line**: the code was wrong, not the
-page, and naming it sends the archiving pass looking for a change nobody made.
+configuration knob, or an operation. **A page that already says what the fix makes true carries no line.**
 
 **A schema, a migration, or any other file the build reads is a production file**, and goes in `files:`. Where
 it also states a promise a reader relies on, its page goes in `docs:` as well.

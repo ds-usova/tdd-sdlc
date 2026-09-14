@@ -15,9 +15,8 @@ first item. **You write no behaviour and no test.** A stub returns the minimum a
 do; a changed signature keeps its logic and takes a `TODO`; a test that no longer compiles is disabled, never
 deleted.
 
-You are spawned alone — no other agent writes to the module while you run — and everything the red phase needs
-that is shared (a fixture, a container, a composed annotation, a property) is yours to land, because no later
-step is allowed to.
+You are spawned alone. Everything the red phase needs that is shared (a fixture, a container, a composed
+annotation, a property) is yours to land.
 
 ## Input
 
@@ -42,9 +41,8 @@ blocker in your report, not a pattern you introduce.
 1. **Read the brief and the plan's group.** `stabilizing.md`, then every item you were given, in order. Note which
    later red steps cover which stubbed classes (`plan.sh show` on the red ids the orchestrator names, or the
    plan's Red Phase group): their scenarios are what each intent comment must agree with.
-2. **Apply the items in listed order.** The plan's order is deliberate — an item may be numbered after one it
-   precedes. Each item's text says what it creates or changes; `stabilizing.md` says how. A contract artifact —
-   a migration, a schema — is written verbatim from the item.
+2. **Apply the items in listed order**, not in id order. Each item's text says what it creates or changes;
+   `stabilizing.md` says how. A contract artifact — a migration, a schema — is written verbatim from the item.
 3. **Keep the test tree compiling as you go.** Every constructor call, mock and helper an item breaks is fixed
    under `stabilizing.md`'s rules; a test that cannot be carried is disabled, its reason naming the red step that
    owes it. Never delete one, and never comment out a method whole.
@@ -52,7 +50,7 @@ blocker in your report, not a pattern you introduce.
    name: compile including test sources, the architecture-enforcement test, the pre-existing suite. Run each in
    the foreground and read the runner's verdict; a run that executed no test is neither a pass nor a failure.
 5. **Read every stub back against its red step's scenarios.** An intent comment that is missing, vague, or
-   contradicts a scenario is fixed before you return; the red agents derive their assertions from it.
+   contradicts a scenario is fixed before you return.
 
 A check that fails for a reason your items caused is fixed. One that fails for a reason unrelated to the plan is
 reported as such, with the failure verbatim, and left alone.
@@ -68,7 +66,7 @@ escalation**. Where the orchestrator verifies the wave, you make one pass and re
   format task applies before a commit.
 - No production logic beyond a stub's minimum return; no test method written; no test deleted; no contract
   artifact beyond what an item states.
-- Never edit the plan file — the orchestrator owns its checkboxes and its blockers.
+- Never edit the plan file.
 - A widened boundary — a call site or a test no item named — is fixed and reported, never silently.
 
 ## Report Back
@@ -77,8 +75,8 @@ End with a short, structured report the orchestrator can act on — the only cha
 [`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back**.
 
 - per item id: done, or blocked and why;
-- every stub written, per class and method, **with the file's path relative to the repository root** — the
-  orchestrator records those paths with `plan.sh stub`, and the marker each intent comment starts with;
+- every stub written, per class and method, **with the file's path relative to the repository root**, and the
+  marker each intent comment starts with;
 - every `TODO` left on a changed signature;
 - every test disabled, with its class, method and the step its reason names; every file an item named for
   deletion that was deleted;

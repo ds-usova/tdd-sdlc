@@ -6,8 +6,7 @@ allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/rework/rework.sh *) Bash(bash 
 
 # Rework
 
-Change the shape of code the repository already has, never what it does. The suite that is already green is the
-safety net.
+Change the shape of code the repository already has, never what it does.
 
 ## The Five Kinds of Step
 
@@ -62,7 +61,7 @@ Run the full build and the entire suite of every affected module with its own co
 already answers for this commit is read, not repeated; that holds at every gate in this skill.
 
 - **Green**: record the commit.
-- **Anything red**: stop, change nothing, report the failures. Fixing them is not this rework's scope.
+- **Anything red**: stop, change nothing, report the failures. Do not fix them.
 
 Nothing is written before this passes.
 
@@ -119,8 +118,7 @@ after any answer or re-classification written in Phase 2.
 **A step reaches a sub-agent as `rework.sh show <ID> --file <steps>`**, never as a prompt retelling it.
 
 **Whether anything is committed is the conventions' commit policy.** A repository silent on it gets no
-commits anywhere in this skill. Where they do commit, the step's own green run is the guardrail the commit
-follows, and the commit is provisional: the closing full run proves the whole.
+commits anywhere in this skill. Where they do commit, a step is committed after its own green run.
 
 ### What Is Never Done
 
@@ -149,7 +147,7 @@ follows, and the commit is provisional: the closing full run proves the whole.
    copy included. Where the rework touched one module, the section's opening line names it instead of the
    module-first rule. **A rework files no refactoring candidates**; something worth doing later goes in the report,
    and the user decides whether it becomes a rework. **It may file a Deferred change**: a behaviour the code should
-   have that this rework, being behaviour-preserving, could not add. A rework with nothing open still gets the file.
+   have that this rework could not add. A rework with nothing open still gets the file.
    **Every critical block, bug block, `DX` row and `PX` row it files is appended to `docs/backlog.md`** — a `BC`
    row per critical block, a `BB` row per bug, a `BT` row per deferred change, a `BP` row per performance figure,
    each taking the next id in its table, in the shape [`backlog.md`](../../templates/backlog.md) gives, with the
@@ -175,7 +173,7 @@ follows, and the commit is provisional: the closing full run proves the whole.
 
 **One `tdd-refactor-phase` agent per affected module, over that module's diff**, on the model the module's
 conventions name for the refactor pass — the session's model where they name none. Never one pass across two
-modules: that is a diff no single set of refactoring conventions describes. Each gets its module's diff from the
+modules. Each gets its module's diff from the
 **Baseline:** commit, `rework.md` as the brief a tidier shape must not contradict, the module's conventions
 by name, and the last full suite run's figures for its module with whether the tree has changed since.
 

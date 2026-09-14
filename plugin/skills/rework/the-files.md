@@ -15,8 +15,8 @@ directory carries the number and the name; no file repeats them.
 
 **Every file that holds steps has a log beside it** under the file's stem — `rework-log.md`,
 `<module>/steps-log.md`, `shared/steps-log.md`. The steps file is what an agent reads and ticks; the log is what
-happened to it. **Each steps file and its log are owned by exactly one agent**, so two agents never write one
-file. **`rework.md` is the artifact a fresh session resumes from**, its log read with it — see
+happened to it. **Each steps file and its log are owned by exactly one agent.** **`rework.md` is the artifact a
+fresh session resumes from**, its log read with it — see
 [`resuming.md`](../../templates/resuming.md).
 
 **`**Closed:** <why>`** in `rework.md`'s header means the rework was decided against before its steps were
@@ -103,14 +103,12 @@ none. A rework keeps no **Attempts** and no **Review Findings**.
 
 ## What changes
 
-**This section is the rework to a person.** A reader who agrees with **The fix** and these tables can stop; the
-rest is evidence.
+**This section is the rework to a person.**
 
-- **Rows are grouped by the move they make**, under a bold clause saying what that group achieves. A rework is
-  usually three or four moves; twenty rows in ID order are not readable.
+- **Rows are grouped by the move they make**, under a bold clause saying what that group achieves.
 - **`What changes` starts with a verb** — `move`, `split`, `rename`, `narrow`, `add check`, `drop` — and is one
   clause. A row that needs two is two steps.
-- **`Touches` is the one class or package the step reaches**, so the blast radius is read down one column.
+- **`Touches` is the one class or package the step reaches.**
 - **`Not changed:` names what a reader would fear this rework alters and it does not** — the SQL text, a test
   assertion, a public port.
 

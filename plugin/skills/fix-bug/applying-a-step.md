@@ -5,25 +5,34 @@ prints.
 
 | Kind        | Edit                                                        | Then run                                                            |
 |-------------|-------------------------------------------------------------|---------------------------------------------------------------------|
-| `stabilize` | carry each broken call site back to compiling, nothing more | the module's whole suite · the architecture check — see below       |
+| `stabilize` | carry each broken call site back to compiling, nothing more | the module compiles · `test-files:` · the architecture check — below |
 | `red`       | only `test-files:`, and no production file at all           | `runs:` — **it must fail, with the symptom `reproduces:` names**    |
 | `green`     | only `files:`, and no test file at all                      | `runs:` — it passes · then the test classes of every `files:` entry |
 
+## What A Step Runs
+
+**A step runs the module's compile and the test classes its own lines name**, with the focused run command the
+conventions give. `files:` and `test-files:` are the boundary. The run stays inside it.
+
+**No step runs the module's whole suite.** The whole suite runs where this skill says: Phase 0's baseline, the
+module agent after its last `green` step, and Phase 4's close. The one exception is the shared test
+infrastructure case below.
+
 ## The stabilize step
 
-**It exists so the `red` step can be written** — an interface the test needs, a signature the fix requires, a
+**It moves what the `red` step needs first** — an interface the test needs, a signature the fix requires, a
 contract the bug spans, a schema change no code path reads yet. How each edit is made — the stub, the `TODO` on
-a changed signature, the disabled test — is `stabilizing.md` in the `templates` directory beside the skills, the
-one statement of it for every workflow that stabilizes. What is a fix step's own: every test it disables is
-named in `disables:`, and a migration that has run is not undone by reverting its file — say so in the report.
+a changed signature, the disabled test — is `stabilizing.md` in the `templates` directory beside the skills.
+What is a fix step's own: every test it disables is named in `disables:`, and a migration that has run is not
+undone by reverting its file — say so in the report.
 
 **A `stabilize` that finds a file its boundary does not name widens that line and says so in the log's Run
 Log** — the one edit to a step's text its agent may make, and every widening gets its `RL` note. It never widens
 into a behaviour change.
 
-**A `stabilize` step with an empty `files:` is proven by the classes it named**, plus the architecture check.
-The exception is shared test infrastructure: a builder, a fixture, a composed annotation, anything under the
-conventions' common test packages. A step touching one runs the whole suite.
+**A `stabilize` step is proven by the classes it named**, plus the architecture check. The exception is shared
+test infrastructure: a builder, a fixture, a composed annotation, anything under the conventions' common test
+packages. A step touching one runs the whole suite.
 
 ## The red step
 
@@ -39,16 +48,14 @@ Three ways it can look finished and be worthless:
 - **It fails for the right reason but only here** — a stack trace, a wall-clock time, an unordered collection.
   Assert the symptom the user reported.
 
-**Record the failure output verbatim, in the report.** It is the step's proof and what the `green` step is
-measured against.
+**Record the failure output verbatim, in the report.**
 Where `reproduces:` carries a rate, run the counts `SKILL.md` gives for an intermittent bug.
 
 ## The green step
 
 **It changes production code until `runs:` passes, and touches no test.** Then the test classes of every file in
-`files:`, nothing wider. The whole suite runs once, over the finished fix, in `SKILL.md`'s Phase 4. **The fix is
-the smallest one that makes the symptom impossible** — a guard clause that hides the bad value is not a fix where
-the bad value is the bug.
+`files:`, nothing wider. **The fix is the smallest one that makes the symptom impossible** — a guard clause that
+hides the bad value is not a fix where the bad value is the bug.
 
 **A symptom that survives a step you believe is correct is a second cause.** Stop, do not revert, write the
 attempt in the log's Attempts saying which cause is now gone, `fix.sh block` the step, and return.

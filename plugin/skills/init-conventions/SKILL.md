@@ -9,14 +9,11 @@ Give a repository the conventions documents the rest of this framework reads: wh
 tested, how its code and documents are written, and how an agent works it. Every statement comes from evidence in
 the tree — this skill records what the repository already does, and never invents a convention for it.
 
-**Split, not one file.** A reader — human or agent — needs one concern at a time: a red-phase run needs testing and
-build, a refactor pass needs code style, a design needs architecture and diagrams. One file per concern, reachable
-from an index, means each reader opens two files instead of one long one.
+**Split, not one file.** One file per concern, reachable from an index.
 
 ## 1. Survey Before Writing
 
-Read the repository first. A conventions file written from a guess is worse than no file, because everything
-downstream trusts it.
+Read the repository first.
 
 | Subject          | Where the answer already is                                                                  |
 |------------------|-----------------------------------------------------------------------------------------------|
@@ -37,15 +34,13 @@ Rules for the survey:
 - **Cite from the tree.** Every line written in step 3 traces to a file, a config entry, or a repeated idiom.
 - **Two examples make a convention.** One class doing something is that class; the same shape in several is a rule.
 - **Never guess.** What the tree does not answer is written as `TBD — <what to confirm>: <option A> / <option B> /
-  …` and collected for step 4. A TBD names the options it is choosing between, so it reads the same as a question
-  to the user and as a line in the file.
+  …` and collected for step 4. A TBD names the options it is choosing between.
 - **Name the setting, not its value.** A version or a timeout is referred to by the file that pins it.
 - **Performance is the one subject absence answers.** No tool in the tree means `not measured`, written as such
   and never asked. Where a tool exists, the survey still owes where the figure is measured, how the test is run
   outside the full suite, and where a test lives.
 - **One survey agent per module** when the repository has several, run in parallel, each reporting findings rather
-  than writing files. A single-module repository is surveyed in this session. No conventions file exists yet to
-  name a sub-agent model, so the session's own model applies.
+  than writing files, on the session's own model. A single-module repository is surveyed in this session.
 
 ## 2. The Arrangement
 
@@ -53,9 +48,8 @@ Two tiers. A rule that binds every module lives at the repository root; a module
 contradicts it.
 
 **Repository root** — `docs/conventions.md` as the index, `docs/conventions/` holding one file per rule the survey
-found binding on every module. That set is the repository's, not this framework's: write a file for what step 1
-actually found, and none for what it did not. A repository that writes no decision records gets no page about
-them.
+found binding on every module. Write a file for what step 1 actually found, and none for what it did not. A
+repository that writes no decision records gets no page about them.
 
 What such a file typically turns out to be — as illustration, never a checklist to fill:
 
@@ -82,12 +76,11 @@ A single-module repository keeps the build facts in the module tier, and may hav
 | `follow-up.md`    | what runs once a change is complete, and what documents it earns                           | the last stage, archiving    |
 | `agent.md`        | commit behaviour, the models, this module's own cap on concurrent agents                    | the orchestrating skills     |
 
-**Every agent-only fact belongs in `agent.md`** and nowhere else. The other files are documentation for a person
-who happens to also be read by an agent: they describe the module, never a workflow, and never mention agents.
+**Every agent-only fact belongs in `agent.md`** and nowhere else. The other files describe the module, never a
+workflow, and never mention agents.
 
 **The test for `agent.md` is whether the fact survives without an agent.** What runs when a change is finished
-survives — a person doing the work by hand runs it too — so it is `follow-up.md`, not an agent fact. A sub-agent
-model does not survive, and belongs in `agent.md`.
+survives, so it is `follow-up.md`. A sub-agent model does not survive, and belongs in `agent.md`.
 
 The `conventions/` templates — under `${CLAUDE_PLUGIN_ROOT}/templates/` when this framework is installed as a
 plugin, under `.claude/templates/` in a plain checkout — are the module tier as blank files, one per row above
@@ -100,8 +93,7 @@ facts wherever it likes.
 ## 3. Write the Files
 
 **The index carries no content.** It states what the module or repository is, then one line per section file:
-a link, an em dash, and the concerns that file settles — enough to pick the right file without opening two.
-It also links the tier above it.
+a link, an em dash, and the concerns that file settles. It also links the tier above it.
 
 **Each section file opens with a breadcrumb heading** — `# [Conventions](../conventions.md) > Testing Conventions`
 at the module tier, `# Conventions > Writing Documentation` at the root — then one line saying what it governs,
@@ -126,19 +118,16 @@ and a recommendation first.
 
 `AskUserQuestion` takes four questions per call, so this is as many calls as the count needs — four per round,
 grouped by file, until each TBD has been asked exactly once. "One batch" means before hand-over, not one tool
-call. Selecting a few "most consequential" TBDs and leaving the rest in the files is a defect: the user knows the
-answers, and a question costs a minute where a TBD discovered later costs a turn.
+call. Selecting a few "most consequential" TBDs and leaving the rest in the files is a defect.
 
-Write the answers into the files. The chat answer is not the record.
+Write the answers into the files.
 
-Only a TBD the user declined to answer stays in the file, as `TBD — <what to confirm>: <options>`, visible rather
-than guessed.
+Only a TBD the user declined to answer stays in the file, as `TBD — <what to confirm>: <options>`.
 
 ## 5. Hand Over
 
 - List the files created and the files extended.
-- **Report what was deduced and from what** — one clause of evidence per non-obvious rule, so the user can catch a
-  wrong reading before the rest of the framework inherits it.
+- **Report what was deduced and from what** — one clause of evidence per non-obvious rule.
 - List every remaining `TBD` as a numbered list — file, what to confirm, the options — never as prose. Each one was
   asked in step 4; a TBD that was not asked is a step-4 defect, not a hand-over item.
 - **List every fact from `templates/conventions/contract.md` the written files do not state**, with what happens when

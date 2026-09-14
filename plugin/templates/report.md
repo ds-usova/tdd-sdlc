@@ -58,20 +58,17 @@ performance is not measured`, `Nothing open`, `No manual checks`.
   under `docs/implemented/` whose **Measured** names the test, read rather than remembered; `—` where none
   does. A figure past its threshold is
   also a **Performance** row in `findings.md` ([`findings.md`](findings.md)); here it is the figure, whichever
-  side of the line it fell. A rerun that lost against its previous figure is worth one clause under
-  the table, and nothing more: what to do about it is the user's.
+  side of the line it fell. A rerun that lost against its previous figure gets one clause under the table, and
+  nothing more.
 - **Cost** — the task's total in dollars, agents and wall time, read off `cost.md`. Where `cost.sh` was refused
   or absent, the line says so.
-- **Open** — the count per section of `findings.md`, and the link. Nothing more: the findings file is the
-  owner.
+- **Open** — the count per section of `findings.md`, and the link. Nothing more.
 - **Manual checks** — what no test can see, so a person must look. Sources: what an affected module's
   conventions say its finished work leaves for a person to look at, read rather than remembered; a check a
   module agent reported that the suite cannot cover; a bump that changes runtime behaviour no test reaches. The
-  block is a defect block minus what has not happened yet: no `Actual`, since nobody has looked, and no `Fix`,
-  since nothing is claimed wrong. **`Then` states one observable.** A check that needs three is three blocks:
-  bundled into one sentence, a person who sees two hold has no way to record the third failing. The tick rides
-  on the heading, so a half-worked list still says where it stopped. A manual check never blocks archiving and
-  never gets a backlog row.
+  block is a defect block without `Actual` and without `Fix`. **`Then` states one observable.** A check that
+  needs three is three blocks. The tick rides on the heading. A manual check never blocks archiving and never
+  gets a backlog row.
 
 **Write it last, before archiving**, once `findings.md` and `cost.md` exist, so every link and every count is
-read off a file rather than predicted. The links are relative and survive the move to `docs/implemented/`.
+read off a file. The links are relative and survive the move to `docs/implemented/`.

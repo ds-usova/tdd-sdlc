@@ -1,7 +1,6 @@
 # The closing report
 
-What a finished fix tells the user. Short: the files hold the detail, and the report points at them rather than
-restating them.
+What a finished fix tells the user. Point at the files; restate nothing they hold.
 
 - **Every log's Caveats first**, as [`scripts/README.md`](../../scripts/README.md)'s **The log keeps the
   record** says. Nothing when no log has the section.

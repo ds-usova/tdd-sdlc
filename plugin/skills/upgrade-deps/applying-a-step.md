@@ -32,10 +32,9 @@ every `change:` is made, run the whole suite.
 with the compiler's or runner's own output. On the third failure the change is kept back:
 
 1. **Undo that change only** — the version stays at the target, the other `change:` lines stay applied.
-2. **Build and run the suite.** Green: the module runs on the new version with the old API for this one item;
-   write the `kept back` entry in the log's `## Run Log` — what the guide asked, `Kept because:` the attempt
-   IDs, `Would unblock:` what would finish it — and continue with the next `change:`. Red: the old API does not
-   survive the new version either.
+2. **Build and run the suite.** Green: write the `kept back` entry in the log's `## Run Log` — what the guide
+   asked, `Kept because:` the attempt IDs, `Would unblock:` what would finish it — and continue with the next
+   `change:`.
 3. **Where step 2 is red**, the version goes back to where it was, every `change:` is undone, the step is
    `abandoned — <why>` on its header, an `RL` entry in the log's `## Run Log` says what was reverted, and its
    survey row says `blocked`. Return; the level above decides.

@@ -22,9 +22,8 @@ gates before anything starts, the seam that crosses modules, the pipelines, and 
 | step  | the step agents it spawns         | one class, one test class, one refactor pass           |
 
 **Point a sub-agent at the rule; do not restate it.** A rule the repository writes down is passed as the file
-that owns it, named so the agent reads it there — never as a remembered version of what that file says, which is
-a second copy that can drift and drifts in the one place no review looks. The same applies to counts and
-inventories drawn from the tree: read them, never recall them.
+that owns it, named so the agent reads it there, never as a remembered version of what that file says. The same
+applies to counts and inventories drawn from the tree: read them, never recall them.
 
 ## Input Resolution
 
@@ -40,8 +39,7 @@ acceptance scenario, what the task left open, what it cost, and the evidence tha
 | nothing          | the plan referenced in the conversation, else ask          |
 
 **A single plan is a task of one plan.** It takes exactly the phases below, and its one pipeline is spawned the
-same way. Nothing here has a special case for it, because a plan file cannot tell you whether a sibling exists
-and `plan.sh task` can.
+same way.
 
 Read the repository-wide conventions, and `<module>/docs/conventions.md` for every module the task's plans name.
 Follow the conventions index to wherever they live. They answer the build and test commands, the parallelism
@@ -53,9 +51,8 @@ Both are hard. Run them in this order.
 
 **Before either gate, the scripts.** Run `plan.sh status` on one of the task's plans. Refused or absent, tell
 the user and write that plan log's **Caveats** entry, as [`scripts/README.md`](../../scripts/README.md) says —
-once, here in the session, before anything is spawned, since a pipeline's report arrives only when it has
-finished — and continue. Every check below that names a script then has the same fallback: read the file and
-answer the question by hand.
+once, here in the session, before anything is spawned — and continue. Every check below that names a script
+then has the same fallback: read the file and answer the question by hand.
 
 **Gate 1 — every plan is ready.** A plan is ready only when the user has closed the loops the planning phase
 opened. Check every plan in the task directory, `shared/plan.md` included:
@@ -66,17 +63,13 @@ opened. Check every plan in the task directory, `shared/plan.md` included:
   plan. Where `approved` fails, the line is missing or the spec changed after it was written. Either way: stop,
   and say to run `plan-task` on the task again. The script ships with the `design-task` skill at
   `scripts/design/design.sh`.
-- **Open Questions**, in the plan: every `- **OQ<nn>:**` has a non-empty `- A:`. An unanswered question means a step
-  agent
-  will hit exactly the ambiguity the planner already flagged.
+- **Open Questions**, in the plan: every `- **OQ<nn>:**` has a non-empty `- A:`.
 - **Run Log**, in the `plan-log.md` beside it: every `RL` entry a previous partial run left with a `- Resolved:`
-  line has that line filled. An empty one is a step still blocked, and the run would stop there again.
+  line has that line filled.
 - **Review Findings**, in the same log: every `- **RF<nn>:**` has a non-empty `- Action:`. A deliberate "won't fix"
-  counts — the
-  point is that it was decided. A `mechanical` finding carrying `Action: applied — …` satisfies the gate on its
-  own, since `plan-task` wrote it when it applied the fix. A `decision` finding, and anything marked
-  `- Escalated:`, needs the user's answer. A plan whose review found nothing has its "no issues found" line
-  instead, and that passes.
+  counts. A `mechanical` finding carrying `Action: applied — …` satisfies the gate on its own. A `decision`
+  finding, and anything marked `- Escalated:`, needs the user's answer. A plan whose review found nothing has
+  its "no issues found" line instead, and that passes.
 - If an `Action:` or `A:` prescribes a change to the plan's steps or scenarios, confirm the plan text was
   actually updated to match. A decision written next to a finding but never applied to the step is unresolved.
 - **A plan edited since its review is offered a re-review, never given one.** Where a step, scenario or
@@ -88,21 +81,18 @@ opened. Check every plan in the task directory, `shared/plan.md` included:
 resolve it in the conversation, write their answers into the plan or its log, apply the resulting step changes,
 and only then proceed.
 
-**This gate cannot live in a pipeline.** It promises that an unready plan changes no file. A pipeline cannot keep
-that promise once a sibling is already writing.
-
 **Gate 2 — every module is green.** Run the full build and entire test suite, including the architecture test,
 of every module the task's plans name. Use the commands from each module's conventions.
 
-- **Everything green**, the expected case: proceed. From here on, any failure is attributable to this task.
+- **Everything green**, the expected case: proceed.
 - **Anything already red**: stop immediately, before a file is touched. Report the failures — test name, error,
-  suspected cause — and wait. Do not fix them: they predate the task, and fixing them is not its scope.
+  suspected cause — and wait. Do not fix them.
 
 Record each module's run: `plan.sh suite record --stage baseline --total <n> --skipped <n> --verdict green
-<module paths> <plan>`, on every plan that module has. The total and skipped counts are the figures every
-later guardrail compares against, and each pipeline is handed its own module's.
+<module paths> <plan>`, on every plan that module has. Each pipeline is handed its own module's total and
+skipped counts.
 
-**No pipeline repeats either gate.** By the time one starts, phase 1 has changed the tree.
+**No pipeline repeats either gate.**
 
 **A measurement is not repeated over an unchanged tree.** Before a guardrail runs a module's full suite, it
 asks `plan.sh suite check <plan>`. Exit 0: the tree matches the last recorded run; read its figures and go on.
@@ -116,23 +106,16 @@ contract, a repository-root file. Then the task holds `shared/plan.md`, and it i
 by its own `implement-plan-module` agent.
 
 - **It owns the seam, both sides' wiring to it, and whatever the change to it breaks** — the artifact, each
-  consuming module's generation or build hookup, and every call site the regenerated code no longer satisfies. A
-  removed parameter is still referenced by the code that read it, so a plan that lands only the schema leaves two
-  modules that do not compile.
+  consuming module's generation or build hookup, and every call site the regenerated code no longer satisfies.
 - **It stabilizes those call sites; it never reimplements them.** A changed signature keeps its logic and gains a
   `TODO`, a new method gets a stub with its intent comment, a test that cannot compile is disabled rather than
-  removed. Behaviour is a module plan's, and reworking it here would swallow that plan.
+  removed.
 - **Its exit guardrail is Stage 1's, over every module it lists** — they compile, their architecture tests pass,
-  their pre-existing suites are still green, and nothing was lost. Not a bespoke compile check: a guardrail that
-  only compiles proves nothing about what a regenerated contract did to behaviour that still had tests. Tell its
-  agent that its Affected Modules are all of them, not one. A module whose files this plan never touched — one
-  that only regenerates from the artifact and compiles clean — is answered by phase 0's figures under the rule
-  above, since nothing under it has been written.
+  their pre-existing suites are still green, and nothing was lost. Never a bespoke compile check. Tell its agent
+  that its Affected Modules are all of them, not one. A module whose files this plan never touched — one that
+  only regenerates from the artifact and compiles clean — is answered by phase 0's figures under the rule above.
 - **A disabled test's reason names the module plan and step that owes the rework** — `module-a/plan.md · RI03`.
-  That is a reference for whoever reads the skip list, not a schedule: the pipeline that owns the step clears it
-  during its own red phase.
-- **A blocked shared plan stops the task here**, with no module pipeline started. That is the cheapest failure
-  this skill can produce. Report it and stop.
+- **A blocked shared plan stops the task here**, with no module pipeline started. Report it and stop.
 
 ## Phase 2 — One Pipeline Per Plan
 
@@ -140,18 +123,15 @@ Spawn one `implement-plan-module` sub-agent per module plan, in the shape
 [`templates/sub-agents.md`](../../templates/sub-agents.md) gives. Give each its plan path, its module's phase-0
 figures, and the section name if the user narrowed the run to one.
 
-- **Nothing waits.** Phase 1 landed everything that crosses, so the module plans are independent by
-  construction. One blocking does not stop the rest.
+- **Nothing waits.** One blocking does not stop the rest.
 - **A pipeline that returns with children in flight is resumed, not restarted.** It picks up its own plan and
-  ticks. Resuming is [`templates/sub-agents.md`](../../templates/sub-agents.md)'s **continue an agent** row, and
-  a message left without its blocking read stalls the pipeline a second time.
-- **A step agent's report can arrive here.** You are the level a grandchild's task-notification reaches, and the
-  pipeline that spawned it never saw it. Relay what it says in the message that resumes the pipeline, rather than
-  waiting for a report that has already been delivered to the wrong level.
-- **How many start at once is the repository tier's answer.** One machine runs every module, and a module's own
-  conventions cannot see what a sibling is doing. Read the cap on concurrent agents at the level that binds all the
-  modules and start no more pipelines than it allows, starting the next as a running one finishes. If no cap is
-  stated, the default in [`templates/sub-agents.md`](../../templates/sub-agents.md) applies.
+  ticks. Resuming is [`templates/sub-agents.md`](../../templates/sub-agents.md)'s **continue an agent** row.
+- **A step agent's report can arrive here.** A grandchild's task-notification reaches you, not the pipeline
+  that spawned it. Relay what it says in the message that resumes the pipeline.
+- **How many start at once is the repository tier's answer.** Read the cap on concurrent agents at the level
+  that binds all the modules and start no more pipelines than it allows, starting the next as a running one
+  finishes. If no cap is stated, the default in [`templates/sub-agents.md`](../../templates/sub-agents.md)
+  applies.
 - **What happens inside a pipeline is its own.** Its module's cap, its stage order, its guardrails, its ticks.
   You reconcile nothing about a step and never edit a plan a pipeline owns.
 - **Report per plan as each returns.** One finishing does not wait for another.
@@ -164,17 +144,14 @@ When every pipeline has returned:
    all of them are complete, `shared/plan.md` included. Anything else: leave the directory in place and summarize
    what is open. The phases end here.
 
-   **No suite runs here.** Each pipeline's whole-plan guardrail was the last full run of its module. A
-   pipeline writes only inside its module, so that run still answers. A module whose files moved after its
-   pipeline returned is a defect: something wrote outside its own module. Record it in that plan's Run Log.
-   Rerun that module's suite. Stop on red.
+   **No suite runs here.** A module whose files moved after its pipeline returned is a defect: something wrote
+   outside its own module. Record it in that plan's Run Log. Rerun that module's suite. Stop on red.
 2. **Ask `plan.sh acceptance docs/<n>-<task-name>/`.** It follows every `AC` scenario in `spec.md` to a ticked
    step, that step's test class and the file in the tree that holds it
    ([`scripts/plan/README.md`](../../scripts/plan/README.md), **Acceptance**). Write what it printed to
    `review/acceptance.md`, verbatim. A scenario it reports as `missing` or `absent` is a Run Log entry for
    the plan that named it, measured like any other in the next step. It never stops the phases.
-3. **Write `review/findings.md`** — everything the task leaves open, from every plan at once. A person reading it
-   learns what they are inheriting without opening a plan.
+3. **Write `review/findings.md`** — everything the task leaves open, from every plan at once.
 
    Each plan log's **Run Log** is the source. Lift what is **still open** — a confirmed defect no scenario
    covered, a gap the design never named, an inconsistency the change left behind. A blocker the run settled
@@ -189,8 +166,7 @@ When every pipeline has returned:
    **Deferred change** is behaviour the design did not ask for and the code should have — never a defect, never
    a cleanup; it becomes its own task later, not a rework.
 
-   Write it before archiving, so the whole directory moves once and the folder is there for the evidence to
-   land in.
+   Write it before archiving.
 
    **Run `cost.sh report docs/<n>-<name>/` before archiving** and show the person what it printed. Refused or
    absent: say so and go on.
@@ -205,9 +181,8 @@ When every pipeline has returned:
    **Every critical block, bug block, `RX`, `DX` and `PX` row it files is appended to `docs/backlog.md`**, one
    pointer each, in the shape [`backlog.md`](../../templates/backlog.md) gives — a `BC` row per critical
    block, a `BB` row per bug, a `BR` row per candidate, a `BT` row per deferred change, a `BP` row per
-   performance figure, each taking the next id in its table, with the link written to the archived path, since
-   that is where the file is about to move. The findings file stays the row's owner; the backlog is how the row
-   is found once the task directory has left `docs/`.
+   performance figure, each taking the next id in its table, with the link written to the archived path. The
+   findings file stays the row's owner.
 
    **Close the row this task came from.** Where the spec's **Objective** names a backlog `BT` row, set the
    owning findings row's `Status` to `done · task <n>` and remove the `BT` row from `docs/backlog.md` in the same
@@ -217,28 +192,23 @@ When every pipeline has returned:
    row** ([`backlog.md`](../../templates/backlog.md)).
 5. **Archive**, on exit 0 from `plan.sh task` and on nothing else: move the **whole task directory** — every
    `plan.md` and its `plan-log.md`, the `design.md` they link, the `spec.md` and `design-log.md` beside it,
-   `review/`, and anything else the task accumulated — into `docs/implemented/`. Moving the directory rather
-   than the files keeps every link inside it working.
+   `review/`, and anything else the task accumulated — into `docs/implemented/`. Move the directory, not the
+   files.
 6. **Commit** per the commit policy. This is where its **squash-before-archiving** setting applies.
 7. **What the conventions run over finished work.** Every affected module's conventions say what happens once a
    change is complete — a measurement, a documentation pass. Follow the conventions index to wherever they say
    it, and run that list in its order, passing each entry the archived plan. An entry listed by several affected
    modules runs once. Each states its own commit behaviour.
 
-**Only this level can do any of it.** A pipeline sees one plan, so it can neither tell that the task is finished,
-nor collect what the other plans left open, nor hand an archived plan to a step that needs one.
-
 ## Version Control
 
-Whether this run commits at all, and how, is the conventions' commit policy. A repository has one
-history however many modules it has, so expect it at the level that binds all of them.
+Whether this run commits at all, and how, is the conventions' commit policy. Expect it at the level that binds
+all the modules.
 
-**Missing or silent means no commits.** Never invent a commit policy — an uninvited commit is exactly the kind of
-change a user managing their own history does not want.
+**Missing or silent means no commits.** Never invent a commit policy.
 
-**Several pipelines commit into that one history at once.** That is a constraint on the policy, not something
-this skill resolves. Follow whatever it says about scoping a commit and about a concurrent one, and report a
-refusal it does not cover rather than improvising a retry.
+**Several pipelines commit into that one history at once.** Follow whatever the policy says about scoping a
+commit and about a concurrent one, and report a refusal it does not cover rather than improvising a retry.
 
 ## Response Style
 

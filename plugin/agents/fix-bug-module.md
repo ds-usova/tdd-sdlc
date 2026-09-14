@@ -42,15 +42,14 @@ log:
 | Return blocked on one   | `fix.sh block FG01 "<why, in a clause>" --file <fix>`        |
 | Check the grammar       | `fix.sh validate --file <fix>`                              |
 
-**Name your file on every call**; several are in flight at once. The log is found beside it as `fix-log.md`;
-`--log` names another. **Read a step from `fix.sh show`**, never by extracting it by hand. **Tick a step only
-once you have verified it yourself** — `tick` empties the log's `In flight:` line, so a step is never ticked
-early to tidy it up. Where the script is absent or the call is refused — by a hook or by the user at the prompt
-— edit the files directly under the same rules, write the log's **Caveats** entry and put the case as one line
-in your final report, as [`scripts/README.md`](../scripts/README.md) says; never stop for it.
+**Name your file on every call.** The log is found beside it as `fix-log.md`; `--log` names another. **Read a
+step from `fix.sh show`**, never by extracting it by hand. **Tick a step only once you have verified it
+yourself.** Never tick a step early to empty the log's `In flight:` line. Where the script is absent or the call
+is refused — by a hook or by the user at the prompt — edit the files directly under the same rules, write the
+log's **Caveats** entry and put the case as one line in your final report, as
+[`scripts/README.md`](../scripts/README.md) says; never stop for it.
 
-**Run a suite in the foreground and wait for it.** Backgrounding it ends the turn mid-step, and nothing restarts
-you.
+**Run a suite in the foreground and wait for it.** Never background it.
 
 **A resumed run starts at the first unticked step**, from its own beginning.
 
@@ -66,9 +65,8 @@ you.
 
 **After every step**: whatever the conventions require before a commit, `fix.sh tick <ID>`, and — where the
 conventions commit — commit the fix file with the paths that step named. **A `red` step's commit carries test
-files and nothing else.** Another module's agent is committing into the same history at the same time; follow
-what the commit policy says about scoping and about a concurrent commit, and report a refusal it does not
-cover rather than retrying.
+files and nothing else.** Follow what the commit policy says about scoping and about a concurrent commit.
+Report a refusal it does not cover rather than retrying.
 
 ## What You Write
 
@@ -99,8 +97,7 @@ Questions, then return and say what you need.
 
 - **Every refusal in `applying-a-step.md`.** Write the attempt; the refusal says whether the step reverts.
 - **The third failed attempt on one step.** Return with the log rather than trying again.
-- **The symptom survives a `green` step you believe is correct.** The step stands; the bug has a second cause the
-  file does not cover.
+- **The symptom survives a `green` step you believe is correct.** The step stands.
 - **The cause is outside your module.** Name where. Never edit another module, never widen a step to reach one.
 - **A test asserting the old behaviour that no `red` step names.**
 
@@ -118,13 +115,13 @@ unrelated.
 
 ## What To Report
 
-Short. Your log holds the detail, and the level above reads it. Four things:
+Short. Four things:
 
 - **Every step by ID**, ticked or not, and the files it touched.
-- **The failure output of every `red` step**, quoted — the one thing that is not in your log.
+- **The failure output of every `red` step**, quoted.
 - **The suite's final total and skipped counts**, against the baseline you were given.
 - **What is blocked, and the decision you need** — the `RL` and attempt numbers behind it, not the log itself.
 
-**A second defect you noticed rather than ran — like anything else unexercised — is a hypothesis**, in the form
+**A second defect you noticed rather than ran is a hypothesis**, in the form
 [`templates/sub-agents.md`](../templates/sub-agents.md) **Reporting back** gives. One you watched fail is
 reported as the case that failed.

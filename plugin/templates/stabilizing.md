@@ -6,8 +6,7 @@ what proves it; this file says how each item is done. Read it before writing one
 
 ## What it is for
 
-A stabilize step exists so the step after it can be written — a red test against a stub, a call site against a
-changed signature, a schema no code path reads yet. It carries the tree back to compiling and **nothing more**.
+A stabilize step carries the tree back to compiling and **nothing more**, so the step after it can be written.
 A stabilize that changes what anything already does is a green step in disguise, and is refused as one.
 
 ## The edits
@@ -17,26 +16,21 @@ A stabilize that changes what anything already does is a green step in disguise,
 | a method that must exist                                                                                             | a stub: the signature, and a body returning the minimum — `null`, `0`, `false`, an empty value — with a short inline **intent comment** that starts with the **stub marker** and says what the method is supposed to do; a documentation comment alone does not carry implementation intent |
 | a signature that changes                                                                                             | keep every line of existing logic; add a `TODO` at the insertion point naming the work; add the minimal return or argument that compiles. Existing behaviour is never replaced or stubbed out                                                        |
 | a call site the change broke                                                                                         | the immediate fix that compiles, under the row above; a call site the step did not name is fixed the same way, and the widening is reported                                                                                                          |
-| a contract artifact — a schema, a migration, a message shape                                                         | written verbatim from what names it. Never edited by a red or green step: a test that fails on a missing table or property, rather than on an assertion, was written against an unstabilized tree                                                    |
-| configuration the change needs — a property, a default, a client's address, a schedule                               | added here, so no later step invents one on the fly                                                                                                                                                                                                  |
+| a contract artifact — a schema, a migration, a message shape                                                         | written verbatim from what names it. Never edited by a red or green step                                                                                                                                                                             |
+| configuration the change needs — a property, a default, a client's address, a schedule                               | added here; no later step adds one                                                                                                                                                                                                                   |
 | shared test infrastructure — a fixture, a builder, a composed annotation, a container more than one later step needs | written once, here; a red or green step adds nothing shared. Infrastructure that only proves itself at runtime ships with a throwaway test that boots it, where the module's testing conventions ask for one                                         |
 
 **An intent comment starts with the stub marker.** The marker is the token the module's code-style conventions
-name; where they name none, `stub-intent:`. It is one fixed string so that a grep finds every stub still waiting
-for its green step: `plan.sh stubs` and the archive hook read the files stabilization recorded and refuse to
-finish a task while the marker is in any of them, and `plan.sh tick` refuses a green item whose class still
-carries it. The green step that implements the method removes the comment with the stub body; a comment that
-outlives the stub reads as work still owed.
+name; where they name none, `stub-intent:`. `plan.sh stubs`, `plan.sh tick` and the archive hook grep for it.
+The green step that implements the method removes the comment with the stub body.
 
-**A stub's intent comment and a `TODO` name the work, never the step that owes it.** Nothing finds its work by
-searching the tree for a step id, and a module whose conventions ban citing a plan step in a comment fails the
-build on one. The one place a step id belongs is a disabled test's reason.
+**A stub's intent comment and a `TODO` name the work, never the step that owes it.** The one place a step id
+belongs is a disabled test's reason.
 
 ## Tests that stop compiling or would now fail
 
 **A test method never disappears from the run.** Whatever is done to it, the runner still reports it —
-**disabled**, as [`disabling-a-test.md`](disabling-a-test.md) says, so it counts as *skipped* rather than
-vanishing:
+**disabled**, as [`disabling-a-test.md`](disabling-a-test.md) says, so it counts as *skipped*:
 
 - **it compiles but would now fail** — disable it where it stands, body intact;
 - **it cannot compile** — keep the method, disable it, and comment out only the lines inside it. The husk stays
@@ -45,10 +39,9 @@ vanishing:
 A test whose assertions survive the change is a broken call site, fixed under the edits table above; only a test
 whose assertions the change invalidates is disabled.
 
-The reason names the step whose own test class this is. No step, or a step that reworks another class, is the
-same defect: a test nothing will ever re-enable. The skip list is then the
-list of what is owed, and the total and skipped counts stay readable against the baseline: the total falls only
-where an item names a file to delete, and the skipped count is exactly what was disabled here.
+The reason names the step whose own test class this is. A reason naming no step, or a step that reworks another
+class, is a defect. The total falls only where an item names a file to delete; the skipped count is exactly
+what was disabled here.
 
 **One other test is disabled on purpose: a reproduction of a bug the run found.** What it is, who writes it
 and how the skipped count accounts for it is [`reproducing.md`](reproducing.md).

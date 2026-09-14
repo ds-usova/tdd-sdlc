@@ -35,10 +35,10 @@ step ID for an approach that failed while applying that step; those live in the 
 the step.
 
 **Every entry goes in the `## Attempts` section, whatever its phase names.** The step ID is how an entry says
-which step it belongs to. An entry written under the step's own checklist bullet is misplaced.
+which step it belongs to. Never write an entry under the step's own checklist bullet.
 
 **Numbers are `AT01` upward, per log, assigned once and never renumbered.** A withdrawn attempt keeps its number.
-Since each log numbers its own, anything outside the log cites both: `module-a/fix-log.md · AT03`.
+Anything outside the log cites both the log and the number: `module-a/fix-log.md · AT03`.
 
 ## The rules
 
@@ -48,7 +48,7 @@ Since each log numbers its own, anything outside the log cites both: `module-a/f
 
 **An approach that was right and insufficient is a failure for this purpose.** A step that removes one of two
 causes leaves the symptom, so it gets an entry: `result: failed — the symptom survived`, and a `ruled-out:`
-saying which cause is now gone. That entry is what turns one step into two.
+saying which cause is now gone.
 
 **A probe that made a problem observable is not an entry either.** It becomes a step of its own or a proven
 link.
