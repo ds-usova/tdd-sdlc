@@ -25,7 +25,8 @@ it moved.**
 ## When Not To Use It
 
 - **Anything a caller could not ask for before** — a feature, a field, a changed outcome, however small the diff.
-  That is `design-task`, then `plan-task`.
+  That is `design-task`, then `plan-task`. Where one new assertion proves it and no contract moves,
+  `small-change`.
 - **A bug** — `fix-bug`.
 - **Cleanup inside a plan still being implemented** — its own refactor pass owns that diff. A row the plan's
   finished `review/findings.md` left behind is this skill's input, not that pass's.

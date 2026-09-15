@@ -13,7 +13,8 @@ Make code that already exists do what the repository already promised.
 **A bug is behaviour the repository already promises and does not deliver.** Where nobody promised it, this is a
 feature.
 
-- **New behaviour** — that is `design-task`, then `plan-task`.
+- **New behaviour** — that is `design-task`, then `plan-task`. Where one new assertion proves it and no contract
+  moves, `small-change`.
 - **Restructuring code that behaves correctly** — that is `rework`.
 - **A failure inside a plan still being implemented** — its own green phase owns that diff.
 

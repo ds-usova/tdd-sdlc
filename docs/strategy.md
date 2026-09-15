@@ -61,6 +61,20 @@ Each plan's agent fans out into step agents, one per class or test class. Three 
 the one below: a step never sees another plan, a pipeline never sees another module, and only the task level
 can tell the task is finished.
 
+## Proportionality
+
+Ceremony that costs more than the change buys nothing, because it does not get used. A user who must write a
+spec, a design and a plan to move a button will move the button by hand, and the repository then holds two kinds
+of change: the ones with a record and the ones without. That is the drift the framework exists to stop, arriving
+by the back door.
+
+So one count decides the path: **how many new assertions prove the change**. One is a small change, and
+`small-change` owns it. More is a feature. A moved contract is a feature at any count, because what a contract
+costs is paid by whoever depends on it.
+
+The user picks by size. What follows from it — whether the spec is amended, whether a test is possible, which
+tests run — the skill decides, and writes down what it decided.
+
 ## Where the plugin stops
 
 The feature workflow ends at `implement-plan`: the task directory moves to `docs/implemented/`, and whatever your
@@ -71,6 +85,10 @@ outlives the archived task and feeds the next `fix-bug`, `rework` or `design-tas
 was done, measured and left, linking the findings and `review/cost.md`, the run's cost per agent and per model
 ([`cost-recording.md`](cost-recording.md)). Documentation, release notes, and everything else that
 outlives the plan are your repository's job, in whatever form it already keeps them.
+
+An archived task is not closed for good. `small-change` takes one back out of `docs/implemented/`, amends its
+spec, and archives it again at the same path, so the backlog rows pointing there keep resolving. The third such
+change to one task is a feature, and the run ends there.
 
 ## The ids
 
@@ -133,6 +151,9 @@ Each of these is stated as a bare rule in a skill, an agent or a template. This 
   keep that promise once a sibling is already writing.
 - **A green step never edits the reproduction test.** A fix proven by a test the same step edited is proven by
   nothing. If the test needs changing, the reproduction, and the diagnosis resting on it, was wrong.
+- **A small change never runs the full suite, and commits alone.** A two-minute change that owes a ten-minute
+  suite gets made outside the framework instead, which is the drift the skill exists to stop. The cost: a
+  break in a test it did not run surfaces as a red baseline in the next run.
 - **The refactor agent reports a suspected bug only with a constructed failing case, and answers every
   refactoring priority in order, including the ones it did not reach.** Both are history. A confident overflow
   finding on an algorithm with exactly the right headroom took an induction proof and a dedicated agent to put

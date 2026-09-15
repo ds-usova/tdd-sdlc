@@ -141,9 +141,11 @@ The name is not a coincidence. Every phase of development gets a skill, and ever
 | Bug          | `/tdd-sdlc:fix-bug`                            | reproduces with a failing test, diagnoses, fixes; logs failed attempts | the reproducing test turns green               |
 | Refactoring  | `/tdd-sdlc:rework`                             | restructures code without changing behaviour; stops for approval       | suite green before, kept green after each step |
 | Dependencies | `/tdd-sdlc:upgrade-deps`                       | finds outdated and vulnerable libraries, upgrades one step each        | suite green before, kept green after each step |
+| Small change | `/tdd-sdlc:small-change`                       | one label, default or position; amends the spec it came from if a promise moves | one new assertion, and the tests that name it  |
 
-Every line writes its files and stops for your approval before it touches code. Every line implements with one
-agent per module. A bug
+Every line writes its files and stops for your approval before it touches code, and every line implements with
+one agent per module. `small-change` is the exception on both counts, and says so in its report: it stops only
+where a promise moves, spawns at most one agent, and never runs the full suite. A bug
 found on the way, a refactoring worth doing later, or a behaviour the change should also have had, becomes a
 row in `docs/backlog.md` — the input for the next `fix-bug`, `rework` or `design-task` run.
 
