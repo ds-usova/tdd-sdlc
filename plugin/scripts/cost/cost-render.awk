@@ -229,16 +229,55 @@ function plan_of(p,   s) {
 # A label may carry a multibyte character - the group row's ×. An awk that counts bytes pads such a
 # label one column short, so the columns are counted here: a byte in 0x80..0xBF continues a
 # character rather than starting one, and an awk that already counts characters finds none.
-function vlen(s,   t, c) {
-    t = s
-    c = gsub(/[\200-\277]/, "", t)
-    return length(s) - c
+function vlen(s,   c, i) {
+    c = 0
+    for (i = 1; i <= length(s); i++) if (!is_continuation(substr(s, i, 1))) c++
+    return c
+}
+
+function is_continuation(b) {
+    return index(cont_bytes, b) > 0
 }
 
 function pad(s, w,   r) {
+    if (overview_mode && vlen(s) > w) s = middle_elide(s, w)
     r = s
     while (vlen(r) < w) r = r " "
     return r
+}
+
+# Keep the fixed label column readable in the overview. The two sides are deliberately kept as
+# evenly sized as possible so both the agent kind and the module suffix remain visible.
+function middle_elide(s, w,   keep, left, right) {
+    keep = w - 1
+    left = int(keep / 2)
+    right = keep - left
+    return visual_prefix(s, left) "\342\200\246" visual_suffix(s, right)
+}
+
+# Return byte slices containing n display characters. This follows the same UTF-8 continuation-byte
+# rule as vlen(), so mawk (which counts bytes) and character-aware awk implementations slice at the
+# same boundaries.
+function visual_prefix(s, n,   i, c, b) {
+    c = 0
+    for (i = 1; i <= length(s); i++) {
+        b = substr(s, i, 1)
+        if (!is_continuation(b)) c++
+        if (c > n) return substr(s, 1, i - 1)
+    }
+    return s
+}
+
+function visual_suffix(s, n,   i, c, b, start, total) {
+    c = 0; start = 1; total = vlen(s)
+    for (i = 1; i <= length(s); i++) {
+        b = substr(s, i, 1)
+        if (!is_continuation(b)) {
+            c++
+            if (c > total - n) { start = i; break }
+        }
+    }
+    return substr(s, start)
 }
 
 function rpad(s, w,   r) {
@@ -260,6 +299,7 @@ function add_model(list, m) {
 
 BEGIN {
     FS = "\t"
+    for (i = 128; i < 192; i++) cont_bytes = cont_bytes sprintf("%c", i)
     n = 0
     sn = 0
 }
@@ -430,6 +470,7 @@ function session_label(s) {
 
 function overview(   i, list, count, title, none) {
     rows_reset()
+    overview_mode = 1
     for (i = 1; i <= sn; i++) {
         if (sstat[i] != "ok") continue
         addrow(session_label(i), sfrom[i], sto[i], susd[i], speak[i], 0, 0, sto[i] - sfrom[i], none, 0)
@@ -488,6 +529,7 @@ function descendants(root, list,   i, changed, mark, count) {
 
 function one_plan(i, nth,   list, count, one) {
     rows_reset()
+    overview_mode = 0
     one[1] = i
     addrow(atyp[i], ast[i], aen[i], ausd[i], apeak[i], 0, 0, aact[i], one, 1)
     count = descendants(i, list)

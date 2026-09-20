@@ -145,6 +145,12 @@ check_match "a group of two legacy lines with a gap between them draws the gap a
 check_match "a 40-second agent is shown in seconds" '`module-b/plan.md` \| 1 \| \$[0-9.]* \| 40s' "$(cat "$MD")"
 check_match "the task total is not starred when every agent is priced" '^\| \$[0-9.]+ \| [0-9]+m \(' "$(cat "$MD")"
 
+# --- overview labels stay in the fixed 36-column label field when a module name is long
+records long
+report_offline > /dev/null
+check_match "a long overview label is middle-elided to the fixed 36-column field" \
+  '^implement-plan-mo…pplication-backend [0-9]{2}:[0-9]{2}  [0-9]{2}:[0-9]{2} ' "$(cat "$MD")"
+
 # --- the report, offline with no cache: the plugin's own table, saying so
 rm -rf "$XDG_CACHE_HOME"
 check_match "offline, the rates line names the plugin's table and the curl error" \
