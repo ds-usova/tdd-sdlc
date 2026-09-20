@@ -751,7 +751,8 @@ case "$command" in
                     records="$records$ac$us$rel${us}note$us$line
 "
                 done
-            done < <(awk '{ sub(/\r$/, "") } /^AC[0-9]+(, AC[0-9]+)*( and AC[0-9]+)? (is|are) (held by|a measurement)/' "$f")
+            done < <(awk '{ sub(/\r$/, "") } /^[[:space:]]*>?[[:space:]]*AC[0-9]+(, AC[0-9]+)*( and AC[0-9]+)? (is|are) (held by|a measurement)/' "$f" |
+                sed 's/^[[:space:]]*>[[:space:]]*//; s/^[[:space:]]*//')
         done
 
         # One row per scenario, held back until every verdict is known: the table's ID and Verdict
@@ -824,10 +825,10 @@ case "$command" in
         fi
         echo
         if [ "$problems" -eq 0 ]; then
-            echo "every scenario has a test class in the tree"
+            echo "every scenario is covered or held"
             exit 0
         fi
-        echo "not every scenario has a test class in the tree - see above"
+        echo "not every scenario is covered or held - see above"
         exit 1
         ;;
 

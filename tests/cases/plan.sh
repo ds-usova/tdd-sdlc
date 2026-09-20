@@ -156,11 +156,13 @@ check_match "acceptance: the table carries a header and a separator" '^\| ID +\|
 echo "build/" > "$REPO/.gitignore"; mkdir -p "$REPO/build"; echo "class WidgetRepositoryAdapterTest {}" > "$REPO/build/WidgetRepositoryAdapterTest.java"
 check_match "acceptance: an ignored file is not a hit" 'src/test_widget_repository_adapter.py' "$(plan acceptance)"
 check_rc "acceptance: one missing scenario still exits 1" 1 plan acceptance
-awk '{ print } /^### Red Phase/ { print ""; print "AC06 is a measurement; the conventions say performance is not measured" }' \
+awk '{ print } /^### Red Phase/ { print ""; print "> AC06 is a measurement; the conventions say performance is not measured" }' \
   "$PLAN" > "$WORK/tmp" && mv "$WORK/tmp" "$PLAN"
 check_match "acceptance: a coverage note holds a scenario" '^\| AC06 +\| held +\| AC06 is a measurement' "$(plan acceptance)"
 check_ok "acceptance: every scenario covered or held exits 0" plan acceptance
-awk '{ print } /^### Red Phase/ { print ""; print "AC03 is held by the tests written for AC05 in WidgetUtilsTest" }' \
+check_match "acceptance: successful closing message describes covered or held scenarios" \
+  '^every scenario is covered or held$' "$(plan acceptance | tail -1)"
+awk '{ print } /^### Red Phase/ { print ""; print "> AC03 is held by the tests written for AC05 in WidgetUtilsTest" }' \
   "$PLAN" > "$WORK/tmp" && mv "$WORK/tmp" "$PLAN"
 out="$(plan acceptance)"
 check_match "acceptance: a note holds its subject" '^\| AC03 +\| covered +\| RI02 .* · AC03 is held by' "$out"

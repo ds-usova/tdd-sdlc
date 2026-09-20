@@ -184,7 +184,7 @@ docs/18-add-widget · spec.md: 5 scenarios
 | AC04 | held    | AC04 is a measurement; the conventions say performance is not measured |
 | AC05 | missing | no step names it and no coverage note holds it |
 
-not every scenario has a test class in the tree - see above
+not every scenario is covered or held - see above
 ```
 
 The argument is the task directory, a plan in it, or nothing when one task is in flight, as for `task`.
