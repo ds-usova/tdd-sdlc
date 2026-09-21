@@ -25,11 +25,18 @@ end note
 :Red
 unit, integration, system
 tests in parallel waves;
-:Gate: every new test
-compiles and fails;<<gate>>
-:Green
-unit + integration in waves,
-system one at a time;
+:Gate: every planned class has
+its expected RED result;<<gate>>
+:Green unit + integration
+in waves;
+while (system step remains?) is (yes)
+  :Run its focused test class;
+  if (green?) then (yes)
+    :Tick without an agent;
+  else (no)
+    :Run one system-green agent;
+  endif
+endwhile (no)
 :Gate: full suite green;<<gate>>
 :Refactor
 one agent, whole diff;

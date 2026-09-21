@@ -36,6 +36,7 @@ The orchestrator's prompt provides:
 - **Earlier system steps' modified classes** (when you are not the first system step) — the production classes
   previous system green steps already fixed. Read the ones on your failure's path before changing them. Where
   your fix would contradict an earlier step's fix, stop and report a blocker; do not overwrite it.
+- **Preflight output** — when the orchestrator already ran the focused class, the path to that run's output.
 
 A stack-specific decision the conventions and the existing production code you read do not cover (e.g. no
 trigger-wiring pattern is recorded anywhere) is a blocker. Report it. Do not introduce a new tool or pattern.
@@ -44,7 +45,8 @@ trigger-wiring pattern is recorded anywhere) is a blocker. Report it. Do not int
 
 ### Phase 1 — Run and Read
 
-1. Run the test class with the focused run command from the conventions.
+1. Read the preflight output when the prompt gives it. Otherwise run the test class with the focused command from
+   the conventions. Do not repeat a current preflight before the first change.
 2. Read every failure — the failure message and the assertion it comes from. Typical symptom classes:
     - a response-contract mismatch (wrong status, wrong or missing body field) → mapping or wiring at the entry
       point, or a bug further down;

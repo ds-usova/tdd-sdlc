@@ -47,9 +47,8 @@ back.
   actually failed. Each re-delegation is an attempt against that step's budget ([`sub-agents.md`](sub-agents.md),
   **Budget and escalation**).
 
-**A wave never runs the module's full suite.** The full suite runs where the stage says: at the red exit check,
-at the end of the green batch, and at the stage guardrails. A wave whose classes pass and whose module compiles is
-done.
+**A wave never runs the module's full suite.** A wave whose focused classes pass and whose module compiles is
+done. Later stages run a wider suite only where their own guardrail says so.
 
 Never let an agent wait out or work around a compile error in a file it does not own. It resolves at the wave's
 single verification.

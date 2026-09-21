@@ -8,7 +8,8 @@ runs from.
 ## Commands
 
 - Compile / type-check: `<e.g. ./gradlew :widget-service:compileJava compileTestJava, npx tsc --noEmit>`
-- Run a single test class: `<e.g. ./gradlew :widget-service:test --tests "com.example.widget.WidgetTest">`
+- Run a single test class: `<a command or repository-owned wrapper, e.g. ./scripts/test-one WidgetTest>`.
+  It exits 0 only when the selector finds the class, at least one test runs, and none fail or skip.
 - Run the full test suite: `<e.g. ./gradlew :widget-service:test>`
 - Run the architecture-enforcement check: `<e.g. ./gradlew :widget-service:test --tests "com.example.architecture.*">`
 - Format: `<e.g. ./gradlew :widget-service:spotlessApply; or "none — no formatter configured">`

@@ -201,7 +201,8 @@ System Test Red Phase** sections. Red steps have no cross-dependencies:
 - When a report comes back, carry two of its lists into the plan before ticking: every `added:` case becomes a
   scenario sub-bullet under its step, marked `(added)`; every `left:` entry whose reason names a plan defect — a
   premise that fits no test, a consequence that does not follow — goes in the **Run Log**. A `left:` entry that
-  only says the premise did not hold there is not recorded.
+  only says the premise did not hold there is not recorded. Record every expected pass in the **Run Log** with
+  its class, method and reason.
 
 **Per-step guardrail**: the test classes written **compile cleanly and fail at runtime**. A red test that passes
 against a stub is a defect, with one exception: a test asserting the *absence* of behaviour (e.g. "no exception
@@ -239,11 +240,18 @@ depends on everything**: it starts only after every unit and integration green i
    succeed; run the module's unit and integration suites once the batch is done and confirm both are fully green
    before proceeding. Once green, commit per the commit policy (if its granularity commits per wave —
    otherwise this checkpoint is a no-op and the commit happens at stage end).
-3. Only then run the **TDD System Test Green Phase** steps — **sequentially, one sub-agent at a time, in plan
-   order**, on `tdd-system-green-phase-step`. These fix remaining production bugs until the system tests pass;
-   they never modify test classes. System green steps are never parallelized. Spawn the next step only after the
-   previous one's report is in and its item is ticked (or its blocker recorded), passing along which production
-   classes earlier system steps already modified.
+3. Only then take the **TDD System Test Green Phase** steps **sequentially, in plan order**. For each item:
+   - If its corresponding red item is blocked, record this item as blocked by that dependency. Do not run it.
+   - Run its test class with the focused command from the conventions. Capture the output in a temporary file
+     visible to a spawned agent. Use the command's exit status; do not read or classify a failing log yourself.
+   - Exit 0: delete the temporary file and tick the item. Spawn no agent. Its checked red item is the RED evidence
+     defined by [`red-exit.md`](../templates/red-exit.md).
+   - Non-zero: spawn `tdd-system-green-phase-step`. Give it the temporary output path, the step context and the
+     production classes earlier system steps modified. Delete the file after its report. Tick the item only when
+     its focused class passes.
+
+   Wait for a spawned agent before preflighting the next item. System green steps are never parallelized and
+   never modify test classes.
 
 **Per-step guardrail**: every test in the step's test class passes.
 

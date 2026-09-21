@@ -1,22 +1,13 @@
 # The Red Exit Check
 
 What the orchestrator verifies once every red-phase item is ticked or recorded as blocked, before any green step
-is spawned. Run the module's **full test suite** once and compare it against the step agents' reports. The suite
-must fail in **exactly the expected places**:
+is spawned.
 
-- **every pre-existing test still passes** — a pre-existing test now failing is a regression from a red agent's
-  changes; re-delegate to the owning step;
-- **the failing tests are exactly the new ones** the reports claim fail — a reported-red test that actually
-  passes, and is not listed as a negative-assertion expected pass, is a defect; re-delegate it;
-- **the reported expected passes pass**, and nothing else about the new tests deviates from the reports;
-- **the skipped count is back to the baseline, plus the reproductions the Run Log names** — every test
-  stabilization disabled has been reworked by the step named in its reason. A test still skipped here is a
-  step that skipped its own `update:` bullets. The reproductions the Run Log names by class and method are the
-  only skips allowed above the baseline. Compare against the baseline's number, not against zero;
-- **nothing left the tree that no bullet authorized** — the total is the baseline, plus what the red steps added,
-  less exactly the methods an `update: … — delete` bullet named, less every method a class under
-  `update: every test in this class — delete` held at the baseline — that count is read from the baseline's
-  tree, never from the plan. A total that does not reconcile is a red agent that dropped a test instead of
-  reworking it.
+Do not run the module's full suite here. [`waves.md`](waves.md) verifies each red step's focused test classes
+before the item is ticked. The checked red item is the durable evidence that its tests compiled and produced the
+expected RED result. A cold resume reads the checkbox; it does not reconstruct the runner's output.
+
+Confirm that every non-blocked red item is checked. Confirm that every allowed expected pass has the Run Log
+entry `implement-plan-module` requires. An unchecked item has no RED evidence and cannot enter green.
 
 Green does not start until this holds for every non-blocked item.

@@ -154,6 +154,9 @@ Each of these is stated as a bare rule in a skill, an agent or a template. This 
 - **A small change never runs the full suite, and commits alone.** A two-minute change that owes a ten-minute
   suite gets made outside the framework instead, which is the drift the skill exists to stop. The cost: a
   break in a test it did not run surfaces as a red baseline in the next run.
+- **RED exit reuses the focused results that ticked its steps.** Red agents may change only their own planned
+  test classes, and every wave verifies those classes before ticking. Repeating the full suite at the boundary
+  spends time to reproduce evidence the plan already preserves.
 - **The refactor agent reports a suspected bug only with a constructed failing case, and answers every
   refactoring priority in order, including the ones it did not reach.** Both are history. A confident overflow
   finding on an algorithm with exactly the right headroom took an induction proof and a dedicated agent to put
