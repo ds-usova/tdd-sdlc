@@ -19,6 +19,7 @@ Each `<id>.jsonl` is one agent transcript the recorder hook is fed, copied to `s
 | `ws.jsonl`, `.meta.json` | the prompt names the plan by an absolute Windows path, backslashes and all; parent `a1`  | "a backslash plan path records the plan"                                   |
 | `gr.jsonl`, `.meta.json` | the prompt names the task directory and no plan                                        | "a bare task directory files without a plan", "a bare task directory record has no plan" |
 | `rs.jsonl`, `.meta.json` | a step under `a1` that stopped at 14:12, was resumed by a string `user` line at 14:30 and stopped again at 14:32; not one turn, but three | "a resumed agent records its wall time and its active time", "and its idle window", "a resumed agent's bar shows its idle window", "the type row's time is the running time" |
+| `ac.jsonl`, `.meta.json` | paired, parallel and incomplete tools | the activity recorder checks |
 | `np.jsonl`        | the prompt names `docs/99-nope`, a task the tree does not hold                               | "a prompt naming a task the tree does not hold records nothing", "and creates no directory" |
 | `ex.jsonl`        | another task's plan is cited first, the mapped task's plan second                            | "the mapped task wins over another task's plan cited first", "the other task gets no review directory" |
 | `ot.jsonl`        | only another task's plan (`docs/3-old-task`) is cited                                        | "only another task's plan path files there"                                |

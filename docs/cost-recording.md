@@ -3,8 +3,8 @@
 Your conventions assign a model to each kind of agent the plugin spawns
 ([`contract.md`](../plugin/templates/conventions/contract.md)). This page says
 what those choices cost. After every `implement-plan`, `fix-bug`, `rework` or `upgrade-deps` run, the task
-directory holds `review/cost.md`: what each agent cost in dollars, tokens and time, and a timeline of when
-everything ran. Nothing has to be switched on.
+directory holds `review/cost.md` and `review/activity.html`: what each agent cost, when it ran and what state
+filled its time. Nothing has to be switched on.
 
 ## Terms
 
@@ -70,8 +70,17 @@ The second says what moved:
   carried at once. A type's is its largest agent's. **of window** is that against the model's context window.
 
 Each table is followed by a list that says what its columns are. Below them come a per-plan split
-(`plan`, `agents`, `$`, `time`), a task total (`$` and one span from the first framework call to the report),
-and the timelines.
+(`plan`, `agents`, `$`, `time`) and a task total (`$` and one span from the first framework call to the report).
+
+`review/activity.html` is the interactive view of the same run. Each session and agent has a lane whose
+intervals distinguish model turns, tools, waiting and time the transcript cannot explain. Filters isolate an
+agent type, state, tool or minimum duration. Hover and selection show the bounded command, path or description
+recorded for a tool.
+
+A model interval includes inference, text generation and transport delay. It is labelled `model turn`, never
+thinking. Parallel tool calls remain separate. Their displayed durations can overlap and are not added to claim
+how long the lane worked. Generation and data rules are in the cost script's
+[`README.md`](../plugin/scripts/cost/README.md#activity-page).
 
 ### Prices
 
@@ -128,8 +137,8 @@ model. Both are current without anyone editing a file or waiting for a release:
    Rates: the plugin's table, dated 2026-09-10 (fetching current rates failed: no model table on the pricing page).
    ```
 
-The `Rates:` line stands in the report's header and `cost.sh report` prints it to stdout after the report's
-path, and the skill that ran it shows the person what the command printed.
+The `Rates:` line stands in the report's header. `cost.sh report` prints it after the generated paths, and the
+skill that ran it shows the person what the command printed.
 
 The pages are `platform.claude.com/docs/en/about-claude/pricing.md` and
 `platform.claude.com/docs/en/models/overview.md`, served as markdown. `scripts/cost/pricing-parse.awk` reads
@@ -139,97 +148,16 @@ unknown, rendered `—`.
 
 ### Times
 
-`cost.jsonl` is the machine-readable record and stays UTC, portable and comparable across machines. Only
-`cost.md` is rendered in local time, from the offset the hooks recorded, never from the rendering machine's
-zone or `TZ`:
+`cost.jsonl` is the machine-readable record and stays UTC, portable and comparable across machines. Display
+times in `cost.md` and `activity.html` use the offset the hooks recorded, never the rendering machine's zone
+or `TZ`:
 
 - **One offset per report**: the mapping file's, since the report's own call has just rewritten it; else the
-  offset of the agent line with the latest `ended`; else UTC. Every row, the timeline's axis, the task total's
-  span and the header use it. A row recorded under another offset is not converted separately.
+  offset of the agent line with the latest `ended`; else UTC. Every row, the activity page's axis, the task
+  total's span and the header use it. A row recorded under another offset is not converted separately.
 - **The header names it**: `Written by scripts/cost/cost.sh report at 2026-09-10 01:06:51 (UTC+02:00, the
   latest record's offset).` With no offset recorded anywhere: `(UTC, no offset recorded)`.
 - **Durations are unaffected.**
-
-### Reading a timeline
-
-One overview for the task, then one timeline per plan. A row is an agent: its name, the clock time it
-started and ended, a bar, its running time, its dollars and its peak context. Each column of the bar is a
-slice of the timeline's span; a `█` is a column the agent was running in, a `░` one it was stopped in
-between two runs, a `·` one outside its span. The axis above the bars carries clock times. Columns are one
-minute wide where the span fits in forty columns, wider where it does not. A column is `░` only where the
-whole column is idle. A wait shorter than a column leaves no mark and is still left out of the time.
-
-Agents of one type under one parent are grouped: a row `type ×3` carries the group's span, its running
-time, summed dollars and largest peak context, and its members follow as `#1`, `#2`, `#3`. Its bar is `█`
-where any member was running and `░` where none was. A wave reads as members sharing a start time. A
-pipeline waiting on its steps reads as a long bar over short ones: `█` where it waits in a blocking call,
-`░` where it stopped and was woken. A step the pipeline sent back to rework its own work reads as two runs
-with `░` between them, as `tdd-system-red-phase-step` does below.
-
-The example is a two-module task with a seam: design and plan in the same session, the shared plan first and
-alone, then both module pipelines in parallel.
-
-```
-task 7-add-widget · overview
-agent                                start  end    13:40     14:00     14:20       time        $  peak ctx
-session (own turns)                  13:40  14:40  ██████████████████████████████   60m    $3.89      140k
-grill-design                         13:42  13:49  ·████·························    7m    $2.10      120k
-review-plan                          13:55  14:01  ·······████···················    6m    $1.40      110k
-implement-plan-module shared         14:05  14:09  ············███···············    4m    $0.90       90k
-implement-plan-module module-a       14:09  14:34  ··············█████████████···   25m    $4.60      310k
-implement-plan-module module-b       14:09  14:30  ··············███████████·····   21m    $3.20      260k
-```
-
-```
-module-a/plan.md
-agent                                start  end   14:09     14:19     14:29  time        $  peak ctx
-implement-plan-module                14:09  14:34  █████████████████████████   25m    $4.60      310k
-  stabilization-step                 14:09  14:12  ███······················    3m    $0.70       80k
-  tdd-unit-red-phase-step ×3         14:13  14:16  ····███··················    3m    $0.95       90k
-    #1                               14:13  14:15  ····██···················    2m    $0.30       70k
-    #2                               14:13  14:15  ····██···················    2m    $0.30       60k
-    #3                               14:13  14:16  ····███··················    3m    $0.35       90k
-  tdd-integration-red-phase-step     14:13  14:17  ····████·················    4m    $0.60       85k
-  tdd-unit-green-phase-step ×3       14:18  14:21  ·········███·············    3m    $0.45       50k
-    #1                               14:18  14:19  ·········█···············    1m    $0.15       40k
-    #2                               14:18  14:20  ·········██··············    2m    $0.15       45k
-    #3                               14:18  14:21  ·········███·············    3m    $0.15       50k
-  tdd-integration-green-phase-step   14:21  14:24  ············███··········    3m    $0.40       60k
-  tdd-system-green-phase-step        14:24  14:25  ···············█·········    1m    $0.05       30k
-  tdd-refactor-phase                 14:27  14:33  ··················██████·    6m    $1.30      200k
-```
-
-```
-module-b/plan.md
-agent                                start  end   14:09     14:19     14:29  time        $  peak ctx
-implement-plan-module                14:09  14:30  █████████████████████   21m    $3.20      260k
-  stabilization-step                 14:09  14:11  ██···················    2m    $0.50       70k
-  tdd-unit-red-phase-step ×2         14:12  14:14  ···██················    2m    $0.55       75k
-    #1                               14:12  14:14  ···██················    2m    $0.30       75k
-    #2                               14:12  14:13  ···█·················    1m    $0.25       60k
-  tdd-system-red-phase-step          14:12  14:24  ···██░░░░░░░░██······    4m    $0.80      120k
-  tdd-unit-green-phase-step ×2       14:18  14:20  ·········██··········    2m    $0.25       45k
-    #1                               14:18  14:19  ·········█···········    1m    $0.10       40k
-    #2                               14:18  14:20  ·········██··········    2m    $0.15       45k
-  tdd-system-green-phase-step        14:21  14:22  ············█········    1m    $0.20       50k
-  tdd-refactor-phase                 14:24  14:29  ···············█████·    5m    $1.10      180k
-```
-
-A fix, a rework or an upgrade has the overview only, since its module agents spawn no steps. Its rows are the
-session, the shared module agent, the module agents in parallel, then the refactor pass per module and any
-reproduction at the finish. An upgrade has no refactor pass.
-
-```
-fix 12-widget-listed-twice
-agent                                start  end    15:10     15:20     15:30     15:40       time        $  peak ctx
-session (own turns)                  15:10  15:44  ██████████████████████████████████   34m    $2.30      120k
-fix-bug-module shared                15:16  15:19  ······███·························    3m    $0.60       80k
-fix-bug-module module-a              15:19  15:31  ·········████████████·············   12m    $2.10      210k
-fix-bug-module module-b              15:19  15:27  ·········████████·················    8m    $1.50      170k
-tdd-refactor-phase module-a          15:32  15:37  ······················█████·······    5m    $0.90      150k
-tdd-refactor-phase module-b          15:32  15:35  ······················███·········    3m    $0.60      120k
-tdd-unit-red-phase-step module-a     15:38  15:40  ····························██····    2m    $0.20       50k
-```
 
 ### What to do with it
 
@@ -247,7 +175,11 @@ tdd-unit-red-phase-step module-a     15:38  15:40  ··············�
 ## How the numbers are collected
 
 <p align="center">
-<img src="diagrams/cost-flow.svg" alt="A framework script call maps the session to its task; a sub-agent ending fires a hook that writes one line to the task's cost.jsonl; cost.sh renders cost.md at the finish" width="900">
+<img
+  src="diagrams/cost-flow.svg"
+  alt="Hooks record cost and activity data; cost.sh renders the Markdown and interactive reports"
+  width="900"
+>
 </p>
 
 Two hooks, registered by the plugin in `hooks/hooks.json`, and one script.
@@ -262,16 +194,16 @@ Two hooks, registered by the plugin in `hooks/hooks.json`, and one script.
    of that session without a plan path in their prompt go unrecorded.
 2. **`SubagentStop`** (`scripts/hooks/record-agent-cost.sh`) fires each time a sub-agent stops. It decides
    whether and where to record ([below](#how-an-agent-is-attributed)), reads the agent's transcript, and
-   appends one JSON line to `docs/<n>-<task>/review/cost.jsonl`. The start time is the transcript's first
-   timestamp and the end time its last, so no start hook is needed. The file moves with the task at archive and is never
-   cleaned.
+   appends one JSON line to `docs/<n>-<task>/review/cost.jsonl`. The line includes bounded activity intervals.
+   The start time is the transcript's first timestamp and the end time its last, so no start hook is needed.
+   The file moves with the task at archive and is never cleaned.
 3. **`cost.sh report <task>`** (`scripts/cost/cost.sh`, usage in [its README](../plugin/scripts/cost/README.md)) reads
-   `cost.jsonl` and writes `cost.md`. `implement-plan` runs it before archiving; `fix-bug`, `rework` and
-   `upgrade-deps` run it at their finish. The session row comes from the session transcript the mapping
-   names, grouped by `message.id` as the hook groups and summed between the session's first framework call
+   `cost.jsonl` and writes `cost.md` and `activity.html`. `implement-plan` runs it before archiving. `fix-bug`,
+   `rework` and `upgrade-deps` run it at their finish. The session row comes from the session transcript that
+   the mapping names. Its messages are grouped by `message.id` and summed between the session's first framework call
    and its latest; the report's own call is the latest, so the running session is summed to now. Every row
-   is priced from the rates table ([above](#where-the-rates-come-from)), and the `Rates:` line goes to
-   stdout after the report's path. The report is a snapshot; running it again recomputes.
+   is priced from the rates table ([above](#where-the-rates-come-from)), and the `Rates:` line follows both
+   output paths on stdout. The reports are snapshots; running the command again recomputes them.
 
 Both hooks are silent without `jq`, like the other hooks.
 
@@ -292,6 +224,7 @@ Both hooks are silent without `jq`, like the other hooks.
 | `seconds`  | wall time from first to last message, idle windows included                 | the transcript         |
 | `active`   | `seconds` less the idle windows                                             | the transcript         |
 | `idle`     | the idle windows, each a `[from, to]` pair of timestamps, in order          | the transcript         |
+| `activity` | bounded model, tool, waiting and unknown intervals                         | the transcript         |
 | `offset`   | the machine's UTC offset when the hook fired, as `date +%z` prints it       | the hook               |
 | `plan`     | the plan path the agent was spawned with, where its prompt names one        | the transcript         |
 
@@ -318,7 +251,11 @@ the format change are skipped`. No column carries a legacy value.
 ## How an agent is attributed
 
 <p align="center">
-<img src="diagrams/cost-attribution.svg" alt="Skip unless the agent type is a framework agent; take the task from the prompt's path, else from the session mapping, else skip; sum usage and append" width="420">
+<img
+  src="diagrams/cost-attribution.svg"
+  alt="Attribute framework agents from the prompt path or session mapping; sum usage and append"
+  width="420"
+>
 </p>
 
 - **Only framework agents are recorded.** A `general-purpose` or `Explore` agent is skipped, whatever session
@@ -332,7 +269,7 @@ the format change are skipped`. No column carries a legacy value.
   mapped task. No mapping, no record. A task directory the tree does not hold is never created.
 - **A step without a known parent joins its plan.** This happens when the meta file was missing when the agent
   stopped. Its row still lands under the pipeline for its plan.
-- **A plan run twice gets two timelines.** A second pipeline for the same plan is drawn as `<plan> (2)`.
+- **A plan run twice gets separate lanes.** Each pipeline remains selectable in `activity.html`.
 
 **Parallel pipelines** serve one task and land in one file, split per plan. **A task resumed in a new session**
 gets a new mapping at that session's first script call; the report shows two sessions of one task. **A stray
@@ -343,6 +280,7 @@ there too.
 
 - The session's turns before its first framework call. The session row starts there.
 - Anything an agent says about its own work.
+- Tool results, prompts, model text and thinking in `activity.html`.
 - Anything from a session with no framework script call.
 
 ## What the host provides
@@ -350,7 +288,7 @@ there too.
 The hooks rely on these Claude Code behaviours, measured on 2026-09-08 and 2026-09-10. The `SubagentStop` event and its
 stdin are in Claude Code's hooks reference. The transcript's line shape, the meta file, and how nested agents
 report are not documented, and were measured. If an update changes them, recording degrades silently and
-`cost.md` shows fewer rows.
+the reports show less detail.
 
 1. **`SubagentStop` stdin** carries `session_id`, `transcript_path` (the session's), `cwd`, `agent_id`,
    `agent_type`, `agent_transcript_path`, `last_assistant_message`, `hook_event_name`, `stop_hook_active`. A
@@ -364,6 +302,8 @@ report are not documented, and were measured. If an update changes them, recordi
    `"type": "user"` is the prompt. Beside every sub-agent
    transcript sits `agent-<id>.meta.json` with `agentType`, `description`, `spawnDepth`, `parentAgentId` for an
    agent another agent spawned, and `model` where the spawn set one.
+   A tool call is an assistant `tool_use` block with `id`, `name` and `input`. Its result is a user
+   `tool_result` block whose `tool_use_id` names that call.
 3. **Grandchildren fire the hook.** A step a pipeline spawned stops and is reported like the pipeline itself.
 4. **`session_id` is the top session's** for a grandchild, and so is its transcript's directory:
    `<projects>/<session>/subagents/agent-<id>.jsonl`.

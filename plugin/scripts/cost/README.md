@@ -1,7 +1,7 @@
 # The Cost Reporter
 
-`cost.sh` turns a task's `review/cost.jsonl` into its `review/cost.md`. It stores nothing of its own and
-recomputes the report every time.
+`cost.sh` turns a task's `review/cost.jsonl` into `review/cost.md` and `review/activity.html`. It recomputes
+both reports every time.
 
 ## Where it lives
 
@@ -23,10 +23,29 @@ Run it with bash, from anywhere inside the project:
 <plugin>/scripts/cost/cost.sh refresh-pricing
 ```
 
-| Command           | Effect                                                                              |
-|-------------------|-------------------------------------------------------------------------------------|
-| `report [<path>]` | Read `review/cost.jsonl` and write `review/cost.md` beside it. Prints its path, then `Rates:`. |
-| `refresh-pricing` | Rewrite `pricing.json` beside the script from the published rates. Prints the models it changed. |
+| Command           | Effect                                                                                   |
+|-------------------|------------------------------------------------------------------------------------------|
+| `report [<path>]` | Write `review/cost.md` and `review/activity.html`. Print both paths, then `Rates:`.        |
+| `refresh-pricing` | Rewrite `pricing.json` from the published rates. Print the models whose rows changed.     |
+
+## Activity page
+
+`activity.html` is self-contained. Open it directly from disk. It has one lane per session and agent, filters
+for lanes, states, tools and minimum duration, and zoom controls. Hover or select an interval to read its tool,
+bounded input summary, timestamps and duration.
+
+The page uses four states: `model` for a model turn, `tool` for a paired tool call, `waiting` for a resume gap
+or delegated call, and `unknown` for every uncovered or incomplete interval. It never calls a model interval
+thinking. The transcript cannot separate inference, generation and transport delay.
+
+The stop hook stores agent intervals in `cost.jsonl`. The report reads session intervals from the mapped
+session transcript. Tool calls are paired by `tool_use.id` and `tool_result.tool_use_id` before their times are
+clipped to the lane. A tool summary contains at most 500 characters of its command, path or description. Tool
+results, prompts, model text and thinking are never copied.
+
+`activity-template.html` owns the page structure and behaviour. `activity-parse.jq` owns transcript parsing.
+`cost.sh report` embeds the derived JSON in the template as base64. Agents never write HTML. The same records,
+session mapping and template produce the same `activity.html` byte for byte.
 
 Exit codes: **0** done, **1** no cost lines to report on or the fetch failed, **2** bad usage. `--help` or `-h`
 prints the usage.
@@ -51,6 +70,6 @@ times in the offset the hooks recorded. The machine's own zone and `TZ` play no 
 ## Where it stops
 
 It reads the lines' **shape**, not their meaning. A line the hooks never wrote is a run that went unrecorded,
-and the report cannot tell that from a cheap one. A session whose mapping file is gone gets `unavailable` for
-its own turns and no session row in the timeline. A model in no rates table is rendered unpriced, a dash where
-its dollars would be.
+and the report cannot tell that from a cheap one. A legacy agent line without activity appears as an unknown
+lane. A session whose mapping file is gone gets `unavailable` for its own turns and no activity lane. A model
+in no rates table is rendered unpriced, a dash where its dollars would be.

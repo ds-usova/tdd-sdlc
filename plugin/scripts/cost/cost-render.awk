@@ -1,5 +1,5 @@
 # Renders review/cost.jsonl, already deduplicated, priced and flattened to TSV by cost.sh, as the
-# tables and the timelines of review/cost.md. It does no pricing: the dollar fields arrive computed,
+# tables in review/cost.md. It does no pricing: the dollar fields arrive computed,
 # empty where the model is priced nowhere.
 #
 # Input records, tab separated:
@@ -198,92 +198,11 @@ function active_of(list, count,   i) {
     return union_secs()
 }
 
-# Whether agent j was running at some moment of (a, b): inside its span and not idle over all of it.
-function running_in(j, a, b,   k) {
-    if (aen[j] <= a || ast[j] >= b) return 0
-    for (k = 1; k <= aidn[j]; k++) if (aidl0[j, k] <= a && aidl1[j, k] >= b) return 0
-    return 1
-}
-
-function ceil(x) {
-    return (x == int(x)) ? int(x) : int(x) + 1
-}
-
-# The module a plan belongs to: docs/7-x/module-a/plan.md is module-a, docs/7-x/plan.md is nothing.
-function module_of(p,   s, i) {
-    if (p == "") return ""
-    s = p
-    sub(/^docs\/[0-9]+-[^\/]+\//, "", s)
-    i = index(s, "/")
-    if (i == 0) return ""
-    return substr(s, 1, i - 1)
-}
-
 # The plan as the task names it: module-a/plan.md.
 function plan_of(p,   s) {
     s = p
     sub(/^docs\/[0-9]+-[^\/]+\//, "", s)
     return s
-}
-
-# A label may carry a multibyte character - the group row's ×. An awk that counts bytes pads such a
-# label one column short, so the columns are counted here: a byte in 0x80..0xBF continues a
-# character rather than starting one, and an awk that already counts characters finds none.
-function vlen(s,   c, i) {
-    c = 0
-    for (i = 1; i <= length(s); i++) if (!is_continuation(substr(s, i, 1))) c++
-    return c
-}
-
-function is_continuation(b) {
-    return index(cont_bytes, b) > 0
-}
-
-function pad(s, w,   r) {
-    if (overview_mode && vlen(s) > w) s = middle_elide(s, w)
-    r = s
-    while (vlen(r) < w) r = r " "
-    return r
-}
-
-# Keep the fixed label column readable in the overview. The two sides are deliberately kept as
-# evenly sized as possible so both the agent kind and the module suffix remain visible.
-function middle_elide(s, w,   keep, left, right) {
-    keep = w - 1
-    left = int(keep / 2)
-    right = keep - left
-    return visual_prefix(s, left) "\342\200\246" visual_suffix(s, right)
-}
-
-# Return byte slices containing n display characters. This follows the same UTF-8 continuation-byte
-# rule as vlen(), so mawk (which counts bytes) and character-aware awk implementations slice at the
-# same boundaries.
-function visual_prefix(s, n,   i, c, b) {
-    c = 0
-    for (i = 1; i <= length(s); i++) {
-        b = substr(s, i, 1)
-        if (!is_continuation(b)) c++
-        if (c > n) return substr(s, 1, i - 1)
-    }
-    return s
-}
-
-function visual_suffix(s, n,   i, c, b, start, total) {
-    c = 0; start = 1; total = vlen(s)
-    for (i = 1; i <= length(s); i++) {
-        b = substr(s, i, 1)
-        if (!is_continuation(b)) {
-            c++
-            if (c > total - n) { start = i; break }
-        }
-    }
-    return substr(s, start)
-}
-
-function rpad(s, w,   r) {
-    r = s
-    while (vlen(r) < w) r = " " r
-    return r
 }
 
 function commas(s) {
@@ -299,7 +218,6 @@ function add_model(list, m) {
 
 BEGIN {
     FS = "\t"
-    for (i = 128; i < 192; i++) cont_bytes = cont_bytes sprintf("%c", i)
     n = 0
     sn = 0
 }
@@ -317,10 +235,6 @@ $1 == "A" {
     asec[n] = $21 + 0; apl[n] = $22
     aact[n] = ($23 == "" ? asec[n] : $23 + 0)
     parse_idle(n, $24)
-    if (atyp[n] == "implement-plan-module") kind_task = 1
-    if (atyp[n] == "fix-bug-module") kind_fix = 1
-    if (atyp[n] == "rework-module") kind_rework = 1
-    if (atyp[n] == "upgrade-deps-module") kind_upgrade = 1
 }
 
 $1 == "S" {
@@ -334,207 +248,10 @@ $1 == "S" {
     sstat[sn] = $18
 }
 
-# ---------------------------------------------------------------- rows of one timeline
-
-function rows_reset() {
-    split("", rlabel); split("", rst); split("", ren); split("", rusd); split("", rpeak); split("", rstar)
-    split("", rind); split("", rsec); split("", rmem); split("", rmc)
-    rn = 0
-}
-
-# `sec` is the row's running time. The bar draws the active windows of agents mem[1..count]: one
-# agent for its own row, the members for a group, none for a session.
-function addrow(label, st, en, usd, peak, star, ind, sec, mem, count,   k) {
-    rn++
-    rlabel[rn] = label; rst[rn] = st; ren[rn] = en; rusd[rn] = usd; rpeak[rn] = peak; rstar[rn] = star
-    rind[rn] = ind; rsec[rn] = sec
-    rmc[rn] = count
-    for (k = 1; k <= count; k++) rmem[rn, k] = mem[k]
-}
-
-# Whether any of row i's agents was running at some moment of (a, b).
-function row_running(i, a, b,   k) {
-    for (k = 1; k <= rmc[i]; k++) if (running_in(rmem[i, k], a, b)) return 1
-    return 0
-}
-
-# Agents of one type under one parent are grouped. `withmod` puts the plan's
-# module in the label, which the overview needs and a plan's own timeline does not. A group's dollars
-# are its priced members' sum, starred when a member is unpriced; its peak context is the members' largest.
-function group_rows(list, count, ind, withmod,
-                    i, j, k, m, mi, key, gn, gc, gs, ge, gu, gp, gnp, gpr, glabel, gmem, at, ord, tmp,
-                    mem, one) {
-    gn = 0
-    for (i = 1; i <= count; i++) {
-        j = list[i]
-        m = withmod ? module_of(apl[j]) : ""
-        key = atyp[j] "|" apar[j] "|" m
-        if (!(key in at)) {
-            gn++
-            at[key] = gn
-            glabel[gn] = atyp[j] (m == "" ? "" : " " m)
-            gc[gn] = 0; gs[gn] = ast[j]; ge[gn] = aen[j]; gu[gn] = 0; gp[gn] = 0; gnp[gn] = 0; gpr[gn] = 0
-        }
-        k = at[key]
-        gc[k]++
-        gmem[k "," gc[k]] = j
-        if (ast[j] < gs[k]) gs[k] = ast[j]
-        if (aen[j] > ge[k]) ge[k] = aen[j]
-        if (apriced[j]) { gu[k] += ausd[j]; gpr[k] = 1 } else gnp[k] = 1
-        if (apeak[j] > gp[k]) gp[k] = apeak[j]
-    }
-    for (i = 1; i <= gn; i++) ord[i] = i
-    for (i = 2; i <= gn; i++) {
-        tmp = ord[i]; j = i - 1
-        while (j >= 1 && gs[ord[j]] > gs[tmp]) { ord[j + 1] = ord[j]; j-- }
-        ord[j + 1] = tmp
-    }
-    for (i = 1; i <= gn; i++) {
-        k = ord[i]
-        for (mi = 2; mi <= gc[k]; mi++) {
-            tmp = gmem[k "," mi]; j = mi - 1
-            while (j >= 1 && ast[gmem[k "," j]] > ast[tmp]) { gmem[k "," (j + 1)] = gmem[k "," j]; j-- }
-            gmem[k "," (j + 1)] = tmp
-        }
-        if (gc[k] == 1) {
-            j = gmem[k ",1"]; one[1] = j
-            addrow(glabel[k], ast[j], aen[j], ausd[j], apeak[j], 0, ind, aact[j], one, 1)
-        } else {
-            for (mi = 1; mi <= gc[k]; mi++) mem[mi] = gmem[k "," mi]
-            addrow(glabel[k] " \303\227" gc[k], gs[k], ge[k], row_usd(gu[k], gpr[k]), gp[k], gnp[k] && gpr[k], ind,
-                   active_of(mem, gc[k]), mem, gc[k])
-            for (mi = 1; mi <= gc[k]; mi++) {
-                j = gmem[k "," mi]; one[1] = j
-                addrow("#" mi, ast[j], aen[j], ausd[j], apeak[j], 0, ind + 1, aact[j], one, 1)
-            }
-        }
-    }
-}
-
-# ---------------------------------------------------------------- drawing
-
-function draw(title,   i, t0, t1, span, m, w, c, k, axis, line, sc, ec, ind, label, steps) {
-    if (rn == 0) return
-    t0 = rst[1]; t1 = ren[1]
-    for (i = 1; i <= rn; i++) {
-        if (rst[i] < t0) t0 = rst[i]
-        if (ren[i] > t1) t1 = ren[i]
-    }
-    span = (t1 - t0) / 60
-    if (span < 0.05) span = 0.05
-    split("0.05 0.1 0.25 0.5 1 2 5 10 15 20 30 60 120 240 480 960 1920", steps, " ")
-    for (i = 1; i <= 17; i++) { m = steps[i] + 0; if (ceil(span / m) <= 40) break }
-    w = ceil(span / m)
-    if (w < 1) w = 1
-
-    axis = ""
-    for (c = 0; c + 5 <= w; c += 10) {
-        while (length(axis) < c) axis = axis " "
-        axis = axis hhmm(t0 + c * m * 60)
-    }
-    while (length(axis) < w) axis = axis " "
-    print title
-    printf "%s %-5s  %-5s  %s%6s %s %s\n", pad("agent", 36), "start", "end", axis, "time",
-        rpad("$", 8), rpad("peak ctx", 9)
-    for (i = 1; i <= rn; i++) {
-        sc = int((rst[i] - t0) / (m * 60))
-        ec = ceil((ren[i] - t0) / (m * 60))
-        if (ec <= sc) ec = sc + 1
-        if (ec > w) ec = w
-        line = ""
-        for (c = 0; c < w; c++) {
-            if (c < sc || c >= ec) line = line "\302\267"
-            else if (rmc[i] > 0 && !row_running(i, t0 + c * m * 60, t0 + (c + 1) * m * 60))
-                line = line "\342\226\221"
-            else line = line "\342\226\210"
-        }
-        ind = ""
-        for (k = 0; k < rind[i]; k++) ind = ind "  "
-        label = ind rlabel[i]
-        printf "%s %-5s  %-5s  %s%6s %s %s\n", pad(label, 36), hhmm(rst[i]), hhmm(ren[i]), line,
-            fsec(rsec[i]), rpad(fusd(rusd[i], rstar[i]), 8), rpad(ftok(rpeak[i]), 9)
-    }
-}
-
-function emit(title) {
-    draw(title)
-}
-
 # "session (own turns)", with the session named when the task saw more than one.
 function session_label(s) {
     if (sn == 1) return "session (own turns)"
     return "session " substr(sid[s], 1, 8) " (own turns)"
-}
-
-# ---------------------------------------------------------------- timelines
-
-function overview(   i, list, count, title, none) {
-    rows_reset()
-    overview_mode = 1
-    for (i = 1; i <= sn; i++) {
-        if (sstat[i] != "ok") continue
-        addrow(session_label(i), sfrom[i], sto[i], susd[i], speak[i], 0, 0, sto[i] - sfrom[i], none, 0)
-    }
-    count = 0
-    for (i = 1; i <= n; i++) {
-        if (atyp[i] ~ /^(implement-plan|fix-bug|rework|upgrade-deps)-module$/ || (apar[i] == "" && !adopted[i])) {
-            count++
-            list[count] = i
-        }
-    }
-    group_rows(list, count, 0, 1)
-    if (kind_fix) title = "fix " task
-    else if (kind_rework) title = "rework " task
-    else if (kind_upgrade) title = "upgrade " task
-    else title = "task " task " \302\267 overview"
-    emit(title)
-}
-
-# The pipeline a step or phase agent with no known parent joins: the one for its plan that had started last when
-# the agent started, else the first for that plan. 0 where no pipeline has its plan.
-function adopter(j,   i, best) {
-    best = 0
-    if (apl[j] == "" || atyp[j] !~ /-(step|phase)$/) return 0
-    if (apar[j] != "" && apar[j] != aid[j] && (apar[j] in idset)) return 0
-    for (i = 1; i <= n; i++) {
-        if (atyp[i] != "implement-plan-module" || apl[i] != apl[j]) continue
-        if (best == 0) { best = i; continue }
-        if (ast[i] <= ast[j] && (ast[best] > ast[j] || ast[i] > ast[best])) best = i
-    }
-    return best
-}
-
-# Every agent below one pipeline, however deep, by parent, plus the parentless ones it adopts.
-function descendants(root, list,   i, changed, mark, count) {
-    mark[aid[root]] = 1
-    for (i = 1; i <= n; i++) if (i != root && adopter(i) == root) mark[aid[i]] = 1
-    changed = 1
-    while (changed) {
-        changed = 0
-        for (i = 1; i <= n; i++) {
-            if (i == root) continue
-            if (apar[i] != "" && (apar[i] in mark) && !(aid[i] in mark)) {
-                mark[aid[i]] = 1
-                changed = 1
-            }
-        }
-    }
-    count = 0
-    for (i = 1; i <= n; i++) {
-        if (i == root) continue
-        if (aid[i] in mark) { count++; list[count] = i }
-    }
-    return count
-}
-
-function one_plan(i, nth,   list, count, one) {
-    rows_reset()
-    overview_mode = 0
-    one[1] = i
-    addrow(atyp[i], ast[i], aen[i], ausd[i], apeak[i], 0, 0, aact[i], one, 1)
-    count = descendants(i, list)
-    group_rows(list, count, 1, 0)
-    emit(plan_of(apl[i]) (nth > 1 ? " (" nth ")" : ""))
 }
 
 # ---------------------------------------------------------------- tables
@@ -704,24 +421,7 @@ function total_table(total,   i, first, nowe) {
             commas(unpriced_models)
 }
 
-function plan_blocks(   i, seenp) {
-    for (i = 1; i <= n; i++) {
-        if (atyp[i] != "implement-plan-module" || apl[i] == "") continue
-        seenp[apl[i]]++
-        print "```"
-        one_plan(i, seenp[apl[i]])
-        print "```"
-        print ""
-    }
-}
-
-# Parentless step agents a pipeline adopts are marked before the overview is drawn.
-function mark_adopted(   j) {
-    for (j = 1; j <= n; j++) if (adopter(j) > 0) adopted[j] = 1
-}
-
 END {
-    mark_adopted()
     pick_offset()
     total = task_total()
     type_rows()
@@ -738,12 +438,4 @@ END {
     volume_table()
     plan_table()
     total_table(total)
-    print ""
-    print "## Timelines"
-    print ""
-    print "```"
-    overview()
-    print "```"
-    print ""
-    plan_blocks()
 }

@@ -43,6 +43,8 @@ end fork
 in any plan;<<gate>>
 :review/acceptance.md,
 review/findings.md,
+review/cost.md,
+review/activity.html,
 review/report.md;
 :archive task directory;
 :commit;

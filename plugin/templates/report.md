@@ -29,6 +29,8 @@ Acceptance: 5 of 5 scenarios proved — [acceptance.md](acceptance.md)
 
 $4.20 · 31 agents · 1 h 12 min — [cost.md](cost.md)
 
+[Agent activity](activity.html)
+
 ## Open
 
 1 bug, 2 deferred changes — [findings.md](findings.md)
@@ -60,8 +62,8 @@ performance is not measured`, `Nothing open`, `No manual checks`.
   also a **Performance** row in `findings.md` ([`findings.md`](findings.md)); here it is the figure, whichever
   side of the line it fell. A rerun that lost against its previous figure gets one clause under the table, and
   nothing more.
-- **Cost** — the task's total in dollars, agents and wall time, read off `cost.md`. Where `cost.sh` was refused
-  or absent, the line says so.
+- **Cost** — the task's total in dollars, agents and wall time, read off `cost.md`. Link `activity.html` on the
+  next line. Where `cost.sh` was refused or absent, the two lines say so.
 - **Open** — the count per section of `findings.md`, and the link. Nothing more.
 - **Manual checks** — what no test can see, so a person must look. Sources: what an affected module's
   conventions say its finished work leaves for a person to look at, read rather than remembered; a check a

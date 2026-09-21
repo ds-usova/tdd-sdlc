@@ -25,6 +25,7 @@ database "docs/<n>-<task>/\nreview/cost.jsonl" as JSONL
 participant "cost.sh report" as REP
 database "rates: bundled\npricing.json, user cache" as RATES
 database "docs/<n>-<task>/\nreview/cost.md" as MD
+database "docs/<n>-<task>/\nreview/activity.html" as HTML
 
 S -> PRE : plan.sh status docs/7-x/plan.md
 PRE -> MAP : session -> docs/7-x
@@ -35,9 +36,10 @@ end note
 S -> A : spawn, prompt names\ndocs/7-x/module-a/plan.md
 A -> STOP : agent ends
 STOP -> STOP : type is a framework agent?\npath in the prompt, else the mapping
-STOP -> JSONL : one line: time, session, type, model,\nturns, four token counts, peak context,\nwall time, offset, plan
+STOP -> JSONL : one line: time, session, type, model,\nturns, token counts, activity intervals,\nwall time, offset, plan
 S -> REP : at the task's finish
 REP -> JSONL : read
 REP -> RATES : rate per model;\nfetched when a model is new\nor the cache is a week old
 REP -> MD : dollars and counts per session,\nper plan, per agent type
+REP -> HTML : deterministic template + embedded intervals
 @enduml

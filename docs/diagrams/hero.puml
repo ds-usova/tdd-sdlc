@@ -44,7 +44,7 @@ rectangle "implement — one agent per module" as I {
   }
 }
 
-file "feature\ntests first, suite green" as R #E6F4EA
+file "feature\ntests first, suite green\nreport + agent telemetry" as R #E6F4EA
 
 U --> S : describe
 S --> A

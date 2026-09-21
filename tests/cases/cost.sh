@@ -23,6 +23,7 @@ CWD="$(pwd -W 2>/dev/null || pwd)"
 SUB="$F/projects/sess-1/subagents"
 JSONL=docs/7-add-widget/review/cost.jsonl
 MD=docs/7-add-widget/review/cost.md
+HTML=docs/7-add-widget/review/activity.html
 SESS=.git/tdd-sdlc/sessions/sess-1
 
 map() {
@@ -68,7 +69,9 @@ for c in 'vim docs/7-add-widget/plan.sh' 'cat docs/7-add-widget/cost.sh' \
 done
 map 'bash /x/scripts/plan/plan.sh status docs/7-add-widget/plan.md'
 first="$(sed -n 4p "$SESS")"; sleep 1
-printf '{"session_id":"sess-1","transcript_path":"%s","cwd":"%s","tool_input":{"command":"cost.sh report docs/7-add-widget"}}' \
+map_payload='{"session_id":"sess-1","transcript_path":"%s","cwd":"%s",'
+map_payload+='"tool_input":{"command":"cost.sh report docs/7-add-widget"}}'
+printf "$map_payload" \
   "$F/projects/sess-1/session.jsonl" "$CWD" | bash "$MAP"
 check_no_match "a later call refreshes line 4" "^$first\$" "$(sed -n 4p "$SESS")"
 mapping
@@ -84,17 +87,31 @@ check_match "the record carries the plan" '"plan":"docs/7-add-widget/module-a/pl
 
 agent ws
 rec sess-1 ws tdd-unit-green-phase-step
-check_match "a backslash plan path records the plan" '"id":"ws".*"plan":"docs/7-add-widget/module-a/plan.md"' "$(tail -1 "$JSONL")"
+check_match "a backslash plan path records the plan" \
+  '"id":"ws".*"plan":"docs/7-add-widget/module-a/plan.md"' "$(tail -1 "$JSONL")"
 
 agent rs
 rec sess-1 rs tdd-system-red-phase-step
-check_match "a resumed agent records its wall time and its active time" '"seconds":1320,"active":240,' "$(tail -1 "$JSONL")"
-check_match "and its idle window, from its last turn to the resume"   '"idle":\[\["2026-09-08T14:12:00.000Z","2026-09-08T14:30:00.000Z"\]\]' "$(tail -1 "$JSONL")"
+check_match "a resumed agent records its wall time and its active time" \
+  '"seconds":1320,"active":240,' "$(tail -1 "$JSONL")"
+check_match "and its idle window, from its last turn to the resume" \
+  '"idle":\[\["2026-09-08T14:12:00.000Z","2026-09-08T14:30:00.000Z"\]\]' "$(tail -1 "$JSONL")"
 
 agent gr
 rec sess-1 gr grill-design
 check_match "a bare task directory files without a plan" '"id":"gr".*"agent":"grill-design"' "$(tail -1 "$JSONL")"
 check_no_match "a bare task directory record has no plan" '"id":"gr".*"plan":' "$(tail -1 "$JSONL")"
+
+agent ac
+rec sess-1 ac tdd-unit-green-phase-step
+activity_line="$(tail -1 "$JSONL")"
+activity_calls="$(printf '%s' "$activity_line" | jq -r '.activity[] | .call // empty' \
+  | tr -d '\r' | sort | tr '\n' ' ')"
+check "activity keeps parallel calls from one assistant message" "ac-bash ac-open ac-read " "$activity_calls"
+check_match "activity keeps a bounded shell command summary" 'npm test -- --runInBand' "$activity_line"
+check_match "an unmatched tool call is unknown" '"state":"unknown".*"call":"ac-open"' "$activity_line"
+check_no_match "activity does not keep tool output" 'test output is not retained' "$activity_line"
+sed '$d' "$JSONL" > "$JSONL.tmp" && mv "$JSONL.tmp" "$JSONL"
 
 n0=$(lines)
 agent np
@@ -125,7 +142,8 @@ mapping
 mkdir -p "$XDG_CACHE_HOME/tdd-sdlc"
 jq --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '.fetched = $now | .fetch_failed = null' \
   "$FX/pricing.json" > "$XDG_CACHE_HOME/tdd-sdlc/pricing.json"
-check_match "a fresh cache holding every model is not fetched again" "^Rates: fetched $(date -u +%Y-%m-%d)\.$" "$(report_offline)"
+check_match "a fresh cache holding every model is not fetched again" \
+  "^Rates: fetched $(date -u +%Y-%m-%d)\.$" "$(report_offline)"
 # Three values carry the moment of the run and are replaced before the comparison: the task total
 # span's length and end, which runs to now while the task is open, though its start stands; the rates
 # line's date; the written-at line's timestamp. Only the timestamp goes: the offset named beside it is
@@ -134,22 +152,28 @@ sed -E 's/^(\| \$[0-9.]+\*? \| )[^(]*\(15:40 → [0-9:]+\) \|$/\1<dur> (15:40 �
         s/^Rates: fetched .*/Rates: fetched <date>./
         s/^(Written by .* at )[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:]+ \(/\1<clock> (/' "$MD" > "$WORK/cost.md"
 check_golden "the report matches the golden rendering" "$FX/cost.golden.md" "$WORK/cost.md"
-check_match "an orphan parent renders as a row one level in" \
-  '^  tdd-refactor-phase +16:30 +16:30 ' "$(cat "$MD")"
-check_match "a self parent renders as a row one level in" \
-  '^  tdd-system-red-phase-step +16:22 +16:23 ' "$(cat "$MD")"
-check_match "a second pipeline on the same plan gets its own timeline" '^module-a/plan.md \(2\)$' "$(cat "$MD")"
-check_match "a resumed agent's bar shows its idle window and its time is the active part"   '^  tdd-system-red-phase-step +16:10 +16:32 +·██(░){18}██·· +4m ' "$(cat "$MD")"
-check_match "the type row's time is the running time, an idle window left out"   '^\| tdd-system-red-phase-step \| 2 \| .* \| 5m \| ' "$(cat "$MD")"
-check_match "a group of two legacy lines with a gap between them draws the gap and sums the two"   '^  tdd-integration-red-phase-step ×2 +16:20 +16:32 .*██(░){8}██.* +4m ' "$(cat "$MD")"
+check "the report writes the interactive activity page" yes "$([ -f "$HTML" ] && echo yes || echo no)"
+activity_b64="$(awk '/id="activity-data"/{getline; print; exit}' "$HTML")"
+activity_json="$(printf '%s' "$activity_b64" | jq -Rr '@base64d')"
+check "the activity page carries schema 1" 1 "$(printf '%s' "$activity_json" | jq -r '.schema')"
+check_match "the activity page includes a recorded tool interval" \
+  '"state":"tool".*"tool":"Bash"' "$(printf '%s' "$activity_json" | jq -c '.events')"
+check_match "the activity page has an agent lane" \
+  '"kind":"agent"' "$(printf '%s' "$activity_json" | jq -c '.lanes')"
+hash1="$(git hash-object "$HTML")"
+report_offline > /dev/null
+hash2="$(git hash-object "$HTML")"
+check "identical inputs render byte-identical activity HTML" "$hash1" "$hash2"
+check_no_match "the Markdown report has no timeline section" '^## Timelines$' "$(cat "$MD")"
+check_match "the type row's time is the running time, an idle window left out" \
+  '^\| tdd-system-red-phase-step \| 2 \| .* \| 5m \| ' "$(cat "$MD")"
 check_match "a 40-second agent is shown in seconds" '`module-b/plan.md` \| 1 \| \$[0-9.]* \| 40s' "$(cat "$MD")"
 check_match "the task total is not starred when every agent is priced" '^\| \$[0-9.]+ \| [0-9]+m \(' "$(cat "$MD")"
 
-# --- overview labels stay in the fixed 36-column label field when a module name is long
+# --- long plan names remain readable in the Markdown tables
 records long
 report_offline > /dev/null
-check_match "a long overview label is middle-elided to the fixed 36-column field" \
-  '^implement-plan-mo…pplication-backend [0-9]{2}:[0-9]{2}  [0-9]{2}:[0-9]{2} ' "$(cat "$MD")"
+check_match "a long plan name remains intact" 'example-application-backend/plan.md' "$(cat "$MD")"
 
 # --- the report, offline with no cache: the plugin's own table, saying so
 rm -rf "$XDG_CACHE_HOME"
@@ -159,11 +183,6 @@ check_match "offline, the rates line names the plugin's table and the curl error
 # --- the report: a model in no table
 records gr2 unk rp ad
 report_offline > /dev/null
-check_match "a parentless step agent on a plan joins that plan's timeline" \
-  '^  tdd-unit-green-phase-step +16:24 +16:25 ' "$(cat "$MD")"
-check_no_match "and leaves the overview" '^tdd-unit-green-phase-step ' "$(cat "$MD")"
-check_match "a parentless review agent on a plan stays in the overview" '^review-plan module-a +16:24 +16:26 ' "$(cat "$MD")"
-check_no_match "and is not adopted into the plan's timeline" '^  review-plan' "$(cat "$MD")"
 check_match "a row mixing a priced and an unpriced agent is starred" \
   '^\| grill-design \| 3 \| \$[0-9.]+\* \| [0-9]+% \| \$[0-9.]+\* ' "$(cat "$MD")"
 check_match "the task total is starred" '^\| \$[0-9.]+\* \| ' "$(cat "$MD")"
@@ -182,7 +201,8 @@ check "the stale cache was in fact retried, once" $((n0 + 1)) "$(calls_n)"
 check_match "a failure within a day leaves the same line" \
   '^Rates: cached copy from 2026-08-01 \(fetching current rates failed: curl' "$(report_offline)"
 check "and that failure is not retried" $((n0 + 1)) "$(calls_n)"
-jq --arg f "2026-08-01T00:00:00Z old failure" '.fetched = null | .fetch_failed = $f' "$cache" > "$cache.t" && mv "$cache.t" "$cache"
+jq --arg f "2026-08-01T00:00:00Z old failure" \
+  '.fetched = null | .fetch_failed = $f' "$cache" > "$cache.t" && mv "$cache.t" "$cache"
 before="$(jq -r '.fetch_failed' "$cache")"
 report_offline > /dev/null
 check_no_match "a cache that only ever failed, 40 days old, is retried" "^$before\$" "$(jq -r '.fetch_failed' "$cache")"

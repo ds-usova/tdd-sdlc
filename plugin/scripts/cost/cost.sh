@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 #
-# Turns the cost lines the hooks appended during a run into the task's review/cost.md. It stores
-# nothing of its own. See the README next to this script.
+# Turns the cost lines the hooks appended during a run into the task's review/cost.md and
+# review/activity.html. See the README next to this script.
 
 set -u
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 renderer="$script_dir/cost-render.awk"
+activity_parser="$script_dir/activity-parse.jq"
+activity_template="$script_dir/activity-template.html"
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 repo_root_abs="$(cd "$repo_root" && pwd)"
 
@@ -19,7 +21,7 @@ Usage:
   <plugin>/scripts/cost/cost.sh refresh-pricing
 
 Commands:
-  report           Read the task's review/cost.jsonl and write review/cost.md beside it.
+  report           Read the task's review/cost.jsonl and write review/cost.md and activity.html beside it.
   refresh-pricing  Fetch the published rates and rewrite the plugin's own pricing.json, beside the
                    script, dated today. Run before a release.
 
@@ -471,6 +473,75 @@ session_records() {
     done < <(sessions_of)
 }
 
+# One JSON object per recorded agent: lane metadata and the bounded activity captured by the stop
+# hook. Older records remain visible as lanes whose whole span is unknown.
+agent_activity_records() {
+    current_lines | jq -c '
+        {
+          lane: {
+            id: .id,
+            label: ((.agent // "agent") + " #" + ((.id // "")[0:8])),
+            kind: "agent",
+            agent_type: (.agent // ""),
+            parent: (.parent // ""),
+            started: (.started // ""),
+            ended: (.ended // "")
+          },
+          events: (.activity // [])
+        }' | tr -d '\r'
+}
+
+# One JSON object per available session. Session activity is read at report time because the session
+# is still running and no stop hook owns it.
+session_activity_records() {
+    local s w transcript first to events_file
+    while IFS= read -r s; do
+        [ -n "$s" ] || continue
+        w="$(session_window "$s")"
+        [ -n "$w" ] || continue
+        transcript="$(printf '%s' "$w" | cut -f1)"
+        first="$(printf '%s' "$w" | cut -f2)"
+        to="$(printf '%s' "$w" | cut -f3)"
+        events_file="${TMPDIR:-/tmp}/cost-session-activity.$$"
+        if ! jq -cRs --arg lane "session:$s" --arg from "$first" --arg to "$to" \
+            -f "$activity_parser" "$transcript" 2>/dev/null | tr -d '\r' > "$events_file"; then
+            printf '[]\n' > "$events_file"
+        fi
+        if ! jq -c --arg id "session:$s" --arg label "session ${s:0:8}" \
+            --arg started "$first" --arg ended "$to" '
+            {lane: {id: $id, label: $label, kind: "session", agent_type: "session",
+                    parent: "", started: $started, ended: $ended}, events: .}' < "$events_file"; then
+            rm -f "$events_file"
+            return 1
+        fi
+        rm -f "$events_file"
+    done < <(sessions_of)
+}
+
+write_activity() {
+    local rows="$1" target="$2" offset encoded_file
+    offset="$(current_lines | jq -sr '
+        map(select((.offset // "") != "")) | sort_by(.ended) | last.offset // "+0000"' | tr -d '\r')"
+    encoded_file="${rows}.b64"
+    trap 'rm -f "$encoded_file"' EXIT RETURN
+    jq -sc --arg task "$task_name" --arg offset "$offset" '
+        {
+          schema: 1,
+          task: $task,
+          offset: $offset,
+          lanes: (map(.lane) | sort_by(.started, .id)),
+          events: ([.[].events[]] | sort_by(.started, .ended, .lane, .state, .tool, .call))
+        }' < "$rows" | jq -Rr '@base64' | tr -d '\r' > "$encoded_file" || return 1
+    rewrite_file "$target" awk '
+        FNR == NR { data = $0; next }
+        $0 == "__TDD_SDLC_ACTIVITY_DATA_BASE64__" { print data; found = 1; next }
+        { print }
+        END { if (!found) exit 1 }
+    ' "$encoded_file" "$activity_template"
+    rm -f "$encoded_file"
+    trap - EXIT RETURN
+}
+
 command="${1:-}"
 [ -n "$command" ] || { usage; exit 2; }
 case "$command" in
@@ -492,6 +563,8 @@ case "$command" in
     report)
         command -v jq >/dev/null 2>&1 || die "report needs jq" 1
         [ -f "$renderer" ] || die "no renderer beside the script: $renderer"
+        [ -f "$activity_parser" ] || die "no activity parser beside the script: $activity_parser"
+        [ -f "$activity_template" ] || die "no activity template beside the script: $activity_template"
         [ -f "$pricing_bundled" ] || die "no pricing table beside the script: $pricing_bundled"
         resolve_jsonl "$target"
         review_dir="$(cd "$(dirname "$jsonl")" && pwd)"
@@ -512,9 +585,15 @@ case "$command" in
         rewrite_file "$review_dir/cost.md" \
             awk -v task="$task_name" -v now="$now" -v skipped="${skipped:-0}" \
                 -v rates="$rates_line" -f "$renderer" "$records"
+        activity_rows="${TMPDIR:-/tmp}/cost-activity.$$"
+        { agent_activity_records; session_activity_records; } > "$activity_rows" \
+            || { rm -f "$records" "$activity_rows" "$prices_tsv"; die "could not read activity" 1; }
+        write_activity "$activity_rows" "$review_dir/activity.html" \
+            || { rm -f "$records" "$activity_rows" "$prices_tsv"; die "could not write activity.html" 1; }
         echo "${review_dir#"$repo_root_abs/"}/cost.md"
+        echo "${review_dir#"$repo_root_abs/"}/activity.html"
         echo "$rates_line"
-        rm -f "$records" "$prices_tsv"
+        rm -f "$records" "$activity_rows" "$prices_tsv"
         ;;
 
     refresh-pricing)

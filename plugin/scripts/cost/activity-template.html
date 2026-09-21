@@ -1,0 +1,1071 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Activity timeline</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1017;
+      --panel: #121a24;
+      --panel-2: #182331;
+      --line: #2a3a4c;
+      --text: #e8eef5;
+      --muted: #94a6b8;
+      --model: #7c6ff2;
+      --tool: #20b486;
+      --waiting: #e5a93d;
+      --unknown: #647486;
+      --danger: #ef6b73;
+      --lane-label: 220px;
+      --radius: 12px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% -10%, #213451 0, transparent 34rem),
+        radial-gradient(circle at 92% 0, #193c37 0, transparent 28rem),
+        var(--bg);
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    button,
+    select,
+    input[type="number"] {
+      min-height: 36px;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0f1721;
+    }
+
+    button {
+      padding: 0 12px;
+      cursor: pointer;
+    }
+
+    button:hover,
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
+      border-color: #7895b1;
+      outline: 2px solid #7895b155;
+      outline-offset: 1px;
+    }
+
+    .shell {
+      width: min(1600px, 100%);
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.55rem, 3vw, 2.4rem);
+      letter-spacing: -0.035em;
+    }
+
+    .subtitle {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .badge {
+      flex: none;
+      padding: 7px 10px;
+      color: #bcd0e2;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #101923cc;
+      font: 0.76rem ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric,
+    .controls,
+    .timeline-card,
+    .detail {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--panel) 94%, transparent);
+      box-shadow: 0 16px 45px #0004;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 13px 15px;
+    }
+
+    .metric-label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 0.73rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .metric-value {
+      overflow: hidden;
+      font-size: 1.08rem;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      gap: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 5px;
+      min-width: 135px;
+    }
+
+    .field label,
+    .filter-label {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 650;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    select,
+    input[type="number"] {
+      width: 100%;
+      padding: 0 9px;
+    }
+
+    .states {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .state-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0f1721;
+      cursor: pointer;
+    }
+
+    .state-toggle input {
+      accent-color: #7f94ff;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--state-color);
+    }
+
+    .zoom {
+      display: flex;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    .timeline-card {
+      overflow: hidden;
+    }
+
+    .timeline-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .timeline-head h2 {
+      font-size: 0.92rem;
+    }
+
+    .timeline-hint {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .viewport {
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+    }
+
+    .timeline {
+      position: relative;
+      min-width: 100%;
+    }
+
+    .axis,
+    .lane {
+      display: grid;
+      grid-template-columns: var(--lane-label) 1fr;
+    }
+
+    .axis {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      min-height: 40px;
+      border-bottom: 1px solid var(--line);
+      background: #111923f5;
+    }
+
+    .axis-corner,
+    .lane-meta {
+      position: sticky;
+      left: 0;
+      z-index: 5;
+      border-right: 1px solid var(--line);
+      background: #111923f5;
+    }
+
+    .axis-corner {
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      color: var(--muted);
+      font-size: 0.73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .axis-track,
+    .lane-track {
+      position: relative;
+    }
+
+    .tick {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-left: 1px solid #34475b88;
+      pointer-events: none;
+    }
+
+    .tick-label {
+      position: absolute;
+      top: 10px;
+      left: 5px;
+      color: var(--muted);
+      font: 0.7rem ui-monospace, SFMono-Regular, Consolas, monospace;
+      white-space: nowrap;
+    }
+
+    .lane {
+      border-bottom: 1px solid #273746aa;
+    }
+
+    .lane:last-child {
+      border-bottom: 0;
+    }
+
+    .lane-meta {
+      display: flex;
+      min-height: 54px;
+      flex-direction: column;
+      justify-content: center;
+      padding: 9px 14px;
+    }
+
+    .lane-name {
+      overflow: hidden;
+      font-size: 0.82rem;
+      font-weight: 680;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .lane-type {
+      overflow: hidden;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.7rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .lane-track {
+      min-height: 54px;
+      background-color: #101823;
+      background-image: linear-gradient(90deg, #ffffff05 1px, transparent 1px);
+      background-size: 5% 100%;
+    }
+
+    .event {
+      position: absolute;
+      height: 22px;
+      min-width: 3px;
+      padding: 3px 6px;
+      overflow: hidden;
+      color: #081018;
+      border: 0;
+      border-radius: 5px;
+      background: var(--state-color);
+      box-shadow: inset 0 0 0 1px #ffffff2d, 0 2px 5px #0005;
+      font-size: 0.68rem;
+      font-weight: 720;
+      line-height: 16px;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .event:hover,
+    .event:focus-visible,
+    .event.selected {
+      z-index: 4;
+      outline: 2px solid #fff;
+      outline-offset: 1px;
+      filter: brightness(1.12);
+    }
+
+    .event.incomplete {
+      background-image: repeating-linear-gradient(
+        135deg,
+        #ffffff24 0,
+        #ffffff24 5px,
+        transparent 5px,
+        transparent 10px
+      );
+    }
+
+    .event[data-state="unknown"] {
+      color: #edf3f8;
+      opacity: 0.64;
+    }
+
+    .empty {
+      padding: 44px 20px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .detail {
+      display: none;
+      grid-template-columns: minmax(150px, 0.7fr) minmax(240px, 2fr);
+      gap: 8px 20px;
+      margin-top: 14px;
+      padding: 16px;
+    }
+
+    .detail.open {
+      display: grid;
+    }
+
+    .detail-title {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 5px;
+    }
+
+    .detail-title h2 {
+      font-size: 1rem;
+    }
+
+    .detail-key {
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
+    .detail-value {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font: 0.78rem ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .tooltip {
+      position: fixed;
+      z-index: 20;
+      display: none;
+      max-width: min(360px, calc(100vw - 24px));
+      padding: 9px 11px;
+      color: var(--text);
+      border: 1px solid #607890;
+      border-radius: 8px;
+      background: #0b1119f2;
+      box-shadow: 0 10px 25px #0008;
+      font-size: 0.76rem;
+      line-height: 1.45;
+      pointer-events: none;
+    }
+
+    .tooltip.visible {
+      display: block;
+    }
+
+    @media (max-width: 850px) {
+      :root {
+        --lane-label: 150px;
+      }
+
+      .shell {
+        padding: 16px;
+      }
+
+      .summary {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+      }
+
+      .zoom {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .detail {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-title {
+        grid-column: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .event {
+        transition: filter 120ms ease, outline-color 120ms ease;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <h1 id="title">Activity timeline</h1>
+        <p class="subtitle" id="subtitle"></p>
+      </div>
+      <span class="badge" id="schema"></span>
+    </header>
+
+    <section class="summary" id="summary" aria-label="Duration summary"></section>
+
+    <section class="controls" aria-label="Timeline filters">
+      <div class="field">
+        <label for="lane-filter">Lane</label>
+        <select id="lane-filter"></select>
+      </div>
+      <div class="field">
+        <label for="type-filter">Agent type</label>
+        <select id="type-filter"></select>
+      </div>
+      <div class="field">
+        <label for="tool-filter">Tool</label>
+        <select id="tool-filter"></select>
+      </div>
+      <div class="field">
+        <label for="duration-filter">Minimum duration (s)</label>
+        <input id="duration-filter" type="number" min="0" step="1" value="0">
+      </div>
+      <div class="field">
+        <span class="filter-label">State</span>
+        <div class="states" id="state-filters"></div>
+      </div>
+      <div class="zoom" aria-label="Timeline zoom">
+        <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
+        <button id="zoom-reset" type="button">Fit</button>
+        <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+      </div>
+    </section>
+
+    <section class="timeline-card">
+      <div class="timeline-head">
+        <h2>Swimlanes</h2>
+        <span class="timeline-hint" id="result-count"></span>
+      </div>
+      <div class="viewport" id="viewport" tabindex="0" aria-label="Scrollable activity timeline">
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </section>
+
+    <section class="detail" id="detail" aria-live="polite"></section>
+  </main>
+
+  <div class="tooltip" id="tooltip" role="tooltip"></div>
+  <script id="activity-data" type="text/plain">
+__TDD_SDLC_ACTIVITY_DATA_BASE64__
+  </script>
+  <script>
+    (() => {
+      "use strict";
+
+      const stateMeta = {
+        model: { label: "Model turn", color: "var(--model)" },
+        tool: { label: "Tool", color: "var(--tool)" },
+        waiting: { label: "Waiting", color: "var(--waiting)" },
+        unknown: { label: "Unknown", color: "var(--unknown)" }
+      };
+      const encoded = document.getElementById("activity-data").textContent.trim();
+      const binary = atob(encoded);
+      const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+      const data = JSON.parse(new TextDecoder("utf-8").decode(bytes));
+      const lanes = Array.isArray(data.lanes) ? data.lanes : [];
+      const sourceEvents = Array.isArray(data.events) ? data.events : [];
+      const laneById = new Map(lanes.map((lane) => [String(lane.id), lane]));
+      const $ = (id) => document.getElementById(id);
+      const timeline = $("timeline");
+      const viewport = $("viewport");
+      const tooltip = $("tooltip");
+      const detail = $("detail");
+      const filters = {
+        lane: $("lane-filter"),
+        type: $("type-filter"),
+        tool: $("tool-filter"),
+        duration: $("duration-filter")
+      };
+      let scale = 1;
+      let selectedButton = null;
+
+      function instant(value, fallback) {
+        const parsed = Date.parse(value || "");
+        return Number.isFinite(parsed) ? parsed : fallback;
+      }
+
+      function laneBounds(lane) {
+        const start = instant(lane.started, NaN);
+        const end = instant(lane.ended, start);
+        return { start, end: Math.max(start, end) };
+      }
+
+      function normalizeEvent(event) {
+        const lane = laneById.get(String(event.lane));
+        if (!lane) {
+          return null;
+        }
+        const bounds = laneBounds(lane);
+        const start = instant(event.started, bounds.start);
+        const end = Math.max(start, instant(event.ended, bounds.end));
+        const seconds = Number.isFinite(Number(event.seconds))
+          ? Math.max(0, Number(event.seconds))
+          : Math.max(0, (end - start) / 1000);
+        return { ...event, lane: String(event.lane), start, end, seconds };
+      }
+
+      const normalizedEvents = sourceEvents.map(normalizeEvent).filter(Boolean);
+
+      function unknownEvents(lane) {
+        const bounds = laneBounds(lane);
+        if (!Number.isFinite(bounds.start) || bounds.end <= bounds.start) {
+          return [];
+        }
+        const intervals = normalizedEvents
+          .filter((event) => event.lane === String(lane.id))
+          .map((event) => ({
+            start: Math.max(bounds.start, event.start),
+            end: Math.min(bounds.end, event.end)
+          }))
+          .filter((event) => event.end > event.start)
+          .sort((left, right) => left.start - right.start || left.end - right.end);
+        const merged = [];
+        for (const interval of intervals) {
+          const previous = merged[merged.length - 1];
+          if (!previous || interval.start > previous.end) {
+            merged.push({ ...interval });
+          } else {
+            previous.end = Math.max(previous.end, interval.end);
+          }
+        }
+        const gaps = [];
+        let cursor = bounds.start;
+        for (const interval of merged) {
+          if (interval.start > cursor) {
+            gaps.push(makeUnknown(lane, cursor, interval.start));
+          }
+          cursor = Math.max(cursor, interval.end);
+        }
+        if (cursor < bounds.end) {
+          gaps.push(makeUnknown(lane, cursor, bounds.end));
+        }
+        return gaps;
+      }
+
+      function makeUnknown(lane, start, end) {
+        return {
+          lane: String(lane.id),
+          state: "unknown",
+          tool: "",
+          summary: "No recorded activity",
+          started: new Date(start).toISOString(),
+          ended: new Date(end).toISOString(),
+          start,
+          end,
+          seconds: (end - start) / 1000,
+          incomplete: false
+        };
+      }
+
+      const allEvents = normalizedEvents.concat(lanes.flatMap(unknownEvents));
+      const starts = lanes.map((lane) => laneBounds(lane).start).filter(Number.isFinite);
+      const ends = lanes.map((lane) => laneBounds(lane).end).filter(Number.isFinite);
+      const globalStart = starts.length ? Math.min(...starts) : Date.now();
+      const globalEnd = ends.length ? Math.max(...ends) : globalStart + 1000;
+      const globalSpan = Math.max(1000, globalEnd - globalStart);
+
+      function offsetMinutes() {
+        const match = /^([+-])(\d{2})(\d{2})$/.exec(String(data.offset || ""));
+        if (!match) {
+          return 0;
+        }
+        const value = Number(match[2]) * 60 + Number(match[3]);
+        return match[1] === "-" ? -value : value;
+      }
+
+      function zoneLabel() {
+        const value = String(data.offset || "+0000");
+        const match = /^([+-])(\d{2})(\d{2})$/.exec(value);
+        return match ? `UTC${match[1]}${match[2]}:${match[3]}` : "UTC";
+      }
+
+      function formatTime(value, includeDate = true) {
+        const milliseconds = typeof value === "number" ? value : instant(value, NaN);
+        if (!Number.isFinite(milliseconds)) {
+          return "—";
+        }
+        const date = new Date(milliseconds + offsetMinutes() * 60000);
+        const pad = (number) => String(number).padStart(2, "0");
+        const clock = `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
+        if (!includeDate) {
+          return clock;
+        }
+        const day = `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+        return `${day} ${clock} ${zoneLabel()}`;
+      }
+
+      function formatDuration(seconds) {
+        const value = Math.max(0, Number(seconds) || 0);
+        if (value < 1) {
+          return `${Math.round(value * 1000)} ms`;
+        }
+        if (value < 60) {
+          return `${value < 10 ? value.toFixed(1) : Math.round(value)} s`;
+        }
+        const hours = Math.floor(value / 3600);
+        const minutes = Math.floor((value % 3600) / 60);
+        const remainder = Math.round(value % 60);
+        const parts = [];
+        if (hours) {
+          parts.push(`${hours}h`);
+        }
+        if (minutes) {
+          parts.push(`${minutes}m`);
+        }
+        if (remainder || !parts.length) {
+          parts.push(`${remainder}s`);
+        }
+        return parts.join(" ");
+      }
+
+      function addOption(select, value, label) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        select.append(option);
+      }
+
+      function unique(values) {
+        return [...new Set(values.filter((value) => value !== null && value !== undefined))]
+          .map(String)
+          .filter(Boolean)
+          .sort((left, right) => left.localeCompare(right));
+      }
+
+      function initializeFilters() {
+        addOption(filters.lane, "", "All lanes");
+        for (const lane of lanes) {
+          addOption(filters.lane, String(lane.id), String(lane.label || lane.id));
+        }
+        addOption(filters.type, "", "All types");
+        for (const type of unique(lanes.map((lane) => lane.agent_type))) {
+          addOption(filters.type, type, type);
+        }
+        addOption(filters.tool, "", "All tools");
+        for (const tool of unique(normalizedEvents.map((event) => event.tool))) {
+          addOption(filters.tool, tool, tool);
+        }
+        for (const state of Object.keys(stateMeta)) {
+          const label = document.createElement("label");
+          label.className = "state-toggle";
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = true;
+          checkbox.value = state;
+          checkbox.addEventListener("change", render);
+          const dot = document.createElement("span");
+          dot.className = "dot";
+          dot.style.setProperty("--state-color", stateMeta[state].color);
+          const text = document.createElement("span");
+          text.textContent = stateMeta[state].label;
+          label.append(checkbox, dot, text);
+          $("state-filters").append(label);
+        }
+      }
+
+      function activeStates() {
+        return new Set(
+          [...document.querySelectorAll("#state-filters input:checked")].map((input) => input.value)
+        );
+      }
+
+      function visibleLanes() {
+        return lanes.filter((lane) => {
+          const laneMatch = !filters.lane.value || String(lane.id) === filters.lane.value;
+          const typeMatch = !filters.type.value || String(lane.agent_type || "") === filters.type.value;
+          return laneMatch && typeMatch;
+        });
+      }
+
+      function visibleEvents(lane) {
+        const states = activeStates();
+        const minimum = Math.max(0, Number(filters.duration.value) || 0);
+        return allEvents.filter((event) => {
+          if (event.lane !== String(lane.id) || !states.has(event.state)) {
+            return false;
+          }
+          if (event.seconds < minimum) {
+            return false;
+          }
+          return !filters.tool.value || event.tool === filters.tool.value;
+        });
+      }
+
+      function appendText(parent, className, value) {
+        const element = document.createElement("span");
+        element.className = className;
+        element.textContent = value;
+        parent.append(element);
+        return element;
+      }
+
+      function renderHeader() {
+        $("title").textContent = data.task ? String(data.task) : "Activity timeline";
+        $("subtitle").textContent = `${formatTime(globalStart)} → ${formatTime(globalEnd)}`;
+        $("schema").textContent = `schema ${String(data.schema || "unknown")}`;
+      }
+
+      function renderSummary(events) {
+        const summary = $("summary");
+        summary.replaceChildren();
+        const metrics = [
+          ["Span", formatDuration(globalSpan / 1000)],
+          ["Model turn", formatDuration(sumDuration(events, "model"))],
+          ["Tool", formatDuration(sumDuration(events, "tool"))],
+          ["Waiting", formatDuration(sumDuration(events, "waiting"))],
+          ["Unknown", formatDuration(sumDuration(events, "unknown"))]
+        ];
+        for (const [label, value] of metrics) {
+          const metric = document.createElement("div");
+          metric.className = "metric";
+          appendText(metric, "metric-label", label);
+          appendText(metric, "metric-value", value);
+          summary.append(metric);
+        }
+      }
+
+      function sumDuration(events, state) {
+        const intervalsByLane = new Map();
+        for (const event of events) {
+          if (event.state !== state || event.end <= event.start) {
+            continue;
+          }
+          const intervals = intervalsByLane.get(event.lane) || [];
+          intervals.push({ start: event.start, end: event.end });
+          intervalsByLane.set(event.lane, intervals);
+        }
+        let milliseconds = 0;
+        for (const intervals of intervalsByLane.values()) {
+          intervals.sort((left, right) => left.start - right.start || left.end - right.end);
+          let start = null;
+          let end = null;
+          for (const interval of intervals) {
+            if (start === null || interval.start > end) {
+              if (start !== null) {
+                milliseconds += end - start;
+              }
+              start = interval.start;
+              end = interval.end;
+            } else {
+              end = Math.max(end, interval.end);
+            }
+          }
+          if (start !== null) {
+            milliseconds += end - start;
+          }
+        }
+        return milliseconds / 1000;
+      }
+
+      function buildAxis(width) {
+        const axis = document.createElement("div");
+        axis.className = "axis";
+        const corner = document.createElement("div");
+        corner.className = "axis-corner";
+        corner.textContent = "Lane";
+        const track = document.createElement("div");
+        track.className = "axis-track";
+        track.style.width = `${width}px`;
+        for (let index = 0; index <= 10; index += 1) {
+          const tick = document.createElement("span");
+          tick.className = "tick";
+          tick.style.left = `${index * 10}%`;
+          const label = document.createElement("span");
+          label.className = "tick-label";
+          label.textContent = formatTime(globalStart + globalSpan * index / 10, false);
+          tick.append(label);
+          track.append(tick);
+        }
+        axis.append(corner, track);
+        return axis;
+      }
+
+      function stackEvents(events) {
+        const rows = [];
+        return [...events]
+          .sort((left, right) => left.start - right.start || left.end - right.end)
+          .map((event) => {
+            let row = rows.findIndex((rowEnd) => rowEnd <= event.start);
+            if (row < 0) {
+              row = rows.length;
+              rows.push(event.end);
+            } else {
+              rows[row] = event.end;
+            }
+            return { event, row };
+          });
+      }
+
+      function eventLabel(event) {
+        if (event.state === "model") {
+          return "Model turn";
+        }
+        if (event.state === "tool") {
+          return event.tool ? String(event.tool) : "Tool";
+        }
+        return stateMeta[event.state]?.label || String(event.state);
+      }
+
+      function eventDescription(event) {
+        const parts = [eventLabel(event), formatDuration(event.seconds)];
+        if (event.summary) {
+          parts.push(String(event.summary));
+        }
+        if (event.incomplete) {
+          parts.push("Incomplete");
+        }
+        return parts.join(" · ");
+      }
+
+      function showTooltip(event, pointerEvent) {
+        tooltip.textContent = eventDescription(event);
+        tooltip.classList.add("visible");
+        const margin = 12;
+        const width = tooltip.offsetWidth;
+        const height = tooltip.offsetHeight;
+        const left = Math.min(pointerEvent.clientX + 14, window.innerWidth - width - margin);
+        const top = Math.min(pointerEvent.clientY + 14, window.innerHeight - height - margin);
+        tooltip.style.left = `${Math.max(margin, left)}px`;
+        tooltip.style.top = `${Math.max(margin, top)}px`;
+      }
+
+      function hideTooltip() {
+        tooltip.classList.remove("visible");
+      }
+
+      function showDetail(event, lane, button) {
+        if (selectedButton) {
+          selectedButton.classList.remove("selected");
+        }
+        selectedButton = button;
+        button.classList.add("selected");
+        detail.replaceChildren();
+        detail.classList.add("open");
+        const heading = document.createElement("div");
+        heading.className = "detail-title";
+        const title = document.createElement("h2");
+        title.textContent = eventLabel(event);
+        const close = document.createElement("button");
+        close.type = "button";
+        close.textContent = "Close";
+        close.addEventListener("click", closeDetail);
+        heading.append(title, close);
+        detail.append(heading);
+        const rows = [
+          ["Lane", lane.label || lane.id],
+          ["Agent type", lane.agent_type || "—"],
+          ["Kind", lane.kind || "—"],
+          ["Parent", lane.parent || "—"],
+          ["State", eventLabel(event)],
+          ["Tool", event.tool || "—"],
+          ["Duration", formatDuration(event.seconds)],
+          ["Started", formatTime(event.start)],
+          ["Ended", formatTime(event.end)],
+          ["Summary", event.summary || "—"],
+          ["Incomplete", event.incomplete ? "Yes" : "No"]
+        ];
+        for (const [key, value] of rows) {
+          appendText(detail, "detail-key", String(key));
+          appendText(detail, "detail-value", String(value));
+        }
+      }
+
+      function closeDetail() {
+        detail.classList.remove("open");
+        detail.replaceChildren();
+        if (selectedButton) {
+          selectedButton.classList.remove("selected");
+          selectedButton = null;
+        }
+      }
+
+      function buildEvent(item, lane, width) {
+        const event = item.event;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "event";
+        button.dataset.state = event.state;
+        button.style.setProperty("--state-color", stateMeta[event.state]?.color || "var(--unknown)");
+        button.style.left = `${(event.start - globalStart) / globalSpan * width}px`;
+        button.style.width = `${Math.max(3, (event.end - event.start) / globalSpan * width)}px`;
+        button.style.top = `${8 + item.row * 27}px`;
+        button.textContent = eventLabel(event);
+        button.setAttribute("aria-label", eventDescription(event));
+        if (event.incomplete) {
+          button.classList.add("incomplete");
+        }
+        button.addEventListener("mousemove", (pointerEvent) => showTooltip(event, pointerEvent));
+        button.addEventListener("mouseleave", hideTooltip);
+        button.addEventListener("focus", () => {
+          tooltip.textContent = eventDescription(event);
+        });
+        button.addEventListener("click", () => showDetail(event, lane, button));
+        return button;
+      }
+
+      function buildLane(lane, events, width) {
+        const stacked = stackEvents(events);
+        const rows = Math.max(1, ...stacked.map((item) => item.row + 1));
+        const height = Math.max(54, 16 + rows * 27);
+        const element = document.createElement("div");
+        element.className = "lane";
+        const meta = document.createElement("div");
+        meta.className = "lane-meta";
+        meta.style.minHeight = `${height}px`;
+        appendText(meta, "lane-name", String(lane.label || lane.id));
+        const type = lane.agent_type || lane.kind || "lane";
+        const parent = lane.parent ? ` · child of ${String(lane.parent)}` : "";
+        appendText(meta, "lane-type", `${String(type)}${parent}`);
+        const track = document.createElement("div");
+        track.className = "lane-track";
+        track.style.width = `${width}px`;
+        track.style.height = `${height}px`;
+        for (const item of stacked) {
+          track.append(buildEvent(item, lane, width));
+        }
+        element.append(meta, track);
+        return element;
+      }
+
+      function render() {
+        hideTooltip();
+        closeDetail();
+        timeline.replaceChildren();
+        const width = Math.max(760, Math.round((viewport.clientWidth - 220) * scale));
+        timeline.style.width = `calc(var(--lane-label) + ${width}px)`;
+        const currentLanes = visibleLanes();
+        const entries = currentLanes.map((lane) => [lane, visibleEvents(lane)]);
+        const currentEvents = entries.flatMap((entry) => entry[1]);
+        renderSummary(currentEvents);
+        timeline.append(buildAxis(width));
+        for (const [lane, events] of entries) {
+          timeline.append(buildLane(lane, events, width));
+        }
+        if (!entries.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "No lanes match these filters.";
+          timeline.append(empty);
+        }
+        $("result-count").textContent = `${currentEvents.length} events · ${currentLanes.length} lanes`;
+      }
+
+      function changeZoom(factor) {
+        const ratio = viewport.scrollWidth > viewport.clientWidth
+          ? viewport.scrollLeft / (viewport.scrollWidth - viewport.clientWidth)
+          : 0;
+        scale = Math.min(16, Math.max(1, scale * factor));
+        render();
+        viewport.scrollLeft = ratio * (viewport.scrollWidth - viewport.clientWidth);
+      }
+
+      initializeFilters();
+      renderHeader();
+      Object.values(filters).forEach((control) => control.addEventListener("input", render));
+      $("zoom-in").addEventListener("click", () => changeZoom(1.6));
+      $("zoom-out").addEventListener("click", () => changeZoom(0.625));
+      $("zoom-reset").addEventListener("click", () => {
+        scale = 1;
+        render();
+        viewport.scrollLeft = 0;
+      });
+      window.addEventListener("resize", render);
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeDetail();
+        }
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>

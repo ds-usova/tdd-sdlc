@@ -1,7 +1,7 @@
 # The scripts
 
 One script per file format the plugin writes, each in its own directory with a README beside it: `design/`,
-`plan/`, `fix/`, `rework/`, `upgrade/`, `findings/`, and `cost/` for the report the two cost hooks feed. A skill
+`plan/`, `fix/`, `rework/`, `upgrade/`, `findings/`, and `cost/` for the reports the two cost hooks feed. A skill
 names the one it uses, and every module agent that skill spawns uses the same one.
 
 ## What they are for
@@ -81,7 +81,7 @@ answering:
 ## Caveats
 
 - **CV01:** `plan.sh` refused from RU01 on — hook: "<its wording>". Ticks and validation by hand.
-- **CV02:** `cost.sh` absent at Phase 3. No cost report for this task.
+- **CV02:** `cost.sh` absent at Phase 3. No cost or activity report for this task.
 ```
 
 An entry names the script, `refused` or `absent`, the step or phase it failed at, and what the run did instead.

@@ -34,6 +34,7 @@ cwd="$(posix "${cwd:-}")"
 # files under agents/. The bare name is what gets recorded. The plugin root is two levels above this
 # script.
 plugin_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." 2>/dev/null && pwd)" || exit 0
+activity_parser="$plugin_root/scripts/cost/activity-parse.jq"
 known=0
 for f in "$plugin_root"/agents/*.md; do
     [ -f "$f" ] || continue
@@ -140,6 +141,20 @@ model="$(get model)"
 [ -n "$model" ] || model="$meta_model"
 idle="$(printf '%s' "$usage" | jq -c '.idle // []' | tr -d '\r')"
 
+# Keep the bounded activity intervals with the cost line. The report can then be regenerated after
+# Claude Code has removed the agent transcript. Missing parser data degrades to an empty timeline;
+# cost recording itself still succeeds.
+activity_file="${TMPDIR:-/tmp}/tdd-sdlc-agent-activity.$$"
+printf '[]\n' > "$activity_file" 2>/dev/null || exit 0
+trap 'rm -f "$activity_file" "$activity_file.tmp"' EXIT
+if [ -f "$activity_parser" ] && [ -n "$started" ] && [ -n "$ended" ]; then
+    if ! jq -cRs --arg lane "$agent_id" --arg from "$started" --arg to "$ended" \
+        -f "$activity_parser" "$transcript" 2>/dev/null | tr -d '\r' > "$activity_file.tmp"; then
+        printf '[]\n' > "$activity_file.tmp"
+    fi
+    mv "$activity_file.tmp" "$activity_file"
+fi
+
 # Wall time from first to last message, and the active part of it: the wall time less every idle
 # window. An idle window ends at a user line whose content is a string, as docs/cost-recording.md says
 # under "Idle windows". GNU `date -d` is absent on macOS, so the stamps are parsed and differenced by
@@ -196,6 +211,7 @@ line="$(jq -nc \
     --arg session "$session_id" --arg agent "$agent_type" --arg model "$model" \
     --arg plan "$plan" --arg offset "$offset" --argjson seconds "${seconds:-0}" \
     --argjson active "${active:-0}" --argjson idle "${idle:-[]}" \
+    --slurpfile activity "$activity_file" \
     --argjson input "$(get input)" --argjson output "$(get output)" \
     --argjson cache_read "$(get cache_read)" \
     --argjson cache_create_5m "$(get cache_create_5m)" --argjson cache_create_1h "$(get cache_create_1h)" \
@@ -206,8 +222,10 @@ line="$(jq -nc \
        turns: $turns,
        tokens: {input: $input, output: $output, cache_read: $cache_read,
                 cache_create_5m: $cache_create_5m, cache_create_1h: $cache_create_1h},
-       peak_ctx: $peak_ctx, seconds: $seconds, active: $active, idle: $idle, offset: $offset}
+       peak_ctx: $peak_ctx, seconds: $seconds, active: $active, idle: $idle,
+       activity: ($activity[0] // []), offset: $offset}
     + (if $plan == "" then {} else {plan: $plan} end)' | tr -d '\r')"
+rm -f "$activity_file"
 
 # One short printf per stop, appended; agents of one wave stop close together and each writes one line.
 [ -n "$line" ] && printf '%s\n' "$line" >> "$out_dir/cost.jsonl"
