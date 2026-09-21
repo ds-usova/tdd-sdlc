@@ -1,8 +1,8 @@
 # The scripts
 
 One script per file format the plugin writes, each in its own directory with a README beside it: `design/`,
-`plan/`, `fix/`, `rework/`, `upgrade/`, and `cost/` for the report the two cost hooks feed. A skill names the
-one it uses, and every module agent that skill spawns uses the same one.
+`plan/`, `fix/`, `rework/`, `upgrade/`, `findings/`, and `cost/` for the report the two cost hooks feed. A skill
+names the one it uses, and every module agent that skill spawns uses the same one.
 
 ## What they are for
 
@@ -25,10 +25,10 @@ file predates the format rather than failing on the symptoms, and refuses a numb
 The number moves when the shape of a file changes in a way an older reader misreads. It is not the plugin
 version.
 
-| Format | Since plugin | What changed                                                                                          |
-|--------|--------------|-------------------------------------------------------------------------------------------------------|
-| 1      | 0.1.0        | single-letter ids: `R1`, `A3`, `D2`, `F1`, `Q1`, `B3`, and plan steps `ST01` … `P01`                   |
-| 2      | 0.2.0        | every id is two letters and at least two digits, one prefix per kind, no letter reused across files   |
+| Format | Since plugin | What changed |
+|--------|--------------|--------------|
+| 1 | 0.1.0 | Single-letter ids: `R1`, `A3`, `D2`, `F1`, `Q1`, `B3`, and plan steps `ST01` … `P01`. |
+| 2 | 0.2.0 | Every id has two letters and at least two digits. Each kind has a unique prefix. |
 
 Format 2's prefixes: plan steps `ST RU RI RS GU GI GS PM PI`; spec `RQ AC DN`; design log `DF`; plan `OQ`; plan
 log `RF`; every log's run log `RL`, attempts `AT` and caveats `CV`; findings file `RX DX PX`; backlog `BC BB BR BT BP`;
@@ -39,7 +39,8 @@ renamed in every file of the directory and the line added - or archived as it st
 
 Each skill's `allowed-tools` frontmatter grants its own script to the skill session; a sub-agent gets no such
 grant and prompts on the first call, so whoever installs the plugin adds the rule to their own permission
-settings — each README's **Portability** section gives it. A call can fail to run for two reasons, told apart by what it printed:
+settings. Each README's **Portability** section gives it. A call can fail to run for two reasons. Its output
+distinguishes them:
 
 - **The call was refused** — by a permission hook whose allow rules do not name the script, or by the user
   declining the permission prompt by hand. Either is the operator's call, by accident or by choice, and not
@@ -70,8 +71,11 @@ it already said the rest.
 ### The log keeps the record
 
 **The first call that fails, at either level, is written into the log beside the file the call named**, under a
-`## Caveats` heading. The heading goes last in the log; create it when absent, append when present. One entry
-per script, at the moment it stopped answering:
+`## Caveats` heading. A task-level artifact with no log of its own uses the workflow's coordinating log:
+`design-log.md` for `implement-plan`, `bug-log.md` for `fix-bug`, `rework-log.md` for `rework`, and
+`upgrade-log.md` for `upgrade-deps`. This includes `findings.sh` and `cost.sh` calls over `review/`. The heading
+goes last in the log; create it when absent, append when present. One entry per script, at the moment it stopped
+answering:
 
 ```
 ## Caveats

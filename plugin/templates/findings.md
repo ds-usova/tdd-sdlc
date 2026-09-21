@@ -3,6 +3,9 @@
 What a finished piece of work found on the way and leaves open, written into its own `review/findings.md`. The
 skill that writes one says which sections its own kind of work may fill.
 
+Create and update this file with the [findings writer](../scripts/findings/README.md). If it cannot run, follow
+the fallback in [`scripts/README.md`](../scripts/README.md).
+
 ```
 # Review: <name>
 
@@ -16,18 +19,19 @@ written either way.
 
 Sections are these five, in this order, and a section with nothing in it is left out:
 
-| Section                   | Holds                                             | Shape                                                   |
-|---------------------------|---------------------------------------------------|---------------------------------------------------------|
-| **Critical**              | a risk that grows with every task landed on top   | one block per entry, in the form below                  |
-| **Bug**                   | real, reproduced, and it can wait                 | one block per defect, in the form below                 |
-| **Refactoring candidate** | nothing behaves wrong, and nothing should change  | table — # · Status · module · what · why                |
-| **Deferred change**       | nothing is wrong, but the behaviour should differ | table — # · Status · module · what · why                |
-| **Performance**           | a measured figure past its threshold              | table — # · Status · module · test · threshold · figure |
+| Section                   | Holds                                             | Shape                                           |
+|---------------------------|---------------------------------------------------|-------------------------------------------------|
+| **Critical**              | a risk that grows with every task landed on top   | one block per entry, in the form below          |
+| **Bug**                   | real, reproduced, and it can wait                 | one block per defect, in the form below         |
+| **Refactoring candidate** | nothing behaves wrong, and nothing should change  | # · Status · module · what · why                |
+| **Deferred change**       | nothing is wrong, but the behaviour should differ | # · Status · module · what · why                |
+| **Performance**           | a measured figure past its threshold              | # · Status · module · test · threshold · figure |
 
 A check a person still has to make is not a finding. It is a **Manual checks** block in the report
 ([`report.md`](report.md)).
 
 **Who may file what.**
+
 - A bug: any agent, once it is reproduced.
 - A refactoring candidate: the refactor pass, which read the whole diff, or the user. Never a step agent.
 - A deferred change: the run, or a decision the user made mid-run.

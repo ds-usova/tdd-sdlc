@@ -1,7 +1,13 @@
 ---
 description: Bring a module's dependencies up to date, one module by default or several on request. Reads the manifest, finds what is behind and what is vulnerable with whatever the conventions name, reads each release's migration guide, writes an upgrade file with one step per dependency, stops for approval, then applies them — one agent per module, concurrently — with the suite that is already green as the guardrail. A migration that cannot be finished is kept back and written down, never forced.
-argument-hint: [ a module, several modules, a dependency name, or the path of an existing upgrade.md ]
-allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *)
+argument-hint: >-
+  [ a module, several modules, a dependency name, or the path of an existing upgrade.md ]
+allowed-tools: >-
+  Bash(${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh *)
+  Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/upgrade/upgrade.sh *)
+  Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *)
+  Bash(${CLAUDE_PLUGIN_ROOT}/scripts/findings/findings.sh *)
+  Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/findings/findings.sh *)
 ---
 
 # Upgrade Dependencies
@@ -18,10 +24,10 @@ the language runtime, the build tool, the wrapper and the base image are not thi
 
 ## The Two Kinds of Step
 
-| Kind      | What it does                                                                                        |
-|-----------|-----------------------------------------------------------------------------------------------------|
-| `bump`    | moves one version line and nothing else; the suite is green before and after                        |
-| `migrate` | moves the version and carries the code and configuration the release's migration guide asks for     |
+| Kind      | What it does                                                                                    |
+|-----------|-------------------------------------------------------------------------------------------------|
+| `bump`    | moves one version line and nothing else; the suite is green before and after                    |
+| `migrate` | moves the version and carries the code and configuration the release's migration guide asks for |
 
 A `migrate` step names its guide. Its grammar is [`step-format.md`](step-format.md). **The suite green at the
 baseline and green after every step is the whole guardrail**; an upgrade writes no `red` step.
@@ -38,12 +44,12 @@ test commands, the cap on concurrent agents and the commit policy, they answer f
 default for. Where they answer, the answer binds; where they are silent, the fallback in the table applies and the
 closing report says so.
 
-| Question                       | The conventions may say                                        | Fallback where silent                                                          |
-|--------------------------------|----------------------------------------------------------------|--------------------------------------------------------------------------------|
-| How dependencies are updated   | a documented flow, a script, an order — anything at all        | the phases below                                                               |
-| What lists outdated versions   | a plugin, a script, a command                                  | the stack's own tool, then the manifest read against the registry — see below  |
-| What lists vulnerabilities     | a scanner and how it is run                                    | the stack's own audit command where it has one; otherwise none, and say so     |
-| Which versions are routine     | "patch and minor with every change; a major is its own story"  | every newer version is proposed and the user picks in Phase 2                  |
+| Question                     | The conventions may say                 | Fallback where silent                    |
+|------------------------------|-----------------------------------------|------------------------------------------|
+| How dependencies are updated | a documented flow, script, or order     | the phases below                         |
+| What lists outdated versions | a plugin, script, or command            | the stack's tool, then read the registry |
+| What lists vulnerabilities   | a scanner and its command               | the stack's audit command, or none       |
+| Which versions are routine   | patch and minor; each major is separate | propose every newer version in Phase 2   |
 
 **A documented flow outranks everything on this page.** Where the conventions describe how the module updates
 its dependencies, follow that and use this skill for what it leaves unsaid.
@@ -93,11 +99,11 @@ documentation site. What each says binds the step:
 **Write the files.** The upgrade owns `docs/<n>-<name>/`, `<n>` one more than the highest `<number>-*` in
 `docs/` and `docs/implemented/`.
 
-| The upgrade reaches                  | The directory holds                                                                        |
-|--------------------------------------|--------------------------------------------------------------------------------------------|
-| one module                           | `upgrade.md`, steps included                                                               |
-| several                              | `upgrade.md` without steps, and `<module>/steps.md` for each                               |
-| several, through one version catalog | one more: `shared/steps.md`, holding the catalog's bumps, applied before any module's file |
+| The upgrade reaches                  | The directory holds                                          |
+|--------------------------------------|--------------------------------------------------------------|
+| one module                           | `upgrade.md`, steps included                                 |
+| several                              | `upgrade.md` without steps, and `<module>/steps.md` for each |
+| several, through one version catalog | `shared/steps.md` with catalog bumps, applied first          |
 
 **Every steps file gets a log beside it**, `upgrade-log.md` or `steps-log.md`, written here as its title and an
 empty `## Attempts` — `## Run Log` is created at the first entry, never empty. The steps file is never written
@@ -192,13 +198,16 @@ starts at its first unticked step.
    threshold as a **Performance** row. An upgrade with nothing open still gets the file. Each entry is read off
    the manifest, the guide or the logs, never off a module agent's closing observation on its own (**Measured,
    Not Noticed**). A bug a module agent hit is reproduced first
-   ([`reproducing.md`](../../templates/reproducing.md)). **Every critical block, bug block, `DX` row and `PX` row
-   it files is appended to `docs/backlog.md`** — a `BC`, a `BB`, a `BT` or a `BP` row, the next id in its table,
+   ([`reproducing.md`](../../templates/reproducing.md)). Create and update the file as
+   [`findings.md`](../../templates/findings.md) says. **Every
+   critical block, bug block, `DX` row and `PX` row it files is appended to
+   `docs/backlog.md`** — a `BC`, a `BB`, a `BT` or a `BP` row, the next id in its table,
    the link written to the archived path ([`backlog.md`](../../templates/backlog.md)). **Run `cost.sh report
    docs/<n>-<name>/`** and show the person what it printed. Refused or absent: say so and go on.
 6. **Then write `review/report.md`** as [`report.md`](../../templates/report.md) says. **Measured** holds what
    item 5 ran; **Manual checks** holds every bump that changes runtime behaviour no test reaches. **A figure
-   under an open `BP` row's threshold closes that row** ([`backlog.md`](../../templates/backlog.md)).
+   under an open `BP` row's threshold closes that row** as [`findings.md`](../../templates/findings.md) says.
+   Update the backlog as [`backlog.md`](../../templates/backlog.md) says.
 7. **Archive** once `upgrade.sh status` reports no open step in any steps file: move `docs/<n>-<name>/`, logs
    included, into `docs/implemented/`, and commit the move where the conventions commit at all. A steps file
    with an `abandoned` step or a log with a `kept back` entry still archives; what it left is in

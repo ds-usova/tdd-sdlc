@@ -1,7 +1,13 @@
 ---
 description: Implement a planned task end to end. Checks every plan is ready and every module is green, lands whatever crosses between the modules, then runs one pipeline agent per plan — concurrently — and finishes the task when the last one lands. Given a single plan, runs it the same way, as a task of one.
-argument-hint: [ a task directory, or a single plan file ] [ optional section name ]
-allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *)
+argument-hint: >-
+  [ a task directory, or a single plan file ] [ optional section name ]
+allowed-tools: >-
+  Bash(${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *)
+  Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *)
+  Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *)
+  Bash(${CLAUDE_PLUGIN_ROOT}/scripts/findings/findings.sh *)
+  Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/findings/findings.sh *)
 ---
 
 # Implement Plan
@@ -166,7 +172,7 @@ When every pipeline has returned:
    **Deferred change** is behaviour the design did not ask for and the code should have — never a defect, never
    a cleanup; it becomes its own task later, not a rework.
 
-   Write it before archiving.
+   Create and update it as [`findings.md`](../../templates/findings.md) says.
 
    **Run `cost.sh report docs/<n>-<name>/` before archiving** and show the person what it printed. Refused or
    absent: say so and go on.
@@ -184,12 +190,13 @@ When every pipeline has returned:
    performance figure, each taking the next id in its table, with the link written to the archived path. The
    findings file stays the row's owner.
 
-   **Close the row this task came from.** Where the spec's **Objective** names a backlog `BT` row, set the
-   owning findings row's `Status` to `done · task <n>` and remove the `BT` row from `docs/backlog.md` in the same
-   edit.
+   **Close the row this task came from.** Where the spec's **Objective** names a backlog `BT` row, close the
+   owning `DX` row as [`findings.md`](../../templates/findings.md) says. Update the backlog as
+   [`backlog.md`](../../templates/backlog.md) says.
 4. **Write `review/report.md`**, last, as [`report.md`](../../templates/report.md) says. Its **Done** and
    **Measured** rows come from the pipelines' reports. **A figure under an open `BP` row's threshold closes that
-   row** ([`backlog.md`](../../templates/backlog.md)).
+   row** as [`findings.md`](../../templates/findings.md) says. Update the backlog as
+   [`backlog.md`](../../templates/backlog.md) says.
 5. **Archive**, on exit 0 from `plan.sh task` and on nothing else: move the **whole task directory** — every
    `plan.md` and its `plan-log.md`, the `design.md` they link, the `spec.md` and `design-log.md` beside it,
    `review/`, and anything else the task accumulated — into `docs/implemented/`. Move the directory, not the

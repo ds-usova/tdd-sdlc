@@ -1,7 +1,12 @@
 ---
 description: Fix a bug that already exists, across one module or several. Reproduces it with a test, diagnoses it, writes a fix file per module, stops for approval, then applies them — one sub-agent per module, concurrently — logging every approach that failed and why. Given an existing bug.md, resumes it without retrying what its log rules out.
-argument-hint: [ a bug report, a failing test, a stack trace, a findings row, or the path of an existing bug.md ]
-allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *)
+argument-hint: >-
+  [ a bug report, a failing test, a stack trace, a findings row, or the path of an existing bug.md ]
+allowed-tools: >-
+  Bash(${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh *)
+  Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *)
+  Bash(${CLAUDE_PLUGIN_ROOT}/scripts/findings/findings.sh *)
+  Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/findings/findings.sh *)
 ---
 
 # Fix Bug
@@ -20,11 +25,11 @@ feature.
 
 ## The Three Kinds of Step
 
-| Kind        | What it does                                                                                             |
-|-------------|----------------------------------------------------------------------------------------------------------|
-| `stabilize` | moves whatever the fix needs to exist first — a signature, an interface, a contract between two services |
-| `red`       | one test that reproduces the bug and fails on its symptom                                                |
-| `green`     | production code, until that test passes and the suite stays green                                        |
+| Kind | What it does |
+|------|--------------|
+| `stabilize` | moves what the fix needs first: a signature, interface, or contract between two services |
+| `red` | adds one test that reproduces the bug and fails on its symptom |
+| `green` | changes production code until that test passes and the suite stays green |
 
 **Every fix ends with a `red` step that failed and a `green` step that made it pass.** Their grammar is
 [`step-format.md`](step-format.md). **Every approach that failed on the way is written into the log's
@@ -79,8 +84,8 @@ the row claims ([`findings.md`](../../templates/findings.md), **Measured, Not No
 - **It holds** — proceed; the reproduction is the measurement.
 - **It holds for fewer cases than it claims** — the diagnosis says what was measured, and `bug.md` scopes to it.
 - **It does not hold** — the class is mostly fine, or the behaviour it calls wrong is what the repository
-  promises: say what was measured, set the owning block's `Status` to `withdrawn` with that clause, remove the
-  `BB` row from `docs/backlog.md` in the same edit, and stop.
+  promises: say what was measured, close the owning block as [`findings.md`](../../templates/findings.md) says,
+  update the backlog as [`backlog.md`](../../templates/backlog.md) says, and stop.
 
 **Baseline.** Full build and full suite of every affected module, with the reproduction test disabled or
 reverted. Record the commit and, per module, the total and skipped counts, plus any machine state a skip depends
@@ -171,7 +176,8 @@ for every effect the revert did not undo, and nothing is archived.
    paths: every test file it touches is named in some step's `test-files:`, and each step changed only what it
    named. A test changed under no step is a defect whatever the suite says. Remove what a minimal green left
    behind in the same read: a stale intent comment, a dead stub branch, an unused import, a fixture duplicated
-   from a neighbouring class, a step reference in a comment or a test name. **Nothing in `disables:` is still off**, and the skipped count is back to phase
+   from a neighbouring class, a step reference in a comment or a test name. **Nothing in `disables:` is still
+   off**, and the skipped count is back to phase
    0's — apart from a machine state the baseline recorded, restored where it can be, and apart from the
    reproductions step 7 adds.
 3. **A refactor round per module whose diff touches more than one production file or created one.** A diff
@@ -190,15 +196,19 @@ for every effect the revert did not undo, and nothing is archived.
    figure beside its threshold for the report. Then **write `review/findings.md`**, in the shape
    [`findings.md`](../../templates/findings.md) gives. A fix files **Critical**, **Bug** and **Performance** only.
    Every case the module agents reported is reproduced here, as [`reproducing.md`](../../templates/reproducing.md)
-   says; a figure past its threshold is a **Performance** row. A fix with nothing open still gets the file. **Every
-   critical block, bug block and `PX` row is appended to `docs/backlog.md`** — a `BC`, a `BB` or a `BP` row, the
-   next id in its table, the link written to the archived path.
+   says; a figure past its threshold is a **Performance** row. A fix with nothing open still gets the file.
+   Create and update it as [`findings.md`](../../templates/findings.md) says. **Every
+   critical block, bug block and `PX` row is appended to `docs/backlog.md`** — a `BC`, a
+   `BB` or a `BP` row, the next id in its table, the link written to the archived path.
 8. **Run `cost.sh report docs/<n>-<name>/`** and show the person what it printed. Refused or absent: say so and go on.
 9. **Then write `review/report.md`** as [`report.md`](../../templates/report.md) says. **Measured** holds what
    step 7 ran; **Manual checks** holds every check a module agent reported that the suite cannot cover. **A
-   figure under an open `BP` row's threshold closes that row** ([`backlog.md`](../../templates/backlog.md)).
-10. **Close the row this fix came from**, where `Source:` names a findings file, in that file's own form. Its
-   `BB` or `BC` row leaves `docs/backlog.md` in the same edit ([`backlog.md`](../../templates/backlog.md)).
+   figure under an open `BP` row's threshold closes that row** as
+   [`findings.md`](../../templates/findings.md) says. Update the backlog as
+   [`backlog.md`](../../templates/backlog.md) says.
+10. **Close the row this fix came from**, where `Source:` names a findings file. Close its block as
+   [`findings.md`](../../templates/findings.md) says. Update the backlog as
+   [`backlog.md`](../../templates/backlog.md) says.
 11. **Archive**: move `docs/<n>-<name>/` into `docs/implemented/`, and commit the move where the conventions
    commit at all.
 12. **What the conventions run over finished work**, in their order, each entry once, each handed the archived
