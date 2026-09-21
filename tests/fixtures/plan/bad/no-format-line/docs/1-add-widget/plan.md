@@ -11,7 +11,8 @@ and file formats as recorded in the module's `docs/conventions.md`
 What the feature *is* — the requirements, the scenarios and the decisions — lives in
 `.claude/skills/design-task/example-spec.md`; how it is built — the solution, the data, the diagrams — in
 `example-design.md` beside it. This plan is written from both. It links them rather than restating them, and
-starts at the step map. What the review found and what the run recorded is
+shows the architecture choice a person reviews, then gives the step map. What the review found and what the
+run recorded is
 [`example-plan-log.md`](example-plan-log.md), the `plan-log.md` that sits beside every plan.
 
 Every item below is in one of the formats specified in [`step-formats.md`](step-formats.md); read that for the
@@ -29,9 +30,9 @@ bare sibling. Had it listed two, there would be `module-a/plan.md` and `module-b
 `../design.md` and each run as its own pipeline — plus a `shared/plan.md` holding anything both of them read,
 implemented first so that neither waits on the other.
 
-## Components
+## Architecture Decisions
 
-The design named responsibilities; these are the classes that hold them.
+### Keep widget rules inside the domain
 
 ```plantuml
 @startuml
@@ -42,47 +43,27 @@ The design named responsibilities; these are the classes that hold them.
 !include <C4/C4_Component>
 
 Container_Boundary(domain, "domain") {
-  Component(widget, "Widget", "domain entity")
-  Component(widgetAssembler, "WidgetAssembler", "domain service")
+  Component(validateWidget, "Validate widget", "responsibility", "")
+  Component(assembleWidget, "Assemble widget", "responsibility", "")
 }
 Container_Boundary(application, "application") {
-  Component(createWidgetPort, "CreateWidgetPort", "inbound port")
-  Component(createWidgetUseCase, "CreateWidgetUseCase", "use case")
-  Component(widgetRepository, "WidgetRepository", "outbound port")
+  Component(coordinateCreation, "Coordinate creation", "responsibility", "")
 }
 Container_Boundary(inboundAdapter, "adapter (inbound)") {
-  Component(widgetController, "WidgetController", "REST controller")
-  Component(widgetUtils, "WidgetUtils", "REST mapper")
+  Component(acceptRequest, "Accept widget request", "responsibility", "")
 }
 Container_Boundary(outboundAdapter, "adapter (outbound)") {
-  Component(widgetRepositoryAdapter, "WidgetRepositoryAdapter", "persistence adapter")
+  Component(storeWidget, "Store widget", "responsibility", "")
 }
 
-Rel(widgetController, createWidgetPort, "calls")
-Rel(createWidgetUseCase, createWidgetPort, "implements")
-Rel(widgetController, widgetUtils, "maps via")
-Rel(createWidgetUseCase, widgetAssembler, "uses")
-Rel(createWidgetUseCase, widget, "produces")
-Rel(createWidgetUseCase, widgetRepository, "depends on")
-Rel(widgetRepositoryAdapter, widgetRepository, "implements")
+Rel(acceptRequest, coordinateCreation, "submits command")
+Rel(coordinateCreation, validateWidget, "asks")
+Rel(coordinateCreation, assembleWidget, "asks")
+Rel(coordinateCreation, storeWidget, "stores through port")
 @enduml
 ```
 
-| Type                  | Holds                        | Refuses                                       |
-|-----------------------|------------------------------|-----------------------------------------------|
-| `Widget`              | `parentId`, `name`, `value`  | a blank `name`, a `value` over 255 characters |
-| `CreateWidgetCommand` | `parentId`, `name`, `value`  | —                                             |
-
-| Port               | Methods        |
-|--------------------|----------------|
-| `CreateWidgetPort` | `create(cmd)`  |
-| `WidgetRepository` | `save(widget)` |
-
-| Exception                    | Status | Raised by                    |
-|------------------------------|--------|------------------------------|
-| `ResourceNotFoundException`  | 404    | an unknown `parentId`        |
-| `DuplicateResourceException` | 409    | a name already used under it |
-| `PersistenceFailedException` | 503    | any other write failure      |
+**Placement:** The domain owns validation and assembly; the application coordinates them through ports.
 
 ## Step-by-Step Implementation Map (To-Do List)
 

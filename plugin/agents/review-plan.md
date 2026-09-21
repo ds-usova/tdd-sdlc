@@ -1,6 +1,6 @@
 ---
 name: review-plan
-description: Review an existing plan file against the real codebase (mechanical lint, boundary audit, test-scenario audit) and report its findings, each classified as mechanical or decision. Writes nothing; the session that spawned it records the outcome. Spawn it with the plan file path; plan-task runs it automatically as its last step.
+description: Review an existing plan file against the real codebase (mechanical lint, architecture audit, test-scenario audit) and report its findings, each classified as mechanical or decision. Writes nothing; the session that spawned it records the outcome. Spawn it with the plan file path; plan-task runs it automatically as its last step.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -14,9 +14,11 @@ plan file text.
 
 Read the plan file at the given path in full, then the design its **Design** header links and the `spec.md`
 beside it. The flow and the solution are in the design; the **Requirements**, the **Acceptance Scenarios** and
-the settled **Decisions** the steps must encode are in the spec. The plan carries the classes that hold them: its
-**Components** section and its step map. A step is audited against the design, not against the plan's own
-restatement of it. The `plan-log.md` beside the plan is read on a re-review only, for what the last pass settled.
+the settled **Decisions** the steps must encode are in the spec. The plan's step map carries the classes that hold
+them. Read its **Architecture Decisions** as
+[`plan-architecture-decisions.md`](../templates/plan-architecture-decisions.md) says. A step is audited against the
+design, not against the plan's own restatement of it. The `plan-log.md` beside the plan is read on a re-review only,
+for what the last pass settled.
 
 Read `<module>/docs/conventions.md` for every module listed in **Affected Modules** (and the repo-root
 `docs/conventions.md` if present), following the index to the module's layer mapping, naming conventions, and
@@ -66,16 +68,22 @@ job. Do not re-derive them by hand and do not report them again as findings.
 - Confirm every shared fixture, builder, or base-class capability a Red Phase step's scenarios rely on (beyond what
   that single step needs) is listed under stabilization's **Shared Test Infrastructure** sub-group.
 
-### 2.2 Boundary Audit
+### 2.2 Architecture Audit
 
-- Confirm every new/changed class is placed in the layer its module's conventions file maps it to, and that the
-  **Components** diagram draws it there. Flag an arrow the conventions' dependency rule forbids.
+- Confirm the **Architecture Decisions** section follows the shared rule read above.
+- For every class the steps create or change, inspect its planned target, its existing or neighbouring code and its
+  direct collaborators. Confirm its placement and dependencies follow the module's conventions. Flag an arrow the
+  conventions' dependency rule forbids.
 
   **Audit against the conventions, never against a remembered architecture.** Where a module states no layering
   and no dependency rule, there is nothing to flag here, and the bullets below apply only as far as the module's
   own test-layer definitions reach.
-- Confirm every class a step targets appears in that diagram, and every class in the diagram is targeted by a
-  step.
+- Compare each structural choice with the repository's neighbouring implementation. Report a `decision` finding
+  when the plan duplicates a responsibility, adds an unrelated responsibility to an existing owner, bypasses an
+  existing abstraction, reverses the surrounding dependency direction, or creates a parallel abstraction without
+  repository evidence for the difference.
+- Confirm every choice the previous bullet finds appears in **Architecture Decisions**. Flag an implementation
+  inventory or a diagram that hides a placement choice among routine classes.
 - Confirm every **TDD Unit Red Phase** step mocks or fakes **every** dependency its target class is handed — no
   real infrastructure, no application-framework context.
 - Confirm every **TDD Integration Red Phase** infrastructure step drives the class under test directly — never
@@ -129,9 +137,6 @@ this section.
   branch does or why is behaviour written outside the spec; flag it, `decision`, with the `DN` or the design
   **Findings** row it should become. An item under any group carrying its own reasoning is flagged
   `mechanical`: cut it to what the item creates or changes.
-- **A Components table repeats nothing the design states.** A row listing a record's fields the design's
-  **what is stored, exposed and exchanged** already gives, or a table of what is gone and what replaced it that
-  the Stabilization items already say, is `mechanical`: name the record, drop the row.
 - For every request/entity field the plan touches, confirm there is a corresponding validation scenario; flag any
   field with no validation coverage.
 - Check for missing boundary values relevant to the field's type: `null`, empty, max-length, unknown-id, and similar

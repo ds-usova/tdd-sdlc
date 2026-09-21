@@ -17,12 +17,11 @@ as a new question.
 > **Layering is the module's, not this framework's.** Its conventions name the layers, the packages they map to, and
 > which may depend on which. Read them and apply what they say.
 >
-> **Placing a class is this file's decision.** The component diagram below is where that placement is checked against
-> the module's dependency rule.
+> **Placing a class is this file's decision.** The step that creates or changes it names the implementation target.
 >
-> A module whose conventions name no layers is planned the same way. The diagram then groups classes the way that
-> module really organizes code, and no dependency rule is enforced beyond the ones its conventions state. What the
-> phase structure below depends on is the module's **test types**, which its testing conventions map.
+> A module whose conventions name no layers is planned the same way. No dependency rule is enforced beyond the ones
+> its conventions state. What the phase structure below depends on is the module's **test types**, which its testing
+> conventions map.
 
 ## 1. Require a Settled Design
 
@@ -74,10 +73,10 @@ the spec with `Basis: must-decide` and ask the user in step 7. Once the answer i
 
 **Two files per plan, split by who reads them:**
 
-| File          | Holds                                                                    | Read by                                   |
-|---------------|--------------------------------------------------------------------------|-------------------------------------------|
-| `plan.md`     | the components, the step map, the open questions — everything that binds | every step agent, `plan.sh next`/`show`   |
-| `plan-log.md` | **Review Findings** and the **Run Log** — what was raised, what happened | the readiness gate, a re-review, a reader |
+| File          | Holds                                         | Read by                         |
+|---------------|-----------------------------------------------|---------------------------------|
+| `plan.md`     | architecture decisions, steps, open questions | person, step agents, plan tools |
+| `plan-log.md` | **Review Findings** and the **Run Log**        | readiness gate, re-review       |
 
 Nothing in the plan is history. A finding stays in the log after its fix is in the plan. A blocker stays there
 after the run settled it. Create both when the plan is written: the log opens with a `## Review Findings`
@@ -225,36 +224,9 @@ schema and the flow live there and are **not** repeated here.
 The link is relative and survives archiving: `design.md` from a single-module plan, `../design.md` from a per-module
 or shared one.
 
-### Components
+### Architecture Decisions
 
-The classes this module gets, and how they connect. One component diagram (C4 level 3), plus a table of what a box
-cannot carry.
-
-**What to write it in comes from the module's conventions**: the diagram language and any preamble. Where a
-module names none, use PlantUML with the bundled C4-PlantUML standard library: a fenced ` ```plantuml ` block
-and `!include <C4/C4_Component>`. Angle brackets, no `.puml` extension. Where a renderer predates the bundled
-stdlib, fall back to
-`https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml`.
-
-- **Every new or changed class**, grouped into the boundaries the module's conventions name. Where those conventions
-  split a layer by direction — an inbound adapter and an outbound one — the diagram splits it too. Where they name
-  no layers, group by whatever the module really organizes code by, and say in a line beneath the diagram what the
-  grouping is.
-- **Draw the dependency between each pair**, pointing the way the dependency really runs. An arrow the conventions'
-  dependency rule forbids is a violation. Where they state no such rule, the arrows are still drawn.
-- **One diagram per subject, not one per change.** A change touching widgets and their parents draws one each.
-  Where no arrow crosses between two groups of boxes, they were never one diagram.
-- **Keep it small.** An untouched class is drawn only where an arrow needs it. A class belonging to no subject — a
-  filter chain, an exception handler — is left to the table.
-
-The wiring is drawn, never written. Which class calls, implements, or wraps which never appears as a sentence or a
-table row. Beneath the diagram, a table carries only what a box cannot and the design does not: a port
-signature, an invariant a class enforces, an exception-to-status mapping. A record's fields are the design's
-**what is stored, exposed and exchanged**; never repeat them per class. Name the record, and let the stub item
-say what it holds. A table of what is gone and what replaced it is the Stabilization items' content, not a
-summary of them.
-
-**Naming the classes is this section's work.** The step map below targets exactly the classes drawn here.
+Write this section as [`plan-architecture-decisions.md`](../../templates/plan-architecture-decisions.md) says.
 
 ### Step-by-Step Implementation Map (To-Do List)
 
@@ -283,7 +255,7 @@ which spec scenario an existing test already holds, so a reader does not go look
 conventions leave unmeasured (`AC05 is a measurement; the conventions say performance is not measured`). A
 paragraph saying what a branch does, which case is folded into which, or why, is behaviour. Where the design
 lacks it, it goes back there as a `DN` or a **Findings** row. Where the design has it, the step's scenarios
-already carry it. An item says **what** is created or changed, in the terms the Components section names. The
+already carry it. An item says **what** is created or changed and names its concrete implementation target. The
 reasoning behind it is the design log's **Decision Bases**, cited by clause where a step needs it, never
 restated under the item.
 
@@ -520,7 +492,7 @@ How to apply them:
 
 ## 7. Review Only — Do NOT Implement
 
-- Present the generated plan file to the user.
+- Lead with the plan's **Architecture Decisions** section, then link the complete generated plan.
 - **Say that the spec was marked approved**, where step 1 wrote the line.
 - **Report what step 6 applied** — the findings' IDs and a clause each, in one short list.
 - **Ask what is still open, in one batch, via `AskUserQuestion`** — every unanswered Open Question, every `decision`

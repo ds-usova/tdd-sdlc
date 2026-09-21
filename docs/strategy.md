@@ -48,6 +48,11 @@ The design contains no implementation reading list. A repository fact that answe
 in `design-log.md`; a class or file that changes is a plan fact. Files inspected during research leave no record
 unless they support a decision. This keeps the design readable in any technology and gives each fact one home.
 
+The plan's diagrams are an approval surface, not proof that the planner found every class. They show one
+architectural placement decision at a time and omit routine implementation targets. The step map supplies those
+targets to agents, while plan review checks all of them against the repository and its conventions. A large feature
+therefore gives the person several small choices to judge instead of one exhaustive dependency graph to skip.
+
 Rework, bug-fixing and upgrades have only the person to satisfy, so each is one skill: write the steps, stop
 for approval, apply them. Their safety net is the suite already green. A bug fix additionally owes one test that
 failed on the symptom before the fix; bug fixes and upgrades log every attempt that failed, so a stopped run
