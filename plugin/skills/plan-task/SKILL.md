@@ -29,9 +29,9 @@ as a new question.
 Every plan is written from a task `design-task` settled — `docs/<n>-<task-name>/`, holding `spec.md` and
 `design.md`. Read both in full before anything else. The spec carries the **Objective**, the **Requirements**,
 the **Acceptance Scenarios** a person signed off, and the **Decisions** the user made. The design carries
-**Affected Modules**, **Context**, the **Proposed Solution** and the flow the change follows. All of it binds the
-plan. The design is stack-neutral by rule; the class, the library and the file that hold each fact are this plan's
-to name.
+**Affected Modules**, the **Proposed Solution** and the flow the change follows. All of it binds the plan. The
+design follows [`stack-neutral-design.md`](../../templates/stack-neutral-design.md). Name the implementation it
+deliberately omits.
 
 The `design-log.md` beside them is not a third input. Open it only to chase a reference: a `DF<nn>` the spec
 or design cites, or the file a claim rests on when the step needs to mirror it.

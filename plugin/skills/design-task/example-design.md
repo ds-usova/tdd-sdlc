@@ -3,28 +3,15 @@
 The design beside [`example-spec.md`](example-spec.md) — in a real repo `docs/1-add-widget/design.md`. The spec
 says what is promised; this says how it is built, at one level above the code. The schema format and the failure
 vocabulary are whatever the module's `docs/conventions.md` records (see `templates/conventions/`). What transfers
-is the structure: the sections, their order, and the stack-neutral rule.
-
-**The design reads the same in any language.** It knows the table, the endpoint, the wire shape, the status codes,
-the invariant, and what the change reaches outside the module. It does not know the class, the framework, the
-library or the file that will hold any of it — those are the plan's,
-[`templates/example-plan.md`](../../templates/example-plan.md). Every source file this design rests on is named
-once, in **Context**, and nowhere else.
+is the structure, the section order and [`stack-neutral-design.md`](../../templates/stack-neutral-design.md).
+Source-backed reasoning appears in [`example-design-log.md`](example-design-log.md). Implementation placement
+appears in [`templates/example-plan.md`](../../templates/example-plan.md).
 
 ---
 
 # Design: Add Widget Creation
 
 **Affected Modules:** `module-a`
-
-## Context
-
-| What exists                                    | Where                    | What this change does with it                                                 |
-|------------------------------------------------|--------------------------|-------------------------------------------------------------------------------|
-| The parent resource, the closest existing shape | `<parent-usecase-file>`  | Mirrored throughout — same layering, same adapter style, same error vocabulary |
-| The parent's persistence adapter               | `<parent-adapter-file>`  | Its failure classification is the evidence DF01 rests on                        |
-| The module's API contract                      | `<api-schema-file>`      | Gains `POST /widgets`                                                         |
-| The parent table and its cascade               | `<migration-file>`       | The widget table hangs off it (DF07)                                            |
 
 ## Proposed Solution
 

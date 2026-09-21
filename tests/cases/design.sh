@@ -91,7 +91,9 @@ check_match "validate: a concern with no why" "^design log: concern 'recovery' h
 
 T="$(bad_task design-gaps)"
 out="$(bash "$D" validate "$T" 2>&1)"
-check_match "validate: a source file under Proposed Solution" 'design: Proposed Solution names a source file, `WidgetController.java`' "$out"
+check_match "validate: a source file in the design" 'design: names a source file, `widget.cpp`' "$out"
+check_match "validate: an unexpected design section" \
+  "design: unexpected section '## Implementation Notes'" "$out"
 check_match "validate: no Affected Modules line" "^design: no '\*\*Affected Modules:\*\*' line" "$out"
 check_match "validate: a grill-design concern with no row" "^design log: grill-design ran but Concerns has no 'concurrency' row$" "$out"
 check_match "validate: a decided entry with no Decision Bases line" "^design log: DN04 is decided but Decision Bases has no entry" "$out"

@@ -15,5 +15,5 @@ A case copies `good/`, overlays one variant and runs the subcommand it drives.
 | `format-1`               | spec.md says `**Format:** 1`                                                  | `validate`: a foreign format number           |
 | `duplicate-ids`          | RQ01, AC01 and DN01 are each defined twice                                    | `validate`: defined twice                     |
 | `placeholders`           | RQ02 is TBD, DN01 is decided with nothing after it, DF02 has an empty cell, Recovery has no why | `validate`: placeholder checks |
-| `design-gaps`            | Proposed Solution names a source file, no Affected Modules line, no Concurrency row, no DN04 basis | `validate`: design and log checks |
+| `design-gaps` | extra design section and missing required facts | `validate`: design and log checks |
 | `second-task-in-flight`  | a second task, `docs/9-second/`, with its own spec.md                         | no task given with two in flight exits 2      |

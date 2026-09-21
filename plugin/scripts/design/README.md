@@ -90,8 +90,9 @@ The design:
 | Check                                                                  | Catches                                                             |
 |------------------------------------------------------------------------|---------------------------------------------------------------------|
 | No `design.md` beside the spec                                         | a spec with nothing that says how                                   |
-| The `**Affected Modules:**` line, and every required section, in order | a design missing the context the plan reads it for                  |
-| A source file named under **Proposed Solution**, as a token or a link  | a plan-level fact in the design — it reads the same in any language |
+| The `**Affected Modules:**` line and required sections | a design missing structure the plan needs |
+| A source-file token or link in `design.md` | a plan-level fact in a stack-neutral design |
+| An unexpected `##` section | content outside the design's single solution section |
 
 The log:
 

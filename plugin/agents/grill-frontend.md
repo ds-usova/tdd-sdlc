@@ -19,7 +19,7 @@ control that already behaves correctly.
 ## 1. Read the Design and Its Ground Truth
 
 Read the task directory's `spec.md` and `design.md` in full, and `design-log.md` beside them if one exists. The
-spec holds the requirements, scenarios and decisions; the design holds the context, the solution and the flow.
+spec holds the requirements, scenarios and decisions; the design holds the solution and the flow.
 Then, in this order:
 
 - `<module>/docs/conventions.md` per affected module, and the repo-root `docs/conventions.md`.
@@ -47,7 +47,7 @@ screen" is a valid row.
 | **Input & locale**   | Which formatter, locale and time zone for dates, numbers and money, against the zone the service stores.          |
 | **Person's state**   | Signed in, out, loading, refused, expired, stale: what each sees, and what each may act on.                      |
 | **Reachability**     | Every value reachable by pointer and by keyboard, past a scroll boundary and at the narrowest supported width.   |
-| **Stack-neutral**    | Could a team on another framework build **Proposed Solution** without asking? A control, its states, what it shows and what it refuses pass. A component name, a hook, a style token, a library primitive or a source file fails — list every offending token. **Context** is exempt. |
+| **Stack-neutral** | Apply [`stack-neutral-design.md`](../templates/stack-neutral-design.md) to the whole design. |
 
 **Then over what is already written.** Every branch the flow diagram draws has an acceptance scenario, and every
 scenario has a branch. Every **Requirements** line is proved by a scenario whose `Then:` actually checks it.

@@ -4,7 +4,7 @@
 # it: is this settled, or does something still need deciding?
 #
 # A task directory holds three files this script reads: spec.md (requirements, scenarios, the
-# user's decisions), design.md (context, the solution), design-log.md (the grill's concerns, the
+# user's decisions), design.md (the solution), design-log.md (the grill's concerns, the
 # findings, what each decision rested on). `settled`, `status` and `show` read the spec; `validate`
 # reads all three. Nothing here stores state beside them, and nothing here edits them.
 #

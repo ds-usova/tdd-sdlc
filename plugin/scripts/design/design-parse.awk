@@ -88,11 +88,13 @@ BEGIN {
     grill_design = 0; grill_frontend = 0; cura = 0
     if (files == "") files = 1
     nspecreq = split("## Objective,## Requirements,## Acceptance Scenarios,## Decisions", specreq, ",")
-    ndesreq = split("## Context,## Proposed Solution", desreq, ",")
+    ndesreq = split("## Proposed Solution", desreq, ",")
     nlogreq = split("## Concerns,## Findings,## Decision Bases", logreq, ",")
     ndc = split("failure modes,idempotency & retry,concurrency,recovery,data,contract compat,lifecycle,authorization,observability,limits,business invariants,stack-neutral", dconcern, ",")
     nfc = split("empty & extreme,default state,layout stability,consistency,colour system,motion,third-party ui,library reach,input & locale,person's state,reachability,stack-neutral", fconcern, ",")
-    nsrc = split("ts,tsx,js,jsx,mjs,java,kt,py,go,rs,cs,rb,php,swift,scala,css,scss,html,xml,gradle,toml,sql", srcext, ",")
+    nsrc = split("c,cc,cpp,cxx,h,hh,hpp,hxx,ts,tsx,js,jsx,mjs,java,kt,py,go,rs,cs,rb,php,swift," \
+                 "scala,dart,lua,ex,exs,erl,hrl,fs,fsx,vb,vue,svelte,astro,css,scss,html,xml," \
+                 "gradle,toml,sql,sh,bash,zsh,ps1", srcext, ",")
 }
 
 # Keyed on the file name rather than FNR == 1, which an empty file never reaches - the next file would
@@ -230,8 +232,8 @@ fileidx == 2 && /^\*\*Affected Modules:\*\*/ { seen_modules = 1 }
 # size on every run and splits the task before the file outgrows its reader.
 fileidx == 2 && section == "## Proposed Solution" && /^#### / { nsub++ }
 
-# A source file named under Proposed Solution is a plan-level fact wearing a design section. Backtick
-# tokens and link targets alike: `Foo.java` and [Foo](../src/Foo.java) name the same file. Contract
+# A source file named in the design is a plan-level fact wearing a design section. Backtick tokens and
+# link targets alike: `Foo.java` and [Foo](../src/Foo.java) name the same file. Contract
 # formats - yaml, json, proto - are not on the list: a shared schema is a design fact.
 function note_source(tok,    ext, k) {
     if (tok ~ /[ \t]/) return
@@ -244,7 +246,7 @@ function note_source(tok,    ext, k) {
 }
 
 # note_source calls match() itself, so the caller's RSTART/RLENGTH are copied out before the call.
-fileidx == 2 && section == "## Proposed Solution" {
+fileidx == 2 {
     line = $0
     while (match(line, /\]\([^)]*\)/)) {
         s = RSTART; l = RLENGTH
@@ -410,9 +412,14 @@ END {
         problem("design: no '**Affected Modules:**' line - it belongs at the very top, under the title")
     check_sections("design: ", dessect, ndessec, desreq, ndesreq)
 
-    # Proposed Solution is stack-neutral: a source file named there is the plan's fact.
+    for (i = 1; i <= ndessec; i++)
+        if (dessect[i] != "## Proposed Solution")
+            problem("design: unexpected section '" dessect[i] "' - only '## Proposed Solution' is allowed")
+
+    # The whole design is stack-neutral: a source file named there is the plan's fact.
     for (i = 1; i <= ntok; i++)
-        problem("design: Proposed Solution names a source file, `" toks[i] "` - a design reads the same in any language; move it to Context or the plan")
+        problem("design: names a source file, `" toks[i] "` - move evidence to the design log" \
+                " and locations to the plan")
 
     # ------------------------------------------------------------ validate: the log --------------
 

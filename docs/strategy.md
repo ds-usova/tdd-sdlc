@@ -44,6 +44,10 @@ what it does when it fails — the design, with no class in it. A model executes
 every class, signature and test scenario. The handoff between them is the spec and its design, settled when every
 decision it lists has an answer.
 
+The design contains no implementation reading list. A repository fact that answers a design question is evidence
+in `design-log.md`; a class or file that changes is a plan fact. Files inspected during research leave no record
+unless they support a decision. This keeps the design readable in any technology and gives each fact one home.
+
 Rework, bug-fixing and upgrades have only the person to satisfy, so each is one skill: write the steps, stop
 for approval, apply them. Their safety net is the suite already green. A bug fix additionally owes one test that
 failed on the symptom before the fix; bug fixes and upgrades log every attempt that failed, so a stopped run

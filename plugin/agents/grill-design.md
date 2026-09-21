@@ -19,12 +19,11 @@ them, including the ones that sound obviously true.
 ## 1. Read the Design and Its Ground Truth
 
 Read the task directory's `spec.md` and `design.md` in full, and `design-log.md` beside them if one exists. The
-spec holds the requirements, scenarios and decisions; the design holds the context, the solution and the flow.
+spec holds the requirements, scenarios and decisions; the design holds the solution and the flow.
 Then read, in this order:
 
 - `<module>/docs/conventions.md` for every module in **Affected Modules**, and the repo-root `docs/conventions.md`.
-- Everything the design's **Context** section names, and the closest existing feature end to end — its usecase, its
-  adapters, its migration, its exception types.
+- The closest existing feature end to end — its usecase, its adapters, its migration and its exception types.
 - `docs/adr/` — a decision already recorded there is an answer, not a question.
 
 Never raise a finding against code that already handles the case.
@@ -48,7 +47,7 @@ that came out clear is still reported, with the reason it is clear. Never invent
 | **Observability**       | What proves in production that it worked, and what someone paged at 3am would search for. Whether a swallowed error leaves any trace.                                                                                                                                                                                                                                                                                                                                                                                       |
 | **Limits**              | Unbounded collections, payload size, an unpaginated list, a query with no index behind it, a loop over an external call. Where the module's conventions measure performance: whether the change's hot path has a scenario whose `Then:` states a figure, a unit and a load.                                                                                                                                                                                                                                                 |
 | **Business invariants** | The rule everyone knows and nobody wrote down: what must always be true of this entity, what combination must never exist, what ordering is required.                                                                                                                                                                                                                                                                                                                                                                       |
-| **Stack-neutral**       | Could a team on another stack implement **Proposed Solution** without asking? SQL, columns, paths, wire fields, status codes and invariants pass. A framework class, a library call, a component, a hook, a style token, a method or a source file fails — list every offending token. **Context** is exempt; it is the reading list.                                                                                                                                                                                       |
+| **Stack-neutral** | Apply [`stack-neutral-design.md`](../templates/stack-neutral-design.md) to the whole design. |
 
 **One more pass, over what is already written.** Every branch the flow diagram draws has an acceptance scenario,
 and every scenario has a branch. A branch with no scenario is a finding; so is a scenario with no branch.

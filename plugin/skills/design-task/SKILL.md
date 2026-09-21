@@ -1,5 +1,5 @@
 ---
-description: Settle a change before any plan exists — a spec the user signs (requirements, acceptance scenarios, decisions), a design that reads the same in any language (context, solution, diagrams, the data), and a log of why (every concern the grill examined with its verdict, every question the repository answered, what each decision rested on). Runs the grill subagent, then puts only the genuinely open questions in front of the user.
+description: Settle a change before any plan exists — a spec the user signs (requirements, acceptance scenarios, decisions), a stack-neutral design (solution, diagrams, the data), and a log of why (every concern the grill examined with its verdict, every question the repository answered, what each decision rested on). Runs the grill subagent, then puts only the genuinely open questions in front of the user.
 argument-hint: [ description of the feature or task to design, or a backlog id BT<nn> ]
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *)
 ---
@@ -13,19 +13,15 @@ This skill produces three files per task and stops — the one exception is a wi
 the backlog row, and the owning findings row's status. It writes no checklist items, no test scenarios, and no
 step IDs.
 
-| File            | Reader                     | Holds                                                                          |
-|-----------------|----------------------------|--------------------------------------------------------------------------------|
-| `spec.md`       | the user, who signs it     | Objective, Requirements, Acceptance Scenarios, Decisions                       |
-| `design.md`     | whoever plans and builds   | Affected Modules, Context, Proposed Solution — diagrams, data, wire shapes     |
-| `design-log.md` | whoever asks *why*         | Concerns with verdicts, Findings the repository answered, Decision Bases       |
+| File | Reader | Holds |
+|------|--------|-------|
+| `spec.md` | the user, who signs it | Objective, Requirements, Acceptance Scenarios, Decisions |
+| `design.md` | whoever plans and builds | Affected Modules, Proposed Solution — diagrams, data, wire shapes |
+| `design-log.md` | whoever asks *why* | Concerns, repository Findings, Decision Bases |
 
 **The spec is behaviour.** What is promised, what proves it, what the user chose. No table, no endpoint, no class.
 
-**The design reads the same in any language.** It knows what the change stores, what it exposes, what it calls,
-what crosses each boundary, and how it behaves at each of them — the table, the endpoint, the wire shape, the
-status codes, the invariants. It does not know the class, the framework, the library, the component or the file
-that will hold any of it. Those are the plan's. The test for any sentence: could a team on another stack
-implement it without asking?
+**The design is stack-neutral.**
 
 **The log is the train of thought.** Everything binding is in the spec or the design; the log says where each of
 those facts came from.
@@ -54,7 +50,7 @@ accumulates joins it there. The directory carries the number and the task name; 
 A request that adds more than one subject — a new store *and* a new consumer *and* a new prompt — is one task per
 subject, each with its own directory, numbered in dependency order. Every task is then one grill, one plan and one
 delivery. The first spec names the sequence in its **Objective**; a later one cites an earlier one's `DN` and `DF`
-by task number, the way it cites an implemented task's, and its design lists it in **Context**.
+by task number, the way it cites an implemented task's.
 
 Split **before** writing, not after the grill: a design that reaches a second `####` section on a subject the
 **Objective** did not name has already crossed the line. The measure is subjects, not lines. `design.sh validate`
@@ -67,8 +63,8 @@ so.
 ## 2. Read Module Conventions
 
 After determining the **Affected Modules**, read `<module>/docs/conventions.md` for every affected module, and the
-repo-root `docs/conventions.md` if it exists. The conventions give the stack, the diagram format, and the file
-locations the **Context** table is written in terms of.
+repo-root `docs/conventions.md` if it exists. The conventions give the stack, the diagram format, and the
+repository facts that constrain the design.
 
 If a module has no conventions file, record a `must-decide` decision asking the user to run `init-conventions`.
 Never silently guess a module's conventions.
@@ -83,8 +79,8 @@ skill for a deferred change.
 ## 3. Read What Already Exists
 
 Before writing anything, read the closest existing feature end to end — its domain types, its usecase, its
-adapters, its migration — and the conventions that govern them. Name it in **Context**; every later section is
-allowed to say "as `X` does".
+adapters, its migration — and the conventions that govern them. Use what it establishes to write the neutral
+behaviour.
 
 The same holds for a contract a **library generates** rather than the code declaring — a tool or endpoint schema
 derived from a signature, a serializer's wire form, a generated client. Read the generator itself before the
@@ -228,19 +224,6 @@ Where the list holds more than one, the design owes one fact about the boundary 
 A design whose modules wait on each other for anything *else* has not found the boundary — say so, or move the
 seam.
 
-### Context
-
-What already exists that this change builds on or mirrors. It is a reading list, not an argument. Every "same as
-X" elsewhere resolves against it.
-
-A table — `What exists` | `Where` | `What this change does with it` — one row per thing, one line each. `Where` is
-a link. A row that needs a paragraph is carrying a fact the **Proposed Solution** acts on, and that section owns
-it.
-
-**Context is the only section that names a source file.** A document this change invalidates, a config file it
-edits, a lint rule it touches: each is a row here, with what happens to it in the third column. The **Proposed
-Solution** refers to them by what they are, never by path.
-
 ### Proposed Solution
 
 What the change adds at the surfaces a person can see: what crosses the module's boundary, what it stores, and
@@ -249,8 +232,6 @@ how it behaves.
 - A database change includes the migration content in the module's migration format.
 - An API contract change includes the endpoint and schema changes.
 - A message or event carries its shape, field by field.
-- **Name responsibilities, not classes.** "The read side answers a page of expenses" is this file's; which class
-  holds it, in which package, is the plan's.
 
 **Order: the proposal, then the diagrams, then the details.**
 
@@ -259,21 +240,14 @@ how it behaves.
 - **Details** — one `####` per module and concern, holding only what a box cannot: a field, an invariant, a
   status mapping, the SQL, a wire shape.
 
-**Stack-neutral, by rule.** Design-level and kept: SQL, columns, endpoint paths, wire fields, status codes,
-invariants, how a row is found, what a transaction holds, what crosses to another system. Plan-level and cut: a
-framework class, a library call, a component, a hook, a style token, a method, a source file. `design.sh validate`
-refuses a source file named in this section; the grill's **Stack-neutral** concern catches the rest.
-
-**There is no closing list of files touched.** Every file the change reaches is a **Context** row, and every
-behaviour is a box in a diagram or a row in a table here.
+Apply [`stack-neutral-design.md`](../../templates/stack-neutral-design.md). `design.sh validate` refuses a source
+file named in the design; the grill's **Stack-neutral** concern catches the rest.
 
 **A fact has one home.** The diagram owns what happens and in what order; a table owns what fits inside a box; a
 paragraph exists only for a reason a reader would otherwise get wrong. State a fact once and link to it.
 
 | Instead of                                                             | Write                                         |
 |------------------------------------------------------------------------|-----------------------------------------------|
-| "`FooController` calls `ListFooPort`, implemented by `ListFooUseCase`" | nothing — the plan owns every class          |
-| a port/use-case/command/answer table                                   | nothing — the plan owns every signature      |
 | "the amount is validated before anything is stored"                    | the invariant, in that field's row of a table |
 | "the controller answers 400 when the filter is out of bounds"          | an exception/status/cause table               |
 | "a `NavLink` carrying `aria-current`"                                  | "the control marks itself current"            |
@@ -292,7 +266,7 @@ bundled stdlib, fall back to the raw URL for the same file
 (`https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml`).
 See `example-design.md`, beside this file, for working syntax.
 
-**No class appears in any of them.** Here a box is a responsibility, a module, or a system.
+A diagram box is a responsibility, a module or a system.
 
 What each diagram must **show**:
 

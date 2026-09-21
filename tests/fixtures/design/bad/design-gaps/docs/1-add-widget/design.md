@@ -1,15 +1,15 @@
 # Design: Add Widget Creation
 
 
-## Context
+## Implementation Notes
 
-| What exists         | Where                   | What this change does with it |
-|---------------------|-------------------------|-------------------------------|
-| The parent resource | `<parent-usecase-file>` | Mirrored throughout           |
+| Note                | File         |
+|---------------------|--------------|
+| Implementation note | `widget.cpp` |
 
 ## Proposed Solution
 
-`POST /widgets` is handled by `WidgetController.java`.
+`POST /widgets` joins the module's API contract.
 
 #### Details
 
