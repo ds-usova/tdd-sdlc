@@ -66,7 +66,7 @@ FB --> FBM : one per fix.md,\nshared/fix.md first
 RW --> RWM : one per steps file,\nshared/steps.md first
 UD --> UDM : one per steps file,\nshared/steps.md first
 
-IPM --> ST : one, Stage 1
+IPM --> ST : one or safe waves,\nStage 1
 IPM --> RED : waves, Stage 2
 IPM --> GREEN : waves, Stage 3
 IPM --> RF : one, Stage 4

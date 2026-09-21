@@ -61,6 +61,8 @@ job. Do not re-derive them by hand and do not report them again as findings.
   the finding. The plan for such a module carries a coverage note instead, and that passes.
 - Confirm every `after:` reference on a Green-phase step names a class that is itself a Green-phase target in the
   plan, and that the `after:` graph contains no cycles.
+- Confirm every Stabilization item follows the `writes:` and `after:` rules in `templates/stabilization-group.md`.
+  Compare the entries with the repository. Flag omissions and paths broader than the available evidence requires.
 - Confirm every class stubbed in **Interface-First / Build Stabilization** appears as a target in some Red phase, or
   is validly excluded under the simple-delegation rule (a one-line pass-through with no logic of its own).
 - **Per method, not per class:** every method a stub item names appears in some Red Phase step's `covers:` for
@@ -107,8 +109,8 @@ job. Do not re-derive them by hand and do not report them again as findings.
   wire form a serializer emits — was written against the generator, not against the declaration; read the
   generator and flag a shape it would not produce.
 
-- Confirm the Stabilization group leaves the pre-existing suite where `templates/stabilizing.md` requires — green,
-  the total unchanged except for named deletions — and not merely compiling. Two things break that without
+- Confirm the Stabilization group leaves the pre-existing suite where `templates/stabilization-exit.md` requires —
+  green, the total unchanged except for named deletions — and not merely compiling. Two things break that without
   breaking the build: a Stabilization item that removes or narrows a schema object — a table, a column, a
   constraint — while a statement some pre-existing test still runs reads it and no Stabilization item rewrites
   that statement; and a signature or constructor change that leaves a pre-existing test failing rather than

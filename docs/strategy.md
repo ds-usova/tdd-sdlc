@@ -140,6 +140,11 @@ Each of these is stated as a bare rule in a skill, an agent or a template. This 
 - **System green steps run one agent at a time.** A system step's write scope is the whole production stack,
   and two entry points routinely share a usecase or an outbound adapter. One class, one agent only protects a
   step whose write scope is one class.
+- **Shared stabilization stays serial; isolated module stabilization may wave.** The shared plan owns a seam and
+  the cross-module compilation fallout from changing it. A module plan can expose bounded write sets instead.
+  Disjoint sets bound each agent's context, while compilation after a wave discovers missing call sites before
+  another wave starts. Ambiguous fallout returns to sequential ownership. The orchestrator runs the architecture
+  test and pre-existing suite once, after all stabilization work.
 - **A wave is spawned in the background and collected with `TaskOutput`, never as one blocking `Agent` call
   per bundle.** Several blocking calls in one message run concurrently in principle, but nothing forces them
   into one message. A wave issued that way once ran four bundles serially.

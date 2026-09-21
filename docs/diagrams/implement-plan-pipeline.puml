@@ -15,9 +15,13 @@ activityDiagram {
 
 start
 :Stabilization
-stubs, migrations, contracts;
+shared plan: one agent
+module plan: safe write-set waves;
+:Compile after each
+module stabilization wave;<<gate>>
 :Gate: compiles,
-architecture test;<<gate>>
+architecture test,
+pre-existing suite;<<gate>>
 note right
   every gate runs the commands
   your **build.md** names

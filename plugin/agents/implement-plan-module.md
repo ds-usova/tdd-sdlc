@@ -73,8 +73,8 @@ one for deciding work.
    **A sub-agent gets the conventions as paths, never as content.** Every spawn names the two index files (the
    module's and the repository's) and nothing more about them: no section names, no summary
    ([`templates/sub-agents.md`](../templates/sub-agents.md), **Point a sub-agent at the rule**). What a prompt
-   does carry is the step's own context: the `plan.sh show` output, the baseline figures, what the step may not
-   touch. **Every spawn also names your plan's path.**
+   does carry is the step's own context: the `plan.sh show` output and what the step may not touch. **Every spawn
+   also names your plan's path.**
 
 **Addressing the plan.** Every checklist item carries an ID (`GU07`). Read and write them with `plan.sh`, at
 `scripts/plan/plan.sh` under `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin and under `.claude/` in a plain
@@ -155,32 +155,13 @@ requirement covers it, report it as a case or a hypothesis like anything else.
 ## Stage 1 — Stabilization
 
 Covers the plan's **Stabilization** group — its **API Contract**, **Database**, and **Interface-First / Build
-Stabilization** sections, in that order. Spawn **one `stabilization-step` agent** for the whole group, on the
-execution model, passing the plan path, every item id in listed order, the ids of the red steps whose scenarios
-the stubs must agree with, the module's baseline figures and the conventions index paths. What it may and may
-not do is `stabilizing.md` in the `templates` directory beside the skills. The agent reads it as its brief; you
-verify against it below.
+Stabilization** sections. Run them under `stabilization-waves.md` and `stabilizing.md` in the `templates`
+directory beside the skills. Pass each spawned agent the plan path, its assigned item ids, the ids of the red
+steps whose scenarios the stubs must agree with, the conventions index paths and the execution mode. Use
+`plan.sh block` for an item the agent reports blocked. Reconcile every widened boundary under
+`stabilization-group.md`, then record it in the **Run Log**.
 
-**Stabilization guardrail** — verify yourself before ticking. Tick each item the agent reports done;
-`plan.sh block` the rest with the reason it gave, and record every widened boundary it reports in the **Run
-Log**. The checks:
-
-1. **`stabilizing.md`'s *Done means***, run yourself with the conventions' commands against the baseline figures
-   you were given. Read the skip list itself, not its size: every entry must name a step in the plan.
-2. **Intent comments present and consistent.** For every stub method a red-phase step covers — take the stub list
-   from the agent's report and match it against the red steps' `covers:` lists — open the stub and confirm its
-   intent comment exists and agrees with that step's given/when/then scenarios: the behaviour, the error cases,
-   nothing contradicting the plan. A missing, vague or contradicting comment is re-delegated to
-   `stabilization-step` before Stage 2 spawns a single red agent.
-
-3. **Record the stubbed files.** `plan.sh stub <path>... --marker <token> docs/<plan>.md`, with every file
-   the agent's report names a stub in, and the marker the module's code-style conventions name (omit
-   `--marker` for the default). That writes the log's **Stubs** section, which `plan.sh tick`, `plan.sh stubs`
-   and the archive hook read. Record even when the report names no stub.
-
-If any check fails for a reason caused by this plan's changes, re-delegate to `stabilization-step` until it holds.
-If it fails for a reason **unrelated to the plan**, apply the
-[Unrelated Failures](#unrelated-failures--report-dont-fail) rule.
+Run `stabilization-exit.md` in the `templates` directory yourself after the assigned writes are complete.
 
 Once the guardrail holds, commit per the commit policy.
 
@@ -190,8 +171,7 @@ Covers the plan's **Red Phase** group — its **TDD Unit Red Phase**, **TDD Inte
 System Test Red Phase** sections. Red steps have no cross-dependencies:
 
 - Collect the unchecked items across all three red sections with `plan.sh next --group red`. Spawn them in
-  waves under `waves.md` in the `templates` directory beside the skills: bundled by grouping and layer, capped by
-  the conventions, verified by the agent alone or by you once per wave, ticked per step ID.
+  waves under `test-waves.md` in the `templates` directory beside the skills.
 - Spawn each bundle on the agent matching its layer, passing every one of its steps' context (target class, test
   class, covered methods, the given/when/then scenarios and the `update:` bullets verbatim) and the conventions
   index paths:
@@ -233,9 +213,9 @@ depends on everything**: it starts only after every unit and integration green i
    It lists the items whose `after:` dependencies are all ticked. Re-run it after each tick for the next wave.
    Never spawn a step `next` does not list. Keep both `--section` flags: they keep system green out of this batch.
 
-   Each wave runs under `waves.md`, as in Stage 2 — bundled, capped, verified once, ticked per step ID, a blocked
-   step's dependents never spawned. Unit items run on `tdd-unit-green-phase-step` and integration items on
-   `tdd-integration-green-phase-step`, each passed its step context and the conventions index paths.
+   Each wave runs under `test-waves.md`, as in Stage 2. A blocked step's dependents are never spawned. Unit items
+   run on `tdd-unit-green-phase-step` and integration items on `tdd-integration-green-phase-step`, each passed its
+   step context and the conventions index paths.
 2. Wait until every item in the unit + integration batch is ticked or recorded as blocked. Tick items as they
    succeed; run the module's unit and integration suites once the batch is done and confirm both are fully green
    before proceeding. Once green, commit per the commit policy (if its granularity commits per wave —

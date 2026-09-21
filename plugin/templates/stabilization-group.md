@@ -7,6 +7,16 @@ How each item is *carried out* — the stub's intent comment, the `TODO` on a ch
 never name, how a broken test is disabled — is [`stabilizing.md`](stabilizing.md). An item here says *what* is
 created or changed; that file says *how*. The worked stub shape is in [`example-plan.md`](example-plan.md).
 
+Every item carries a `writes:` sub-bullet naming every repository-relative file it may change. Use the narrowest
+generated-output directory when generation makes exact filenames unknowable. Include call sites and tests that a
+signature change must carry back to compiling. Use `writes: none` for a check-only closing item.
+
+When execution discovers an unlisted path, the orchestrator adds it to the owning item's `writes:` list before
+ticking that item.
+
+Use `after:` in the item header when another item in the same section must finish first. Section order supplies
+the dependency between sections; do not repeat it with `after:`. Put each dependency above its dependent item.
+
 Sections appear in this order; use only the ones the task needs.
 
 ## API Contract

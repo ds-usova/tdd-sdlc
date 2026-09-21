@@ -73,6 +73,7 @@ Rel(coordinateCreation, storeWidget, "stores through port")
 #### API Contract
 
 - [ ] ST01 · Add `POST /widgets` path to the project's API schema file `<api-schema-file>`:
+  - writes: `<api-schema-file>`
   ```yaml
   /widgets:
     post:
@@ -92,11 +93,14 @@ Rel(coordinateCreation, storeWidget, "stores through port")
   ```
 - [ ] ST02 · Add `CreateWidgetRequest` schema to `<api-schema-file>`: `name` (string, required, max 255), `value` (string,
   required, max 255)
+  - writes: `<api-schema-file>`
 - [ ] ST03 · Add `Widget` response schema to `<api-schema-file>`: `id` (integer), `name` (string), `value` (string)
+  - writes: `<api-schema-file>`
 
 #### Database
 
 - [ ] ST04 · Add migration `<migration-file>` (named per the project's migration tool conventions), as designed:
+  - writes: `<migration-file>`
   ```sql
   CREATE TABLE widget (
       id        BIGSERIAL PRIMARY KEY,
@@ -123,23 +127,27 @@ public Settings loadSettings(long userId) {
 
 - [ ] ST05 · Add `createWidget(CreateWidgetCommand command): Widget` to the `CreateWidgetPort` inbound port
   (interface only — the implementation stub goes on `CreateWidgetUseCase` below)
+  - writes: `<CreateWidgetPort-file>`
 - [ ] ST06 · Add `save(Widget widget): Widget` to the `WidgetRepository` outbound port
-- [ ] ST07 · Stub `CreateWidgetUseCase.createWidget()`:
+  - writes: `<WidgetRepository-file>`
+- [ ] ST07 · Stub `CreateWidgetUseCase.createWidget()` · after: ST05
+  - writes: `<CreateWidgetUseCase-file>`
   ```java
   public Widget createWidget(CreateWidgetCommand command) {
       // validates the command, assembles a Widget via WidgetAssembler, and persists it via WidgetRepository
       return null;
   }
   ```
-- [ ] ST08 · Stub `WidgetRepositoryAdapter.save()`:
+- [ ] ST08 · Stub `WidgetRepositoryAdapter.save()` · after: ST06
+  - writes: `<WidgetRepositoryAdapter-file>`
   ```java
   public Widget save(Widget widget) {
       // maps the domain Widget to a WidgetEntity, persists it, and returns the domain Widget with its generated id
       return null;
   }
   ```
-- [ ] ST09 · Update `WidgetController.createWidget()` to call `createWidgetPort.createWidget(...)` and fix any remaining
-  compile errors until the module builds green
+- [ ] ST09 · Update `WidgetController.createWidget()` to call `createWidgetPort.createWidget(...)` · after: ST05
+  - writes: `<WidgetController-file>`
 
 **Shared Test Infrastructure**
 
@@ -147,6 +155,7 @@ public Settings loadSettings(long userId) {
   location — both `WidgetRepositoryAdapterTest` (Integration Red Phase) and `CreateWidgetTest` (System Test Red
   Phase) need a valid widget precondition, and neither Red Phase step is scoped to create shared fixtures on its
   own
+  - writes: `<WidgetTestDataFactory-file>`
 
 ### Red Phase
 
@@ -275,3 +284,4 @@ public Settings loadSettings(long userId) {
   - A:
 
 - [ ] ST01 · a second ST01
+  - writes: `<api-schema-file>`

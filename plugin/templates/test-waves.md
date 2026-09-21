@@ -1,8 +1,7 @@
-# Waves
+# Test Waves
 
-How a pipeline turns a set of eligible steps into parallel sub-agents, and who verifies the result. Read by
-`implement-plan-module` for its red and green stages; the same rules apply to any stage that spawns more than one
-step agent into one module.
+How `implement-plan-module` turns eligible RED or GREEN steps into parallel test-step agents and verifies their
+result.
 
 ## Bundling
 
@@ -18,22 +17,14 @@ bundled agent **reports per step ID**, and each is ticked separately.
 
 ## The cap
 
-The module conventions set how many step agents run at once. Spawn up to the cap and
-queue the rest, launching a queued bundle as a running one finishes. Where they state no cap, the default in
-[`sub-agents.md`](sub-agents.md) applies.
-
-**When the cap forces a choice, keep one grouping in one wave.** Take bundles from different groupings first,
-and put the second bundle of a grouping in the next wave. Among the rest, take them in the order the scheduler
-gives.
+Apply the agent cap in [`sub-agents.md`](sub-agents.md). When it forces a choice, keep one grouping in one wave.
+Take bundles from different groupings first. Put the second bundle of a grouping in the next wave. Among the rest,
+take them in the order the scheduler gives.
 
 ## Launching a wave
 
-A wave is launched as [`sub-agents.md`](sub-agents.md) says for running several agents at once. Which shape
-that is depends on whether the pipeline runs as a session or as a sub-agent. Bundles spawned and awaited one at
-a time are not a wave.
-
-**A pipeline running as a sub-agent takes the parallel shape of the two that file offers**, and hands the wave
-back.
+Launch and await the wave as [`sub-agents.md`](sub-agents.md) says. Bundles spawned and awaited one at a time are
+not a wave.
 
 ## Who verifies a wave
 

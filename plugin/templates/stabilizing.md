@@ -49,14 +49,3 @@ and how the skipped count accounts for it is [`reproducing.md`](reproducing.md).
 **Stabilizing disables; the step that owns the rework deletes.** A test that is obsolete rather than owed a rework
 is removed by the step whose text names it — an `update: … — delete` bullet, a `disables:` line — never here on
 the stabilizer's own judgement.
-
-## Done means
-
-- the module compiles, test sources included;
-- its architecture-enforcement test, where the conventions name one, passes;
-- the pre-existing suite is where the baseline left it: green, the total unchanged except for named deletions,
-  the skipped count the baseline plus exactly what this step disabled;
-- every stub a later step covers carries an intent comment consistent with that step's scenarios.
-
-Whoever applies the step verifies these before it is ticked. Whoever spawns an agent to apply it verifies them
-again before the next stage starts.

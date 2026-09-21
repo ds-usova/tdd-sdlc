@@ -28,6 +28,9 @@ check_fails "next: an ambiguous --group is refused" plan next --group phase
 check_fails "next: a --group nothing matches is refused" plan next --group nowhere
 
 echo "-- after:"
+stabilization="$(plan next --group stabilization --section interface-first --all)"
+check_match "next stabilization: independent items are eligible" '^ST05 +depth' "$stabilization"
+check_match "next stabilization: a stub waits for its interface" '\(waiting\) ST07 +after ST05' "$stabilization"
 green="$(plan next --group green --all)"
 check_match "next --group green: GU03 eligible with a chain of 2" '^GU03 +depth 2' "$green"
 check_no_match "next --group green: GI02 not eligible" '^GI02' "$green"
