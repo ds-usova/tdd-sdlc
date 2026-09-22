@@ -4,6 +4,9 @@ How an agent is spawned, waited for, resumed and answered, in this harness. Writ
 every skill and agent that spawns or is spawned. What a spawned agent is *told* — its step, its scenarios, its
 conventions — is the spawning skill's; only the mechanics are here.
 
+A step-carrying implementation spawn identifies its work as
+[`agent-assignments.md`](agent-assignments.md) requires.
+
 ## Spawning and waiting
 
 **A turn that ends does not resume.** Nothing re-invokes an orchestrator when a run it started finishes or an

@@ -54,6 +54,18 @@ there and states only its own numbers.
 Parallel agents share one working tree: an agent stays inside the files its step owns, and never draws conclusions
 from a file another agent is writing.
 
+## Implementation Bundles
+
+How `implement-plan` combines compatible RED or GREEN plan items into one implementation agent.
+
+- Prefer items from the same: `<the project's useful boundary — e.g. feature, component, source grouping, test
+  type, plan order, or "all compatible items">`
+- Max plan items per implementation agent: `<number or "unlimited">`
+- Max plan brief characters per implementation agent: `<number or "unlimited">`
+
+The plan brief is the combined `plan.sh show` output for the assigned items. The limit does not include files or
+tool results the agent reads later.
+
 ## Follow-Up Work in a Plan
 
 What runs once a change is complete, and what documents it earns, is [Follow-Up Work](follow-up.md) — true of

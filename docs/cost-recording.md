@@ -182,9 +182,12 @@ or `TZ`:
 >
 </p>
 
-Two hooks, registered by the plugin in `hooks/hooks.json`, and one script.
+Three hooks, registered by the plugin in `hooks/hooks.json`, and one script.
 
-1. **`PreToolUse` on Bash** (`scripts/hooks/map-session-to-task.sh`) watches for a call to a framework
+1. **`PreToolUse` on Agent** (`scripts/hooks/validate-agent-assignment.sh`) recognizes step-carrying framework
+   implementation agents. It derives their workflow, work file and assigned IDs from the Agent input, prepends
+   the normalized assignment header and rejects an assignment it cannot resolve. Other agents pass unchanged.
+2. **`PreToolUse` on Bash** (`scripts/hooks/map-session-to-task.sh`) watches for a call to a framework
    script — `plan.sh`, `fix.sh`, `rework.sh`, `upgrade.sh`, `design.sh`, `cost.sh` — that names a task
    directory. It writes that directory to `.git/tdd-sdlc/sessions/<session>`, with the session's transcript
    path, the time of the first such call, the time of the latest and the machine's UTC offset at the latest.
@@ -192,12 +195,12 @@ Two hooks, registered by the plugin in `hooks/hooks.json`, and one script.
    spawns anything, so a framework session is always mapped. A session that never makes one is not a framework
    session. Mapping files older than 30 days are deleted on the next write; losing one only means later agents
    of that session without a plan path in their prompt go unrecorded.
-2. **`SubagentStop`** (`scripts/hooks/record-agent-cost.sh`) fires each time a sub-agent stops. It decides
+3. **`SubagentStop`** (`scripts/hooks/record-agent-cost.sh`) fires each time a sub-agent stops. It decides
    whether and where to record ([below](#how-an-agent-is-attributed)), reads the agent's transcript, and
    appends one JSON line to `docs/<n>-<task>/review/cost.jsonl`. The line includes bounded activity intervals.
    The start time is the transcript's first timestamp and the end time its last, so no start hook is needed.
    The file moves with the task at archive and is never cleaned.
-3. **`cost.sh report <task>`** (`scripts/cost/cost.sh`, usage in [its README](../plugin/scripts/cost/README.md)) reads
+4. **`cost.sh report <task>`** (`scripts/cost/cost.sh`, usage in [its README](../plugin/scripts/cost/README.md)) reads
    `cost.jsonl` and writes `cost.md` and `activity.html`. `implement-plan` runs it before archiving. `fix-bug`,
    `rework` and `upgrade-deps` run it at their finish. The session row comes from the session transcript that
    the mapping names. Its messages are grouped by `message.id` and summed between the session's first framework call
@@ -205,7 +208,7 @@ Two hooks, registered by the plugin in `hooks/hooks.json`, and one script.
    is priced from the rates table ([above](#where-the-rates-come-from)), and the `Rates:` line follows both
    output paths on stdout. The reports are snapshots; running the command again recomputes them.
 
-Both hooks are silent without `jq`, like the other hooks.
+All three hooks are silent without `jq`, like the other hooks.
 
 ### One line per agent
 
@@ -227,6 +230,7 @@ Both hooks are silent without `jq`, like the other hooks.
 | `activity` | bounded model, tool, waiting and unknown intervals                         | the transcript         |
 | `offset`   | the machine's UTC offset when the hook fired, as `date +%z` prints it       | the hook               |
 | `plan`     | the plan path the agent was spawned with, where its prompt names one        | the transcript         |
+| `assignment` | workflow, work file, item IDs, basis and bounded prompt sizes             | the launch prompt      |
 
 The transcript holds one line per content block, and every line of one message repeats the whole message's
 usage. The hook groups the assistant lines by `message.id`, keeps the last line of each group, and sums those.
@@ -280,20 +284,24 @@ there too.
 
 - The session's turns before its first framework call. The session row starts there.
 - Anything an agent says about its own work.
-- Tool results, prompts, model text and thinking in `activity.html`.
+- Tool results, full prompts, model text and thinking in `activity.html`. An assignment keeps a 1,000-character
+  prompt preview.
 - Anything from a session with no framework script call.
 
 ## What the host provides
 
-The hooks rely on these Claude Code behaviours, measured on 2026-09-08 and 2026-09-10. The `SubagentStop` event and its
-stdin are in Claude Code's hooks reference. The transcript's line shape, the meta file, and how nested agents
-report are not documented, and were measured. If an update changes them, recording degrades silently and
-the reports show less detail.
+The hooks rely on these Claude Code behaviours. The `Agent` input mutation contract was checked in the
+[hooks reference](https://code.claude.com/docs/en/hooks) on 2026-09-22. The `SubagentStop` event and its stdin
+are documented there too. The transcript's line shape, the meta file, and how nested agents report were measured
+on 2026-09-08 and 2026-09-10. If an update changes them, recording degrades silently and the reports show less
+detail.
 
-1. **`SubagentStop` stdin** carries `session_id`, `transcript_path` (the session's), `cwd`, `agent_id`,
+1. **`PreToolUse` on `Agent`** receives `prompt`, `description` and `subagent_type` in `tool_input`. An allow
+   response may replace that input through `updatedInput` before the agent starts.
+2. **`SubagentStop` stdin** carries `session_id`, `transcript_path` (the session's), `cwd`, `agent_id`,
    `agent_type`, `agent_transcript_path`, `last_assistant_message`, `hook_event_name`, `stop_hook_active`. A
    plugin agent arrives as `<plugin>:<type>`, such as `tdd-sdlc:rework-module`; the hook strips the prefix.
-2. **The transcript** is JSON lines, one line per content block: a message that thinks, says a sentence and
+3. **The transcript** is JSON lines, one line per content block: a message that thinks, says a sentence and
    calls a tool is three lines. A line with `"type": "assistant"` carries `timestamp`, `message.id`,
    `message.model` and `message.usage` with `input_tokens`, `output_tokens`, `cache_creation_input_tokens`,
    `cache_read_input_tokens` and `cache_creation.ephemeral_5m_input_tokens` /
@@ -304,10 +312,10 @@ the reports show less detail.
    agent another agent spawned, and `model` where the spawn set one.
    A tool call is an assistant `tool_use` block with `id`, `name` and `input`. Its result is a user
    `tool_result` block whose `tool_use_id` names that call.
-3. **Grandchildren fire the hook.** A step a pipeline spawned stops and is reported like the pipeline itself.
-4. **`session_id` is the top session's** for a grandchild, and so is its transcript's directory:
+4. **Grandchildren fire the hook.** A step a pipeline spawned stops and is reported like the pipeline itself.
+5. **`session_id` is the top session's** for a grandchild, and so is its transcript's directory:
    `<projects>/<session>/subagents/agent-<id>.jsonl`.
-5. **One agent stops several times.** A parent stops once while waiting on its child and once at the end.
+6. **One agent stops several times.** A parent stops once while waiting on its child and once at the end.
 
 *Diagram sources: [`diagrams/cost-flow.puml`](diagrams/cost-flow.puml),
 [`diagrams/cost-attribution.puml`](diagrams/cost-attribution.puml). Re-render with `diagrams/render.sh`.*

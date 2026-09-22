@@ -60,6 +60,15 @@ prompt="$(jq -Rrn '
       elif ($c | type) == "array" then ([$c[] | select(.text?) | .text] | first // "")
       else "" end' < "$transcript" 2>/dev/null | tr -d '\r')"
 
+# A PreToolUse hook prepends these four lines to step-carrying implementation agents. Older
+# transcripts and agents without an assignment keep no assignment object.
+assignment_workflow="$(printf '%s\n' "$prompt" | sed -n 's/^Workflow: //p' | head -1)"
+assignment_file="$(printf '%s\n' "$prompt" | sed -n 's/^Work file: //p' | head -1 | tr '\134' '/')"
+assignment_items_text="$(printf '%s\n' "$prompt" | sed -n 's/^Assigned items: //p' | head -1)"
+assignment_basis="$(printf '%s\n' "$prompt" | sed -n 's/^Assignment basis: //p' | head -1)"
+prompt_chars="$(printf '%s' "$prompt" | wc -m | tr -d ' \r')"
+prompt_preview="$(printf '%s' "$prompt" | jq -Rs '.[0:1000]' | jq -r . 2>/dev/null | tr -d '\r')"
+
 git_dir="$(cd "${cwd:-.}" 2>/dev/null && git rev-parse --git-dir 2>/dev/null)" || exit 0
 case "$git_dir" in
     /*|?:*) ;;
@@ -95,6 +104,28 @@ fi
 
 repo_root="$(cd "${cwd:-.}" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 [ -n "$repo_root" ] || exit 0
+
+brief_chars=0
+if [ -n "$assignment_workflow" ] && [ -n "$assignment_items_text" ] \
+    && [ "$assignment_items_text" != "none" ] && [ -f "$repo_root/$assignment_file" ]; then
+    read -r -a assignment_ids <<< "$assignment_items_text"
+    brief=""
+    case "$assignment_workflow" in
+        implement-plan)
+            brief="$(bash "$plugin_root/scripts/plan/plan.sh" show "${assignment_ids[@]}" \
+                "$repo_root/$assignment_file" 2>/dev/null)" ;;
+        fix-bug)
+            brief="$(bash "$plugin_root/scripts/fix/fix.sh" show "${assignment_ids[@]}" \
+                --file "$repo_root/$assignment_file" 2>/dev/null)" ;;
+        rework)
+            brief="$(bash "$plugin_root/scripts/rework/rework.sh" show "${assignment_ids[@]}" \
+                --file "$repo_root/$assignment_file" 2>/dev/null)" ;;
+        upgrade-deps)
+            brief="$(bash "$plugin_root/scripts/upgrade/upgrade.sh" show "${assignment_ids[@]}" \
+                --file "$repo_root/$assignment_file" 2>/dev/null)" ;;
+    esac
+    [ -z "$brief" ] || brief_chars="$(printf '%s' "$brief" | wc -m | tr -d ' \r')"
+fi
 # A task the tree does not hold is a path the prompt only mentioned. Nothing is created for it.
 [ -d "$repo_root/$task" ] || exit 0
 out_dir="$repo_root/$task/review"
@@ -210,6 +241,10 @@ line="$(jq -nc \
     --arg started "$started" --arg ended "$ended" \
     --arg session "$session_id" --arg agent "$agent_type" --arg model "$model" \
     --arg plan "$plan" --arg offset "$offset" --argjson seconds "${seconds:-0}" \
+    --arg workflow "$assignment_workflow" --arg work_file "$assignment_file" \
+    --arg items "$assignment_items_text" --arg basis "$assignment_basis" \
+    --arg preview "$prompt_preview" --argjson prompt_chars "${prompt_chars:-0}" \
+    --argjson brief_chars "${brief_chars:-0}" \
     --argjson active "${active:-0}" --argjson idle "${idle:-[]}" \
     --slurpfile activity "$activity_file" \
     --argjson input "$(get input)" --argjson output "$(get output)" \
@@ -224,7 +259,13 @@ line="$(jq -nc \
                 cache_create_5m: $cache_create_5m, cache_create_1h: $cache_create_1h},
        peak_ctx: $peak_ctx, seconds: $seconds, active: $active, idle: $idle,
        activity: ($activity[0] // []), offset: $offset}
-    + (if $plan == "" then {} else {plan: $plan} end)' | tr -d '\r')"
+    + (if $plan == "" then {} else {plan: $plan} end)
+    + (if $workflow == "" then {} else
+         {assignment: {workflow: $workflow, work_file: $work_file,
+                       items: (if $items == "none" or $items == "" then [] else ($items | split(" ")) end),
+                       basis: $basis, prompt_chars: $prompt_chars, brief_chars: $brief_chars,
+                       prompt_preview: $preview}}
+       end)' | tr -d '\r')"
 rm -f "$activity_file"
 
 # One short printf per stop, appended; agents of one wave stop close together and each writes one line.

@@ -74,7 +74,7 @@ A single-module repository keeps the build facts in the module tier, and may hav
 | `code-style.md`   | production-code idioms, and what a refactoring pass prioritizes and must leave alone       | green and refactor phases    |
 | `build.md`        | this module's exact compile, single-test, full-suite and architecture-test commands        | every phase                  |
 | `follow-up.md`    | what runs once a change is complete, and what documents it earns                           | the last stage, archiving    |
-| `agent.md`        | commit behaviour, the models, this module's own cap on concurrent agents                    | the orchestrating skills     |
+| `agent.md`        | commits, models, bundles and the module's agent cap                         | orchestrating skills |
 
 **Every agent-only fact belongs in `agent.md`** and nowhere else. The other files describe the module, never a
 workflow, and never mention agents.

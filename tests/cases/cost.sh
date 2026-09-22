@@ -111,6 +111,11 @@ check "activity keeps parallel calls from one assistant message" "ac-bash ac-ope
 check_match "activity keeps a bounded shell command summary" 'npm test -- --runInBand' "$activity_line"
 check_match "an unmatched tool call is unknown" '"state":"unknown".*"call":"ac-open"' "$activity_line"
 check_no_match "activity does not keep tool output" 'test output is not retained' "$activity_line"
+check_match "the assignment records the workflow and item ids" \
+  '"assignment":\{"workflow":"implement-plan".*"items":\["RU01","RU02"\]' "$activity_line"
+check_match "the assignment keeps a bounded prompt preview" \
+  '"prompt_preview":"Workflow: implement-plan' "$activity_line"
+check_match "the assignment measures the selected plan brief" '"brief_chars":[1-9][0-9]*' "$activity_line"
 sed '$d' "$JSONL" > "$JSONL.tmp" && mv "$JSONL.tmp" "$JSONL"
 
 n0=$(lines)
@@ -155,11 +160,15 @@ check_golden "the report matches the golden rendering" "$FX/cost.golden.md" "$WO
 check "the report writes the interactive activity page" yes "$([ -f "$HTML" ] && echo yes || echo no)"
 activity_b64="$(awk '/id="activity-data"/{getline; print; exit}' "$HTML")"
 activity_json="$(printf '%s' "$activity_b64" | jq -Rr '@base64d')"
-check "the activity page carries schema 1" 1 "$(printf '%s' "$activity_json" | jq -r '.schema')"
+check "the activity page carries schema 2" 2 "$(printf '%s' "$activity_json" | jq -r '.schema')"
 check_match "the activity page includes a recorded tool interval" \
   '"state":"tool".*"tool":"Bash"' "$(printf '%s' "$activity_json" | jq -c '.events')"
 check_match "the activity page has an agent lane" \
   '"kind":"agent"' "$(printf '%s' "$activity_json" | jq -c '.lanes')"
+check_match "the activity page links an assignment to its agent lane" \
+  '"assignment":\{"workflow":"implement-plan".*"items":\["RU01","RU02"\]' \
+  "$(printf '%s' "$activity_json" | jq -c '.lanes')"
+check_match "the activity page renders the assignment table" 'id="assignment-body"' "$(cat "$HTML")"
 hash1="$(git hash-object "$HTML")"
 report_offline > /dev/null
 hash2="$(git hash-object "$HTML")"

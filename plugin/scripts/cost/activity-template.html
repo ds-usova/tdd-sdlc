@@ -117,6 +117,7 @@
 
     .metric,
     .controls,
+    .assignments-card,
     .timeline-card,
     .detail {
       border: 1px solid var(--line);
@@ -214,6 +215,55 @@
 
     .timeline-card {
       overflow: hidden;
+    }
+
+    .assignments-card {
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .assignments {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .assignments th,
+    .assignments td {
+      padding: 9px 11px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+
+    .assignments th {
+      color: var(--muted);
+      font-size: 0.69rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: #111923f5;
+    }
+
+    .assignments tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .assignments .items,
+    .assignments .basis {
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .assignments button {
+      min-height: 28px;
+      padding: 0 8px;
+      font-size: 0.75rem;
     }
 
     .timeline-head {
@@ -502,6 +552,14 @@
         <select id="type-filter"></select>
       </div>
       <div class="field">
+        <label for="workflow-filter">Workflow</label>
+        <select id="workflow-filter"></select>
+      </div>
+      <div class="field">
+        <label for="item-filter">Work item</label>
+        <select id="item-filter"></select>
+      </div>
+      <div class="field">
         <label for="tool-filter">Tool</label>
         <select id="tool-filter"></select>
       </div>
@@ -517,6 +575,33 @@
         <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
         <button id="zoom-reset" type="button">Fit</button>
         <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+      </div>
+    </section>
+
+    <section class="assignments-card" id="assignments-card">
+      <div class="timeline-head">
+        <h2>Assignments</h2>
+        <span class="timeline-hint" id="assignment-count"></span>
+      </div>
+      <div class="table-wrap">
+        <table class="assignments">
+          <thead>
+            <tr>
+              <th>Workflow</th>
+              <th>Agent</th>
+              <th>Items</th>
+              <th>Basis</th>
+              <th>Brief</th>
+              <th>Prompt</th>
+              <th>Peak ctx</th>
+              <th>Turns</th>
+              <th>Active</th>
+              <th>Cost</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="assignment-body"></tbody>
+        </table>
       </div>
     </section>
 
@@ -562,6 +647,8 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
       const filters = {
         lane: $("lane-filter"),
         type: $("type-filter"),
+        workflow: $("workflow-filter"),
+        item: $("item-filter"),
         tool: $("tool-filter"),
         duration: $("duration-filter")
       };
@@ -707,6 +794,14 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         return parts.join(" ");
       }
 
+      function formatCount(value) {
+        return new Intl.NumberFormat("en-US").format(Math.max(0, Number(value) || 0));
+      }
+
+      function formatCost(value) {
+        return value === null || value === undefined ? "—" : `$${Number(value).toFixed(3)}`;
+      }
+
       function addOption(select, value, label) {
         const option = document.createElement("option");
         option.value = value;
@@ -729,6 +824,14 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         addOption(filters.type, "", "All types");
         for (const type of unique(lanes.map((lane) => lane.agent_type))) {
           addOption(filters.type, type, type);
+        }
+        addOption(filters.workflow, "", "All workflows");
+        for (const workflow of unique(lanes.map((lane) => lane.assignment?.workflow))) {
+          addOption(filters.workflow, workflow, workflow);
+        }
+        addOption(filters.item, "", "All items");
+        for (const item of unique(lanes.flatMap((lane) => lane.assignment?.items || []))) {
+          addOption(filters.item, item, item);
         }
         addOption(filters.tool, "", "All tools");
         for (const tool of unique(normalizedEvents.map((event) => event.tool))) {
@@ -762,7 +865,11 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         return lanes.filter((lane) => {
           const laneMatch = !filters.lane.value || String(lane.id) === filters.lane.value;
           const typeMatch = !filters.type.value || String(lane.agent_type || "") === filters.type.value;
-          return laneMatch && typeMatch;
+          const workflowMatch = !filters.workflow.value
+            || String(lane.assignment?.workflow || "") === filters.workflow.value;
+          const itemMatch = !filters.item.value
+            || (lane.assignment?.items || []).includes(filters.item.value);
+          return laneMatch && typeMatch && workflowMatch && itemMatch;
         });
       }
 
@@ -786,6 +893,94 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         element.textContent = value;
         parent.append(element);
         return element;
+      }
+
+      function appendCell(row, className, value) {
+        const cell = document.createElement("td");
+        cell.className = className;
+        cell.textContent = value;
+        cell.title = value;
+        row.append(cell);
+        return cell;
+      }
+
+      function assignmentHeader(assignment) {
+        const items = Array.isArray(assignment.items) && assignment.items.length
+          ? assignment.items.join(" ")
+          : "none";
+        return [
+          `Workflow: ${assignment.workflow || "—"}`,
+          `Work file: ${assignment.work_file || "—"}`,
+          `Assigned items: ${items}`,
+          `Assignment basis: ${assignment.basis || "—"}`
+        ].join("\n");
+      }
+
+      function showAssignment(lane) {
+        const assignment = lane.assignment || {};
+        const metrics = lane.metrics || {};
+        detail.replaceChildren();
+        detail.classList.add("open");
+        const heading = document.createElement("div");
+        heading.className = "detail-title";
+        const title = document.createElement("h2");
+        title.textContent = "Agent assignment";
+        const close = document.createElement("button");
+        close.type = "button";
+        close.textContent = "Close";
+        close.addEventListener("click", closeDetail);
+        heading.append(title, close);
+        detail.append(heading);
+        const rows = [
+          ["Lane", lane.label || lane.id],
+          ["Agent type", lane.agent_type || "—"],
+          ["Launch header", assignmentHeader(assignment)],
+          ["Plan brief characters", formatCount(assignment.brief_chars)],
+          ["Prompt characters", formatCount(assignment.prompt_chars)],
+          ["Peak context", formatCount(metrics.peak_ctx)],
+          ["Turns", formatCount(metrics.turns)],
+          ["Active", formatDuration(metrics.active)],
+          ["Cost", formatCost(metrics.cost_usd)],
+          ["Prompt preview", assignment.prompt_preview || "—"]
+        ];
+        for (const [key, value] of rows) {
+          appendText(detail, "detail-key", String(key));
+          appendText(detail, "detail-value", String(value));
+        }
+      }
+
+      function renderAssignments(currentLanes) {
+        const body = $("assignment-body");
+        body.replaceChildren();
+        const assigned = currentLanes.filter((lane) => lane.assignment);
+        $("assignments-card").hidden = assigned.length === 0;
+        $("assignment-count").textContent = `${assigned.length} recorded`;
+        for (const lane of assigned) {
+          const assignment = lane.assignment;
+          const metrics = lane.metrics || {};
+          const items = Array.isArray(assignment.items) && assignment.items.length
+            ? assignment.items.join(" ")
+            : "none";
+          const row = document.createElement("tr");
+          appendCell(row, "", String(assignment.workflow || "—"));
+          appendCell(row, "", String(lane.agent_type || "—"));
+          appendCell(row, "items", items);
+          appendCell(row, "basis", String(assignment.basis || "—"));
+          appendCell(row, "", formatCount(assignment.brief_chars));
+          appendCell(row, "", formatCount(assignment.prompt_chars));
+          appendCell(row, "", formatCount(metrics.peak_ctx));
+          appendCell(row, "", formatCount(metrics.turns));
+          appendCell(row, "", formatDuration(metrics.active));
+          appendCell(row, "", formatCost(metrics.cost_usd));
+          const action = document.createElement("td");
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = "View";
+          button.addEventListener("click", () => showAssignment(lane));
+          action.append(button);
+          row.append(action);
+          body.append(row);
+        }
       }
 
       function renderHeader() {
@@ -1026,6 +1221,7 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         const entries = currentLanes.map((lane) => [lane, visibleEvents(lane)]);
         const currentEvents = entries.flatMap((entry) => entry[1]);
         renderSummary(currentEvents);
+        renderAssignments(currentLanes);
         timeline.append(buildAxis(width));
         for (const [lane, events] of entries) {
           timeline.append(buildLane(lane, events, width));

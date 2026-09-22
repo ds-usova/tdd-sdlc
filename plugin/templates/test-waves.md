@@ -5,21 +5,26 @@ result.
 
 ## Bundling
 
-**Bundle by grouping and layer, not by class.** A grouping is the source grouping the module conventions name —
-a package, a directory, a feature folder. Steps whose target classes share a grouping *and* a layer go to one
-sub-agent. A grouping that holds both layers (a pure mapper beside its adapter's slice test) gets one bundle per
-layer.
+Start with the eligible items for one agent type. Read the module conventions' implementation-bundle preference
+and limits. Apply the absent values in [`conventions/contract.md`](conventions/contract.md).
+
+Order eligible items by the stated preference, then plan order. Add compatible items to a bundle until the next
+one would exceed its item-count or plan-brief limit. The plan brief is the combined `plan.sh show` output. A
+single item remains whole when it exceeds a limit by itself.
+
+The preference may span source groupings. It never spans agent types or stages. Unit, integration and system
+steps therefore remain separate even where the project prefers one feature or all compatible items.
 
 A bundle starts only when every step in it is eligible; leave a step out rather than hold the bundle for it. The
 bundled agent **reports per step ID**, and each is ticked separately.
 
-**Never hand one production class to two parallel agents.**
+One bundle owns every target class and test class its items name. Its RED items also own every test class their
+`update:` bullets name. Never place overlapping ownership in concurrent bundles.
 
 ## The cap
 
-Apply the agent cap in [`sub-agents.md`](sub-agents.md). When it forces a choice, keep one grouping in one wave.
-Take bundles from different groupings first. Put the second bundle of a grouping in the next wave. Among the rest,
-take them in the order the scheduler gives.
+Apply the agent cap in [`sub-agents.md`](sub-agents.md). Take bundles with different preference values first.
+Put another bundle with the same value in the next wave. Among the rest, take them in plan order.
 
 ## Launching a wave
 

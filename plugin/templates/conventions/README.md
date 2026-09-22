@@ -18,7 +18,7 @@ look for a heading. Any layout that states the facts and indexes them works the 
 | `code-style.md`   | `<module>/docs/conventions/`   | the idioms production code follows, and what cleanup may touch       |
 | `build.md`        | `<module>/docs/conventions/`   | the exact commands that compile, test, and check the module          |
 | `follow-up.md`    | `<module>/docs/conventions/`   | what runs once a change is complete, and what documents it earns     |
-| `agent.md`        | `<module>/docs/conventions/`   | how an agent commits and parallelizes, and which model runs what     |
+| `agent.md`        | `<module>/docs/conventions/`   | commits, bundles, parallelism and agent models                       |
 
 **Only `agent.md` is about the agent.** Every other file describes the module and stays true for a reader who
 never uses one — which is the test for where a fact goes: a rule that survives without the framework belongs in

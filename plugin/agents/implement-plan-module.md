@@ -174,7 +174,7 @@ System Test Red Phase** sections. Red steps have no cross-dependencies:
   waves under `test-waves.md` in the `templates` directory beside the skills.
 - Spawn each bundle on the agent matching its layer, passing every one of its steps' context (target class, test
   class, covered methods, the given/when/then scenarios and the `update:` bullets verbatim) and the conventions
-  index paths:
+  index paths. Form the bundles from the implementation-bundle policy the conventions name:
     - unit steps → `tdd-unit-red-phase-step`
     - integration steps → `tdd-integration-red-phase-step`
     - system steps → `tdd-system-red-phase-step`

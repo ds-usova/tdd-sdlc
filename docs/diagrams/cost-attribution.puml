@@ -16,18 +16,19 @@ else (yes)
 endif
 if (its prompt names docs/<n>-<task>/…?) then (yes)
   :task = that directory;
-  :plan = the plan path
-  in the prompt, if any;
+  :work = the normalized assignment,
+  when the launch hook wrote one;
 else (no)
   if (sessions/<session> exists?) then (no)
     :skip: not a framework session;
     stop
   else (yes)
     :task = the mapping;
-    :plan = none;
+    :work = none;
   endif
 endif
 :sum usage over the transcript;
+:join the assignment to the agent id;
 :append one line to
 docs/<task>/review/cost.jsonl;
 stop

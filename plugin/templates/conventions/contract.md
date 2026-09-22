@@ -108,6 +108,7 @@ absence. Three outcomes occur in the tables. They differ in when the gap is foun
 | **The commit policy**: whether the agent commits, how often, on which branch, in what message format, and what a commit covers when another module's agent is committing too | every skill and module agent                          | **no commits**; a policy is never invented |
 | Which model runs deciding work and which runs executing work                                                                                                                 | every agent spawn                                     | the session's model                        |
 | How many agents may run at once in this module                                                                                                                               | every wave of steps                                   | four at once                               |
+| Implementation bundle preference and caps | `implement-plan-module` | source grouping; no caps |
 | How many may run at once across all modules                                                                                                                                  | `implement-plan`, `fix-bug`, `rework`, `upgrade-deps` | two modules at once                        |
 
 ## Repository tier

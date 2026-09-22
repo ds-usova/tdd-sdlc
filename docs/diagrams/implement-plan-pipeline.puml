@@ -27,12 +27,12 @@ note right
   your **build.md** names
 end note
 :Red
-unit, integration, system
-tests in parallel waves;
+project-defined compatible bundles
+in parallel waves;
 :Gate: every planned class has
 its expected RED result;<<gate>>
 :Green unit + integration
-in waves;
+in project-defined compatible bundles;
 while (system step remains?) is (yes)
   :Run its focused test class;
   if (green?) then (yes)

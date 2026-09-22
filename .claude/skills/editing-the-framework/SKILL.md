@@ -35,6 +35,12 @@ Read this before changing any file the plugin ships. Then edit. Then run the che
 - **Lines wrap at 120 characters.** Frontmatter `description:` is the one exception.
 - **Articles follow the sound of the id.** "An `RL` entry", "a `DN` entry".
 
+## Strategy readability
+
+Group related decisions under short `###` categories in `docs/strategy.md`. Write each decision as a bold bullet.
+Put its rule, reason, check, trade-off or observed failure in short nested labelled bullets. Do not turn a decision
+into several prose paragraphs or repeat the decisions in an overview.
+
 ## Scripts and hooks
 
 - **Every script change runs on a fixture before it is reported.** Build a scratch repository, run every

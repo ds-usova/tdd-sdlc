@@ -476,19 +476,40 @@ session_records() {
 # One JSON object per recorded agent: lane metadata and the bounded activity captured by the stop
 # hook. Older records remain visible as lanes whose whole span is unknown.
 agent_activity_records() {
-    current_lines | jq -c '
-        {
-          lane: {
-            id: .id,
-            label: ((.agent // "agent") + " #" + ((.id // "")[0:8])),
-            kind: "agent",
-            agent_type: (.agent // ""),
-            parent: (.parent // ""),
-            started: (.started // ""),
-            ended: (.ended // "")
-          },
-          events: (.activity // [])
-        }' | tr -d '\r'
+    local line f priced cost
+    while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        f="$(printf '%s' "$line" | jq -r '
+            [(.model // ""), (.tokens.input // 0), (.tokens.output // 0),
+             (.tokens.cache_create_5m // 0), (.tokens.cache_create_1h // 0), (.tokens.cache_read // 0)]
+            | @tsv' | tr -d '\r')"
+        priced="$(price_fields "$(printf '%s' "$f" | cut -f1)" "$(printf '%s' "$f" | cut -f2)" \
+            "$(printf '%s' "$f" | cut -f3)" "$(printf '%s' "$f" | cut -f4)" \
+            "$(printf '%s' "$f" | cut -f5)" "$(printf '%s' "$f" | cut -f6)")"
+        if [ -n "$(printf '%s' "$priced" | cut -f1)" ]; then
+            cost="$(printf '%s' "$priced" | awk -F '\t' '{printf "%.6f", $1 + $2 + $3}')"
+        else
+            cost=""
+        fi
+        printf '%s' "$line" | jq -c --arg cost "$cost" '
+            {
+              lane: {
+                id: .id,
+                label: ((.agent // "agent") + " #" + ((.id // "")[0:8])),
+                kind: "agent",
+                agent_type: (.agent // ""),
+                parent: (.parent // ""),
+                started: (.started // ""),
+                ended: (.ended // ""),
+                assignment: (.assignment // null),
+                metrics: {
+                  turns: (.turns // 0), peak_ctx: (.peak_ctx // 0), active: (.active // 0),
+                  cost_usd: (if $cost == "" then null else ($cost | tonumber) end)
+                }
+              },
+              events: (.activity // [])
+            }' | tr -d '\r'
+    done < <(current_lines)
 }
 
 # One JSON object per available session. Session activity is read at report time because the session
@@ -526,7 +547,7 @@ write_activity() {
     trap 'rm -f "$encoded_file"' EXIT RETURN
     jq -sc --arg task "$task_name" --arg offset "$offset" '
         {
-          schema: 1,
+          schema: 2,
           task: $task,
           offset: $offset,
           lanes: (map(.lane) | sort_by(.started, .id)),

@@ -6,6 +6,7 @@
 
 COMMIT="$R/scripts/hooks/deny-plan-step-in-commit-message.sh"
 ARCHIVE="$R/scripts/hooks/deny-archive-with-stubs.sh"
+ASSIGN="$R/scripts/hooks/validate-agent-assignment.sh"
 P="$(fixture hooks/good proj)"; repo "$P"
 
 # hook SCRIPT COMMAND -> prints "deny: <reason>" or "allow"
@@ -16,6 +17,63 @@ hook() {
   if [ -z "$out" ]; then echo allow
   else echo "deny: $(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecisionReason')"; fi
 }
+
+agent_hook() {
+  local type="$1" description="$2" prompt="$3"
+  printf '{"tool_name":"Agent","tool_input":{"subagent_type":%s,"description":%s,"prompt":%s},"cwd":%s}' \
+    "$(printf '%s' "$type" | jq -Rs .)" "$(printf '%s' "$description" | jq -Rs .)" \
+    "$(printf '%s' "$prompt" | jq -Rs .)" "$(printf '%s' "$P" | jq -Rs .)" | bash "$ASSIGN"
+}
+
+# --- the assignment hook
+out="$(agent_hook stabilization-step 'widget stabilization' \
+  $'Apply docs/4-widget/mod/plan.md.\n- [ ] ST01 — stabilize')"
+check "a framework assignment is allowed" allow "$(printf '%s' "$out" | jq -r \
+  '.hookSpecificOutput.permissionDecision')"
+header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
+check_match "the hook prepends the workflow" '^Workflow: implement-plan$' "$header"
+check_match "the hook prepends the work file" '^Work file: docs/4-widget/mod/plan.md$' "$header"
+check_match "the hook records the assigned item" '^Assigned items: ST01$' "$header"
+check_match "the Agent description becomes the basis" '^Assignment basis: widget stabilization$' "$header"
+
+out="$(agent_hook implement-plan-module 'whole plan' 'Run without naming a work file.')"
+check "a missing work file is denied" deny "$(printf '%s' "$out" | jq -r \
+  '.hookSpecificOutput.permissionDecision')"
+check_match "the denial tells the model what is missing" 'name the work file' "$(printf '%s' "$out" | jq -r \
+  '.hookSpecificOutput.permissionDecisionReason')"
+
+out="$(agent_hook tdd-unit-red-phase-step 'one test' 'Write docs/4-widget/mod/plan.md without an RU item.')"
+check "a plan step without a matching id is denied" deny "$(printf '%s' "$out" | jq -r \
+  '.hookSpecificOutput.permissionDecision')"
+
+out="$(agent_hook tdd-unit-red-phase-step 'reproduction brief' 'Write one focused regression test.')"
+small_header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
+check_match "an unplanned reproduction records no work file" '^Work file: none$' "$small_header"
+check_match "an unplanned reproduction records no items" '^Assigned items: none$' "$small_header"
+
+out="$(agent_hook grill-design 'review' 'Review this design.')"
+check "an agent without implementation items is ignored" "" "$out"
+
+mkdir -p "$P/docs/5-fix" "$P/docs/6-upgrade/module-a" "$P/docs/7-rework/module-a"
+cp "$TESTS_DIR/fixtures/fix/good/docs/3-double-charge/fix.md" "$P/docs/5-fix/fix.md"
+cp "$TESTS_DIR/fixtures/upgrade/good/docs/3-bump-libs/module-a/steps.md" \
+  "$P/docs/6-upgrade/module-a/steps.md"
+cp "$TESTS_DIR/fixtures/rework/good/docs/3-widget/mod/steps.md" \
+  "$P/docs/7-rework/module-a/steps.md"
+out="$(agent_hook fix-bug-module 'whole work file' 'Apply docs/5-fix/fix.md.')"
+fix_header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
+check_match "a bug fix records its workflow" '^Workflow: fix-bug$' "$fix_header"
+check_match "a bug fix records every open item" '^Assigned items: FS01 FR01 FG01$' "$fix_header"
+out="$(agent_hook upgrade-deps-module 'whole work file' \
+  'Apply docs/6-upgrade/module-a/steps.md for docs/6-upgrade/upgrade.md.')"
+upgrade_header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
+check_match "an upgrade steps file records its workflow" '^Workflow: upgrade-deps$' "$upgrade_header"
+check_match "an upgrade records every open item" '^Assigned items: UP05$' "$upgrade_header"
+out="$(agent_hook rework-module 'whole work file' \
+  'Apply docs/7-rework/module-a/steps.md for docs/7-rework/rework.md.')"
+rework_header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
+check_match "a rework steps file records its workflow" '^Workflow: rework$' "$rework_header"
+check_match "a rework omits abandoned items" '^Assigned items: WK01 WK03$' "$rework_header"
 
 # --- the commit-message hook
 # Each pair is a command and the ids the hook must name for it, separated by a pipe.

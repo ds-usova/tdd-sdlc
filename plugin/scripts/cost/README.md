@@ -31,8 +31,12 @@ Run it with bash, from anywhere inside the project:
 ## Activity page
 
 `activity.html` is self-contained. Open it directly from disk. It has one lane per session and agent, filters
-for lanes, states, tools and minimum duration, and zoom controls. Hover or select an interval to read its tool,
-bounded input summary, timestamps and duration.
+for lanes, states, tools, workflow, assigned item and minimum duration, and zoom controls. Hover or select an
+interval to read its tool, bounded input summary, timestamps and duration.
+
+The assignments table joins a step-carrying implementation agent to the workflow, work file and item IDs that
+the launch hook prepended to its prompt. It shows the assignment basis, plan-brief and prompt characters, peak
+context, turns, active time and cost. **View** opens the exact launch header and at most 1,000 prompt characters.
 
 The page uses four states: `model` for a model turn, `tool` for a paired tool call, `waiting` for a resume gap
 or delegated call, and `unknown` for every uncovered or incomplete interval. It never calls a model interval
@@ -41,7 +45,7 @@ thinking. The transcript cannot separate inference, generation and transport del
 The stop hook stores agent intervals in `cost.jsonl`. The report reads session intervals from the mapped
 session transcript. Tool calls are paired by `tool_use.id` and `tool_result.tool_use_id` before their times are
 clipped to the lane. A tool summary contains at most 500 characters of its command, path or description. Tool
-results, prompts, model text and thinking are never copied.
+results, full prompts, model text and thinking are never copied.
 
 `activity-template.html` owns the page structure and behaviour. `activity-parse.jq` owns transcript parsing.
 `cost.sh report` embeds the derived JSON in the template as base64. Agents never write HTML. The same records,

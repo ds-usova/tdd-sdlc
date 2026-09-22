@@ -17,6 +17,7 @@ skinparam note {
 }
 
 participant "skill\n(session)" as S
+participant "PreToolUse hook\n(Agent)" as ASSIGN
 participant "PreToolUse hook\n(Bash)" as PRE
 database ".git/tdd-sdlc/\nsessions/<session>" as MAP
 participant "sub-agent" as A
@@ -33,13 +34,15 @@ note right of PRE
   any framework script call
   naming a task directory
 end note
-S -> A : spawn, prompt names\ndocs/7-x/module-a/plan.md
+S -> ASSIGN : spawn implementation agent
+ASSIGN -> ASSIGN : derive workflow, work file,\nitem ids and basis
+ASSIGN -> A : normalized prompt with\nassignment header
 A -> STOP : agent ends
-STOP -> STOP : type is a framework agent?\npath in the prompt, else the mapping
+STOP -> STOP : type is a framework agent?\nassignment path, else the mapping
 STOP -> JSONL : one line: time, session, type, model,\nturns, token counts, activity intervals,\nwall time, offset, plan
 S -> REP : at the task's finish
 REP -> JSONL : read
 REP -> RATES : rate per model;\nfetched when a model is new\nor the cache is a week old
 REP -> MD : dollars and counts per session,\nper plan, per agent type
-REP -> HTML : deterministic template + embedded intervals
+REP -> HTML : deterministic template + embedded\nassignments and intervals
 @enduml
