@@ -89,11 +89,11 @@ Each token count is priced at the model's rates, per million tokens:
 A subscription plan is not billed this way; the dollars say what the run would cost at API rates, which is
 the one scale on which two runs compare.
 
-**An agent whose model is in no table** is priced nowhere. A row that holds only such agents renders `—` in
-every priced cell. A row that mixes them with priced agents shows the priced sum and ends with `*`. The
-task total and every `%` are computed over the priced agents only, the total ends with `*`, and a line under
-it names the models: `* excludes 1 unpriced agent (claude-x)`. Nothing is guessed and no rate is borrowed
-from a model with a similar id. The volume table is complete regardless.
+**An agent or session model that is in no table** is priced nowhere. A row with only unpriced token volume
+renders `—` in every priced cell. A mixed row shows the priced sum and ends with `*`. The task total and every
+`%` use only priced token volume. The total ends with `*`, and a line below it names only the unpriced models:
+`* excludes 1 unpriced agent (claude-x)`. Token-free synthetic messages do not create a model or turn. Nothing
+is guessed, and no rate is borrowed from a similar model. The volume table is complete regardless.
 
 ### Where the rates come from
 

@@ -404,6 +404,7 @@ session_tokens() {
          | select(.type == "assistant")
          | select((.timestamp // "")[0:19] >= $from[0:19] and (.timestamp // "")[0:19] <= $to[0:19])]
         | to_entries | group_by(.value.message.id // ("line-" + (.key | tostring))) | map(last.value)
+        | map(select(ctx + (.message.usage.output_tokens // 0) > 0))
         | group_by(.message.model // "")[]
         | [(.[0].message.model // ""),
            (map(.message.usage.input_tokens // 0) | add // 0),
@@ -429,21 +430,22 @@ needed_models() {
     } | grep -v '^$' | sort -u | tr '\n' ' '
 }
 
-# S records: one per session. Each model's messages are priced at that model; the row's peak context
-# is the largest one and its window that model's. The two `unavailable` branches print the full width.
+# S records: one per session. Each model's messages are priced at that model. A token-free synthetic
+# message is ignored. Field 18 names only models whose token volume could not be priced.
 session_records() {
     local s w transcript first to offset line priced
-    local inp out cc5 cc1 cr turns model models ur uw uo pw pk unpriced i o c5 c1 r t p
+    local inp out cc5 cc1 cr turns model models ur uw uo pw pk unpriced priced_any i o c5 c1 r t p
     while IFS= read -r s; do
         [ -n "$s" ] || continue
         w="$(session_window "$s")"
         if [ -z "$w" ]; then
-            printf 'S\t%s\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tunavailable\n' "$s"
+            printf 'S\t%s\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tunavailable\n' "$s"
             continue
         fi
         transcript="$(printf '%s' "$w" | cut -f1)"; first="$(printf '%s' "$w" | cut -f2)"
         to="$(printf '%s' "$w" | cut -f3)"; offset="$(printf '%s' "$w" | cut -f4)"
-        inp=0; out=0; cc5=0; cc1=0; cr=0; turns=0; models=""; ur=0; uw=0; uo=0; pw=""; pk=-1; unpriced=0
+        inp=0; out=0; cc5=0; cc1=0; cr=0; turns=0; models=""; ur=0; uw=0; uo=0; pw=""; pk=-1
+        unpriced=""; priced_any=0
         while IFS= read -r line; do
             [ -n "$line" ] || continue
             model="$(printf '%s' "$line" | cut -f1)"; i="$(printf '%s' "$line" | cut -f2)"
@@ -457,8 +459,11 @@ session_records() {
             fi
             priced="$(price_fields "$model" "$i" "$o" "$c5" "$c1" "$r")"
             if [ -z "$(printf '%s' "$priced" | cut -f1)" ]; then
-                unpriced=1
+                if ! printf '%s' ",$unpriced," | grep -q ",$model,"; then
+                    unpriced="${unpriced:+$unpriced,}$model"
+                fi
             else
+                priced_any=1
                 ur="$(awk -v a="$ur" -v b="$(printf '%s' "$priced" | cut -f1)" 'BEGIN { printf "%.6f", a + b }')"
                 uw="$(awk -v a="$uw" -v b="$(printf '%s' "$priced" | cut -f2)" 'BEGIN { printf "%.6f", a + b }')"
                 uo="$(awk -v a="$uo" -v b="$(printf '%s' "$priced" | cut -f3)" 'BEGIN { printf "%.6f", a + b }')"
@@ -466,10 +471,10 @@ session_records() {
             if [ "$p" -gt "$pk" ]; then pk="$p"; pw="$(printf '%s' "$priced" | cut -f4)"; fi
         done < <(session_tokens "$transcript" "$first" "$to")
         [ "$pk" -ge 0 ] || pk=0
-        if [ "$unpriced" -eq 1 ]; then ur=""; uw=""; uo=""; fi
-        printf 'S\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\tok\n' \
+        if [ "$priced_any" -eq 0 ]; then ur=""; uw=""; uo=""; fi
+        printf 'S\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\tok\n' \
             "$s" "$first" "$to" "$inp" "$out" "$cc5" "$cc1" "$cr" "$turns" "$pk" "$offset" \
-            "$ur" "$uw" "$uo" "$pw" "$models"
+            "$ur" "$uw" "$uo" "$pw" "$models" "$unpriced"
     done < <(sessions_of)
 }
 

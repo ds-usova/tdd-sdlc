@@ -87,5 +87,5 @@ times in the offset the hooks recorded. The machine's own zone and `TZ` play no 
 
 It reads the lines' **shape**, not their meaning. A line the hooks never wrote is a run that went unrecorded,
 and the report cannot tell that from a cheap one. A legacy agent line without activity appears as an unknown
-lane. A session whose mapping file is gone gets `unavailable` for its own turns and no activity lane. A model
-in no rates table is rendered unpriced, a dash where its dollars would be.
+lane. A session whose mapping file is gone gets `unavailable` for its own turns and no activity lane. Pricing
+and unknown-model handling follow [`cost-recording.md`](../../../docs/cost-recording.md#prices).

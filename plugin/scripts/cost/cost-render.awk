@@ -1,6 +1,6 @@
 # Renders review/cost.jsonl, already deduplicated, priced and flattened to TSV by cost.sh, as the
-# tables in review/cost.md. It does no pricing: the dollar fields arrive computed,
-# empty where the model is priced nowhere.
+# tables in review/cost.md. It does no pricing. Dollar fields arrive computed and are empty when no
+# token volume in the row was priced.
 #
 # Input records, tab separated:
 #   A  id  parent  started  ended  session  agent  model  input  output  cache_create_5m
@@ -8,7 +8,7 @@
 #      seconds  plan  active  idle
 # `idle` is the agent's idle windows as `from>to;from>to`, empty when it never waited.
 #   S  session  from  to  input  output  cache_create_5m  cache_create_1h  cache_read  turns
-#      peak_ctx  offset  usd_read  usd_write  usd_out  window  model  status
+#      peak_ctx  offset  usd_read  usd_write  usd_out  window  model  unpriced_models  status
 # An S record whose status is not `ok` carries empty fields between session and status.
 # -v skipped=N is the count of lines recorded before the hook wrote the newer fields.
 # -v rates="..." is the sentence naming where the rates came from.
@@ -244,8 +244,9 @@ $1 == "S" {
     sturn[sn] = $10 + 0; speak[sn] = $11 + 0; soff[sn] = $12
     spriced[sn] = ($13 != "")
     sur[sn] = $13 + 0; suw[sn] = $14 + 0; suo[sn] = $15 + 0; swin[sn] = $16; smod[sn] = $17
+    snp[sn] = ($18 != ""); sunpriced[sn] = $18
     susd[sn] = spriced[sn] ? sur[sn] + suw[sn] + suo[sn] : ""
-    sstat[sn] = $18
+    sstat[sn] = $19
 }
 
 # "session (own turns)", with the session named when the task saw more than one.
@@ -277,7 +278,10 @@ function task_total(   i, t) {
     for (i = 1; i <= sn; i++) {
         if (sstat[i] != "ok") continue
         if (spriced[i]) t += susd[i]
-        else { unpriced_rows++; unpriced_models = add_model(unpriced_models, smod[i]) }
+        if (snp[i]) {
+            unpriced_rows++
+            unpriced_models = add_model(unpriced_models, sunpriced[i])
+        }
     }
     return t
 }
@@ -321,9 +325,9 @@ function cost_table(total,   i, k, u, st) {
     for (i = 1; i <= sn; i++) {
         if (sstat[i] == "ok")
             printf "| %s | 1 | %s | %s | %s | %s | %s | %s | %s |\n", session_label(i),
-                fusd(susd[i]), fpct(susd[i], total),
-                fusd(spriced[i] ? sur[i] : ""), fusd(spriced[i] ? suw[i] : ""),
-                fusd(spriced[i] ? suo[i] : ""), fdur(sfrom[i], sto[i]), commas(smod[i])
+                fusd(susd[i], snp[i]), fpct(susd[i], total),
+                fusd(spriced[i] ? sur[i] : "", snp[i]), fusd(spriced[i] ? suw[i] : "", snp[i]),
+                fusd(spriced[i] ? suo[i] : "", snp[i]), fdur(sfrom[i], sto[i]), commas(smod[i])
         else
             printf "| %s | 1 | unavailable | | | | | unavailable | |\n", session_label(i)
     }

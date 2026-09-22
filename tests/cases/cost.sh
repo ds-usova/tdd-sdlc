@@ -193,6 +193,7 @@ report_offline > /dev/null
 hash2="$(git hash-object "$HTML")"
 check "identical inputs render byte-identical activity HTML" "$hash1" "$hash2"
 check_no_match "the Markdown report has no timeline section" '^## Timelines$' "$(cat "$MD")"
+check_no_match "a token-free synthetic message is absent from the report" '<synthetic>' "$(cat "$MD")"
 check_match "the type row's time is the running time, an idle window left out" \
   '^\| tdd-system-red-phase-step \| 2 \| .* \| 5m \| ' "$(cat "$MD")"
 check_match "a 40-second agent is shown in seconds" '`module-b/plan.md` \| 1 \| \$[0-9.]* \| 40s' "$(cat "$MD")"
@@ -202,6 +203,18 @@ check_match "the task total is not starred when every agent is priced" '^\| \$[0
 records long
 report_offline > /dev/null
 check_match "a long plan name remains intact" 'example-application-backend/plan.md' "$(cat "$MD")"
+
+# --- a session with priced and unpriced token volume keeps its priced subtotal
+jq -nc '{type:"assistant", timestamp:"2026-09-08T14:39:40.000Z",
+  message:{model:"claude-x", usage:{input_tokens:10, output_tokens:20}}}' \
+  >> "$F/projects/sess-1/session.jsonl"
+report_offline > /dev/null
+check_match "a mixed session keeps its priced subtotal" '^\| session .* \| 1 \| \$[0-9.]+\* \|' \
+  "$(cat "$MD")"
+check_match "a mixed session names only its unpriced model" '^\* excludes 1 unpriced agent \(claude-x\)$' \
+  "$(cat "$MD")"
+sed '$d' "$F/projects/sess-1/session.jsonl" > "$F/projects/sess-1/session.jsonl.tmp"
+mv "$F/projects/sess-1/session.jsonl.tmp" "$F/projects/sess-1/session.jsonl"
 
 # --- the report, offline with no cache: the plugin's own table, saying so
 rm -rf "$XDG_CACHE_HOME"
