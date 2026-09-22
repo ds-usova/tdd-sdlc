@@ -1,5 +1,5 @@
 ---
-description: Translate a settled spec and design into a step-by-step implementation plan before starting to code. Use on a task design-task has settled, or when the user explicitly asks for a plan. A refactoring is rework, not a plan.
+description: Translate a settled spec and its linked design artifacts into a step-by-step implementation plan before starting to code. Use on a task design-task has settled, or when the user explicitly asks for a plan. A refactoring is rework, not a plan.
 argument-hint: [ task directory, or a description of the feature to plan ]
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *)
 ---
@@ -23,24 +23,23 @@ as a new question.
 > its conventions state. What the phase structure below depends on is the module's **test types**, which its testing
 > conventions map.
 
-## 1. Require a Settled Design
+## 1. Require a Settled Task
 
-Every plan is written from a task `design-task` settled — `docs/<n>-<task-name>/`, holding `spec.md` and
-`design.md`. Read both in full before anything else. The spec carries the **Objective**, the **Requirements**,
-the **Acceptance Scenarios** a person signed off, and the **Decisions** the user made. The design carries
-**Affected Modules**, the **Proposed Solution** and the flow the change follows. All of it binds the plan. The
-design follows [`stack-neutral-design.md`](../../templates/stack-neutral-design.md). Name the implementation it
-deliberately omits.
+Every plan is written from a task `design-task` settled. Read `spec.md` and every file its **Design Artifacts**
+section links before anything else. The spec carries **Affected Modules**, the behaviour a person signed off and
+the user's decisions. The linked artifacts carry only the extra views needed for this task. All of it binds the
+plan. The artifacts follow [`stack-neutral-design.md`](../../templates/stack-neutral-design.md). Name the
+implementation they deliberately omit.
 
-The `design-log.md` beside them is not a third input. Open it only to chase a reference: a `DF<nn>` the spec
-or design cites, or the file a claim rests on when the step needs to mirror it.
+The `design-log.md` beside them is not a planning input. Open it only to chase a referenced `DF<nn>` or the file a
+claim rests on when a step needs to mirror it.
 
 Cite a decision or a finding by its clause, never by its number alone — "DN02, a choice is never cleared", not "DN02".
 
 **Two gates, both hard:**
 
-- **No spec or design for this task** — stop and say so. Do not write the plan and do not reconstruct either
-  inline. Point the user at `design-task`.
+- **No spec for this task, or a linked artifact is missing** — stop and say so. Do not reconstruct it inline.
+  Point the user at `design-task`.
 - **`design.sh settled` exits non-zero** — stop and repeat what it printed. Those entries decide what the
   steps are.
 - **`design.sh approved` exits non-zero** — run `design.sh approve "<who>" <task>` with `<who>` the output of
@@ -50,7 +49,7 @@ Cite a decision or a finding by its clause, never by its number alone — "DN02,
   installed as a plugin, under `.claude/` in a plain checkout. Refused or absent is not non-zero: tell the user
   once as [`scripts/README.md`](../../scripts/README.md) says, then read the spec's `Basis:` lines yourself.
 
-**A design gap found while planning goes back to the design, never into the plan.** A gap is a case neither
+**A design gap found while planning goes back to the spec or relevant artifact, never into the plan.** A gap is a case neither
 the spec's **Decisions** nor the log's **Findings** covers. Where the repository answers it, write a
 **Findings** row in the design log with the file that answers it. Where nothing does, write a `DN` entry in
 the spec with `Basis: must-decide` and ask the user in step 7. Once the answer is written into the spec, run
@@ -58,17 +57,17 @@ the spec with `Basis: must-decide` and ask the user in step 7. Once the answer i
 
 ## 2. Create a Plan File per Module
 
-`design-task` already created the task directory and its three files. Write **one plan per module** the design's
+`design-task` already created the task directory and its indexed files. Write **one plan per module** the spec's
 **Affected Modules** names, and a **plan log** beside each:
 
-| Design's Affected Modules       | Where the plan goes                               |
+| Spec's Affected Modules         | Where the plan goes                               |
 |---------------------------------|---------------------------------------------------|
 | one module                      | `docs/<n>-<task-name>/plan.md`                    |
 | several                         | `docs/<n>-<task-name>/<module>/plan.md`, one each |
 | several, with a shared artifact | one more: `docs/<n>-<task-name>/shared/plan.md`   |
 
 > **Naming rule:** the directory carries the name; the file does not repeat it. A task directory holds `spec.md`,
-> `design.md`, `design-log.md`, `plan.md` and `plan-log.md`, or the same three and `module-a/plan.md`,
+> `design-log.md`, optional design artifacts, `plan.md` and `plan-log.md`, or the same task inputs and `module-a/plan.md`,
 > `module-a/plan-log.md`, `module-b/plan.md`, `module-b/plan-log.md`.
 
 **Two files per plan, split by who reads them:**
@@ -83,7 +82,7 @@ after the run settled it. Create both when the plan is written: the log opens wi
 heading and nothing under it until step 5 fills it. `plan.sh validate` refuses a plan with no log beside it, a
 finding in the plan, or a blockers section in the plan.
 
-**The design is never split; the plans always are.** One module, one toolchain, one set of conventions per plan.
+**Design artifacts follow their questions; plans follow modules.** One module, toolchain and convention set per plan.
 
 **A plan is self-contained.** Its own step IDs, its own dependency graph, its own Open Questions, its own log. IDs
 restart in each file.
@@ -125,7 +124,7 @@ Making any of it work again is the module plan's job.
 ```
 **Format:** 2
 **Affected Modules:** `module-a`, `module-b`
-**Design:** [<task name>](../design.md)
+**Spec:** [<task name>](../spec.md)
 ```
 
 The plan is finished when **every module in that list** compiles, passes its architecture test, and still has a
@@ -134,7 +133,7 @@ green pre-existing suite. The list is where those commands come from, one set pe
 **It has a Stabilization group and no other.** Every item ID is an `ST`. It reads the repository-tier conventions
 plus each listed module's build section. It needs no layer or test mapping.
 
-**Write it only when the design names a shared artifact.** No file means nothing crosses.
+**Write it only when a design artifact names a shared implementation artifact.** No such file means nothing crosses.
 
 > **Archiving rule:** Once every checklist item in the **entire** plan file is ticked (`[x]`), move **the task's
 > whole directory** from `docs/` into `docs/implemented/<n>-<task-name>/`. In-progress work lives in `docs/`. Never
@@ -143,14 +142,13 @@ plus each listed module's build section. It needs no layer or test mapping.
 
 ### Re-planning
 
-A task directory that already holds a plan is re-planned. The input is the spec and the design as they now
-stand, and the tree as it now is. The old plan is not an input. Which case applies is read off the plan,
-never asked:
+A task directory that already holds a plan is re-planned. The inputs are the spec, its linked artifacts and the
+tree as they now stand. The old plan is not an input. Which case applies is read off the plan, never asked:
 
 | The plan is                          | Do                                                                              |
 |--------------------------------------|---------------------------------------------------------------------------------|
 | under `docs/implemented/`            | nothing. A change to an archived task is a new task.                            |
-| in `docs/`, no item ticked           | rewrite `plan.md` from the spec and design                                      |
+| in `docs/`, no item ticked           | rewrite `plan.md` from the spec and its artifacts                               |
 | in `docs/`, some items ticked        | keep every ticked item as it is; delete every open item; write the rest anew   |
 
 **Ticked items are a record, not a plan.** They say what is in the tree. They are never unticked and never
@@ -197,7 +195,7 @@ Three lines at the very top of the plan, immediately after the title:
 ```
 **Format:** 2
 **Affected Modules:** `module-a`
-**Design:** [<task name>](design.md)
+**Spec:** [<task name>](spec.md)
 ```
 
 **Format** is the file-format number `plan.sh validate` checks ([`scripts/README.md`](../../scripts/README.md),
@@ -210,7 +208,7 @@ Three lines at the very top of the plan, immediately after the title:
 | a module plan    | the one module it implements                     |
 | `shared/plan.md` | every module on the seam, producer and consumers |
 
-Never omit it. The design's own **Affected Modules** is the list of all of them.
+Never omit it. The spec's own **Affected Modules** is the list of all of them.
 
 **No plan declares an order.** `shared/plan.md` finishes before any module plan starts, and nothing else crosses.
 
@@ -218,10 +216,10 @@ Never omit it. The design's own **Affected Modules** is the list of all of them.
 cannot find. The one place a plan mentions another is a disabled test's reason, which points at the step that will
 rework it.
 
-**Design** links the design this plan translates; the spec sits beside it. The objective, the behaviour, the
-schema and the flow live there and are **not** repeated here.
+**Spec** links the task this plan translates. Its artifact index leads to any schema or flow. Those facts are
+**not** repeated here.
 
-The link is relative and survives archiving: `design.md` from a single-module plan, `../design.md` from a per-module
+The link is relative and survives archiving: `spec.md` from a single-module plan, `../spec.md` from a per-module
 or shared one.
 
 ### Architecture Decisions
@@ -253,8 +251,8 @@ Within each group, its sections appear as `#### <Section>` headings, in the fixe
 which spec scenario an existing test already holds, so a reader does not go looking for its step
 (`AC05 is held by the existing regression tests in SettingsPage.test.tsx`), or which measurable scenario the
 conventions leave unmeasured (`AC05 is a measurement; the conventions say performance is not measured`). A
-paragraph saying what a branch does, which case is folded into which, or why, is behaviour. Where the design
-lacks it, it goes back there as a `DN` or a **Findings** row. Where the design has it, the step's scenarios
+paragraph saying what a branch does, which case is folded into which, or why, is behaviour. Where the task inputs
+lack it, it goes back there as a `DN` or a **Findings** row. Where an artifact has it, the step's scenarios
 already carry it. An item says **what** is created or changed and names its concrete implementation target. The
 reasoning behind it is the design log's **Decision Bases**, cited by clause where a step needs it, never
 restated under the item.
@@ -275,7 +273,7 @@ Numbering restarts at `01` per prefix and follows the order the items are listed
 renumbered once the plan is written — a dropped step leaves a gap.
 
 **An ID never leaves those places.** Not a commit message, not a test or display name, not a class, a file or a
-comment. The same holds for a design's `DN`, `DF` and `AC` entries, an Open Question's `OQ`, and a findings
+comment. The same holds for a task's `DN`, `DF` and `AC` entries, an Open Question's `OQ`, and a findings
 file's `RX`. Say what the thing does instead. A `@Disabled` reason is the one exception.
 
 **An `update:` bullet is written from the test's body, never from its name.** Open the method, read what it

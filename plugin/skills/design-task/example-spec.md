@@ -1,13 +1,13 @@
 # Example Spec — Worked Example
 
 This is a complete worked example of a spec produced by the `design-task` skill — in a real repo this file would
-live at `docs/1-add-widget/spec.md`, beside the `design.md` that says how it is built, the `design-log.md` the
-grill fills, and the `plan.md` written from all three. It is illustrated with a `Widget` feature purely for
+live at `docs/1-add-widget/spec.md`, beside its linked artifacts, the `design-log.md` the grill fills, and the
+`plan.md` written from those inputs. It is illustrated with a `Widget` feature purely for
 concreteness. What transfers is the structure: the sections, their order, and the entry formats.
 
-**The spec is the page the user signs.** What the change promises, the behaviour that proves each promise, and
-the calls the user made. No table, no endpoint, no diagram — those are [`example-design.md`](example-design.md).
-Every reason behind a decision is [`example-design-log.md`](example-design-log.md), under the same number.
+**The spec is the page the user signs.** It holds what the change promises, what proves each promise, the calls
+the user made and links to the extra views. Every reason behind a decision is
+[`example-design-log.md`](example-design-log.md), under the same number.
 
 **Decisions is short on purpose.** Three entries, because three questions needed the user. Each is the question,
 the answer and who chose. An entry still awaiting the user has the same three lines with an empty `Answer:` and a
@@ -20,6 +20,7 @@ answered.
 
 **Format:** 2
 **Approved:** the user, 2026-07-30, b4d3977204c5
+**Affected Modules:** `module-a`
 
 ## Objective
 
@@ -34,7 +35,7 @@ with its generated id. It belongs to a parent resource, which must exist.
 
 ## Acceptance Scenarios
 
-One per branch of the design's flow diagram; one entry point. Each names the requirement it proves.
+One per branch of the linked flow artifact; one entry point. Each names the requirement it proves.
 
 - **AC01:** a widget is created
   - Given: a parent exists, and it has no widget named `left-rail`
@@ -85,3 +86,8 @@ and the files — is the log's **Decision Bases**, under the same number.
 
 Three entries, numbered DN01, DN04 and DN07. The gaps are the questions that turned out to be Findings rows — a number is
 assigned once and never reused, so a spec's entries are rarely consecutive.
+
+## Design Artifacts
+
+- [Widget creation flow](example-flow.md) — the request, validation and store outcomes.
+- [REST API update](example-api-update.md) — the operation, fields and response statuses.

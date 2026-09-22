@@ -77,7 +77,7 @@ Commands:
             the caller's.
 
 --file defaults to the single plan in flight under docs/. A task owns a directory holding the spec,
-the design and its log, and one plan per module it touches: plan.md for a single-module task,
+the spec, its design artifacts and log, and one plan per module it touches: plan.md for a single-module task,
 <module>/plan.md for each module of a multi-module one. Each plan's plan-log.md sits beside it;
 --log names another. Archived plans under docs/implemented/ are addressed by passing --file
 explicitly.
@@ -161,8 +161,8 @@ assert_read_whole() {
 }
 
 # A task owns one directory directly under docs/, and its plans sit either in it or one level deeper.
-# Walking up to that level is exact, where looking for a sibling design.md is not: a task may be
-# planned before its design is written, and an archived task keeps the same shape one level lower.
+# Walking up to that level is exact, where looking for a sibling spec.md is not: an archived task
+# keeps the same shape one level lower.
 task_dir_of() {
     local dir
     dir="$(cd "$(dirname "$1")" && pwd)"

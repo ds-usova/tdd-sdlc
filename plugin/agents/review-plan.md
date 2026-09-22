@@ -12,12 +12,12 @@ plan file text.
 
 ## 1. Locate the Plan and Its Modules
 
-Read the plan file at the given path in full, then the design its **Design** header links and the `spec.md`
-beside it. The flow and the solution are in the design; the **Requirements**, the **Acceptance Scenarios** and
-the settled **Decisions** the steps must encode are in the spec. The plan's step map carries the classes that hold
-them. Read its **Architecture Decisions** as
+Read the plan file at the given path in full, then the spec its **Spec** header links and every file under
+**Design Artifacts**. The spec holds the requirements, scenarios and settled decisions. Its artifacts hold any
+extra flow, contract or data view. The plan's step map carries the classes that hold them. Read its
+**Architecture Decisions** as
 [`plan-architecture-decisions.md`](../templates/plan-architecture-decisions.md) says. A step is audited against the
-design, not against the plan's own restatement of it. The `plan-log.md` beside the plan is read on a re-review only,
+task inputs, not against the plan's own restatement. The `plan-log.md` beside the plan is read on a re-review only,
 for what the last pass settled.
 
 Read `<module>/docs/conventions.md` for every module listed in **Affected Modules** (and the repo-root
@@ -42,7 +42,7 @@ job. Do not re-derive them by hand and do not report them again as findings.
 - Confirm every section of the plan file required by the `plan-task` skill's **4. Plan Structure**
   (`skills/plan-task/SKILL.md`, beside this agents directory) is present, and in the fixed order — the log it
   describes is a separate file, checked only for existing beside the plan —
-  including the `**Design:**` header line, and that it resolves to a task whose `spec.md` **Decisions** carry no
+  including the `**Spec:**` header line, and that it resolves to a task whose **Decisions** carry no
   `Basis: must-decide`.
 - Confirm the **Step-by-Step Implementation Map** nests correctly: the four `### <Group>` headings — Stabilization,
   Red Phase, Green Phase, Post-Implementation Steps — appear in that fixed order, and every `#### <Section>`
@@ -136,7 +136,7 @@ this section.
   it implements, and flag a name, a state, a value, a limit or an attribute the entry states and the scenario
   does not.
 - **Prose under a group is a coverage note or a finding.** A paragraph under a `###` group that says what a
-  branch does or why is behaviour written outside the spec; flag it, `decision`, with the `DN` or the design
+  branch does or why is behaviour written outside the spec; flag it, `decision`, with the `DN` or the design-log
   **Findings** row it should become. An item under any group carrying its own reasoning is flagged
   `mechanical`: cut it to what the item creates or changes.
 - For every request/entity field the plan touches, confirm there is a corresponding validation scenario; flag any

@@ -1,11 +1,11 @@
-# Parses a task's spec, its design, and the design log - three files, one shape check.
+# Parses a task's spec, its optional design artifacts, and the design log - one shape check.
 #
 # Strict POSIX awk - no gensub, no length(array), no third argument to match(). Checked with
 # `gawk --posix`, so mawk and BSD awk serve as well as gawk.
 #
-# Invocation: awk -f design-parse.awk -v mode=... -v files=<n> <spec.md> [<design.md> [<design-log.md>]]
-# The files are read in that order; `files` says how many were passed. open/status/range read the
-# spec alone.
+# Invocation: awk -f design-parse.awk -v mode=... -v files=<n> -v logidx=<n>
+#   <spec.md> [<artifact.md> ...] [<design-log.md>]
+# The files are read in that order. open/status/range read the spec alone.
 #
 # Modes (-v mode=...):
 #   validate  problems on stdout, exit 1 if any
@@ -82,13 +82,13 @@ function problem(msg) {
 
 BEGIN {
     nent = 0; cur = 0; problems = 0; infence = 0; nrow = 0
-    lastcontent = 0; seen_modules = 0; grilled = 0; nsub = 0; nsce = 0
+    lastcontent = 0; seen_modules = 0; grilled = 0; nsce = 0
     nreqs = 0; ntok = 0; nlogbase = 0; nconcern = 0; fileidx = 0
-    nspecsec = 0; ndessec = 0; nlogsec = 0; stray_f = 0; prevfile = ""
+    nspecsec = 0; nlogsec = 0; stray_f = 0; prevfile = ""
+    nartifact = 0; artifact_none = 0
     grill_design = 0; grill_frontend = 0; cura = 0
     if (files == "") files = 1
-    nspecreq = split("## Objective,## Requirements,## Acceptance Scenarios,## Decisions", specreq, ",")
-    ndesreq = split("## Proposed Solution", desreq, ",")
+    nspecreq = split("## Objective,## Requirements,## Acceptance Scenarios,## Decisions,## Design Artifacts", specreq, ",")
     nlogreq = split("## Concerns,## Findings,## Decision Bases", logreq, ",")
     ndc = split("failure modes,idempotency & retry,concurrency,recovery,data,contract compat,lifecycle,authorization,observability,limits,business invariants,stack-neutral", dconcern, ",")
     nfc = split("empty & extreme,default state,layout stability,consistency,colour system,motion,third-party ui,library reach,input & locale,person's state,reachability,stack-neutral", fconcern, ",")
@@ -119,12 +119,27 @@ FILENAME != prevfile {
     close_entry()
     section = trim($0)
     if (fileidx == 1) { nspecsec++; specsect[nspecsec] = section; lastcontent = NR }
-    else if (fileidx == 2) { ndessec++; dessect[ndessec] = section }
-    else { nlogsec++; logsect[nlogsec] = section }
+    else if (fileidx == logidx) { nlogsec++; logsect[nlogsec] = section }
     next
 }
 
 # ---------------------------------------------------------------- the spec -----------------------
+
+fileidx == 1 && /^\*\*Affected Modules:\*\*/ { seen_modules = 1 }
+
+fileidx == 1 && section == "## Design Artifacts" && /^None\.[ \t]*$/ {
+    artifact_none = 1
+    next
+}
+
+fileidx == 1 && section == "## Design Artifacts" && /^- \[[^]]+\]\([^)]+\)/ {
+    path = $0
+    sub(/^- \[[^]]+\]\(/, "", path)
+    sub(/\).*/, "", path)
+    nartifact++
+    artifact[nartifact] = path
+    next
+}
 
 fileidx == 1 && section == "## Requirements" && /^- \*\*RQ[0-9]+:\*\*/ {
     rid = $0
@@ -214,8 +229,8 @@ fileidx == 1 && cur > 0 && /^[ \t]*- Basis:/ {
     next
 }
 
-# A findings table left in the spec or the design is the old shape; it belongs to the log now.
-fileidx < 3 && /^\|[ \t]*DF[0-9]+[ \t]*\|/ { stray_f = 1 }
+# A findings table left outside the log belongs to the log.
+fileidx != logidx && /^\|[ \t]*DF[0-9]+[ \t]*\|/ { stray_f = 1 }
 
 # An entry extends over its own indented lines only; a top-level line that is not a bullet ends it, so
 # `show` never prints the prose that follows the last entry.
@@ -223,18 +238,9 @@ fileidx == 1 && cur > 0 && /^[ \t]+[^ \t]/ { lastcontent = NR; next }
 fileidx == 1 && cur > 0 && NF { close_entry() }
 fileidx == 1 && NF { lastcontent = NR }
 
-# ---------------------------------------------------------------- the design ---------------------
-
-fileidx == 2 && /^\*\*Affected Modules:\*\*/ { seen_modules = 1 }
-
-# The size report. A design grows with the subjects it carries, and a #### section under Proposed
-# Solution is where a subject shows: the counts are printed with the verdict so the session sees the
-# size on every run and splits the task before the file outgrows its reader.
-fileidx == 2 && section == "## Proposed Solution" && /^#### / { nsub++ }
-
-# A source file named in the design is a plan-level fact wearing a design section. Backtick tokens and
-# link targets alike: `Foo.java` and [Foo](../src/Foo.java) name the same file. Contract
-# formats - yaml, json, proto - are not on the list: a shared schema is a design fact.
+# A source file named in a design artifact is a plan-level fact. Backtick tokens and link targets
+# alike: `Foo.java` and [Foo](../src/Foo.java) name the same file. Contract formats - yaml, json,
+# proto - are not on the list: a shared schema is a design fact.
 function note_source(tok,    ext, k) {
     if (tok ~ /[ \t]/) return
     sub(/#.*$/, "", tok)
@@ -246,7 +252,7 @@ function note_source(tok,    ext, k) {
 }
 
 # note_source calls match() itself, so the caller's RSTART/RLENGTH are copied out before the call.
-fileidx == 2 {
+fileidx > 1 && fileidx != logidx {
     line = $0
     while (match(line, /\]\([^)]*\)/)) {
         s = RSTART; l = RLENGTH
@@ -263,13 +269,13 @@ fileidx == 2 {
 
 # ---------------------------------------------------------------- the log ------------------------
 
-fileidx == 3 && section == "## Concerns" && /Grilled \(/ {
+fileidx == logidx && section == "## Concerns" && /Grilled \(/ {
     grilled = 1
     if ($0 ~ /grill-design/) grill_design = 1
     if ($0 ~ /grill-frontend/) grill_frontend = 1
 }
 
-fileidx == 3 && section == "## Concerns" && /^\|/ {
+fileidx == logidx && section == "## Concerns" && /^\|/ {
     c = tolower(cell($0, 1))
     if (c == "" || c == "concern" || c ~ /^:?-+:?$/) next
     nconcern++
@@ -279,7 +285,7 @@ fileidx == 3 && section == "## Concerns" && /^\|/ {
     next
 }
 
-fileidx == 3 && section == "## Findings" && /^\|[ \t]*DF[0-9]+[ \t]*\|/ {
+fileidx == logidx && section == "## Findings" && /^\|[ \t]*DF[0-9]+[ \t]*\|/ {
     nrow++
     rowid[nrow] = cell($0, 1)
     rowq[nrow] = cell($0, 2)
@@ -288,7 +294,7 @@ fileidx == 3 && section == "## Findings" && /^\|[ \t]*DF[0-9]+[ \t]*\|/ {
     next
 }
 
-fileidx == 3 && section == "## Decision Bases" && /^- \*\*DN[0-9]+:\*\*/ {
+fileidx == logidx && section == "## Decision Bases" && /^- \*\*DN[0-9]+:\*\*/ {
     id = $0
     sub(/^- \*\*/, "", id)
     sub(/:\*\*.*$/, "", id)
@@ -401,29 +407,27 @@ END {
             problem("spec: " eid[i] " is '" kw[i] "' - only decided and must-decide are entries, the rest are Findings rows in the design log")
     }
 
-    # ------------------------------------------------------------ validate: the design -----------
+    if (!seen_modules)
+        problem("spec: no '**Affected Modules:**' line - it belongs at the top, under the approval")
 
-    if (files < 2) {
-        problem("no design.md beside the spec")
-        exit 1
+    if (artifact_none && nartifact > 0)
+        problem("spec: Design Artifacts cannot contain both 'None.' and links")
+    if (!artifact_none && nartifact == 0)
+        problem("spec: Design Artifacts must contain 'None.' or at least one linked artifact")
+    for (i = 1; i <= nartifact; i++) {
+        if (seenartifact[artifact[i]])
+            problem("spec: design artifact '" artifact[i] "' is linked twice")
+        seenartifact[artifact[i]] = 1
     }
 
-    if (!seen_modules)
-        problem("design: no '**Affected Modules:**' line - it belongs at the very top, under the title")
-    check_sections("design: ", dessect, ndessec, desreq, ndesreq)
-
-    for (i = 1; i <= ndessec; i++)
-        if (dessect[i] != "## Proposed Solution")
-            problem("design: unexpected section '" dessect[i] "' - only '## Proposed Solution' is allowed")
-
-    # The whole design is stack-neutral: a source file named there is the plan's fact.
+    # Every artifact is stack-neutral: a source file named there is the plan's fact.
     for (i = 1; i <= ntok; i++)
-        problem("design: names a source file, `" toks[i] "` - move evidence to the design log" \
+        problem("design artifact: names a source file, `" toks[i] "` - move evidence to the design log" \
                 " and locations to the plan")
 
     # ------------------------------------------------------------ validate: the log --------------
 
-    if (files < 3) {
+    if (logidx == 0) {
         problem("no design-log.md beside the spec - the grill has not run")
         exit 1
     }
@@ -475,6 +479,6 @@ END {
         if (kw[i] == "decided" && !seenb[eid[i]])
             problem("design log: " eid[i] " is decided but Decision Bases has no entry for it - say what it rested on")
 
-    if (!problems) print nreqs " requirements, " nsce " scenarios, " nent " decisions, " nsub " solution sections, " nconcern " concerns, " nrow " findings, no problems"
+    if (!problems) print nreqs " requirements, " nsce " scenarios, " nent " decisions, " nartifact " design artifacts, " nconcern " concerns, " nrow " findings, no problems"
     exit problems
 }

@@ -1,5 +1,5 @@
 ---
-description: Settle a change before any plan exists — a spec the user signs (requirements, acceptance scenarios, decisions), a stack-neutral design (solution, diagrams, the data), and a log of why (every concern the grill examined with its verdict, every question the repository answered, what each decision rested on). Runs the grill subagent, then puts only the genuinely open questions in front of the user.
+description: Settle a change before any plan exists — a spec the user signs, optional stack-neutral design artifacts, and a log of why. Runs the grill subagent, then puts only the genuinely open questions in front of the user.
 argument-hint: [ description of the feature or task to design, or a backlog id BT<nn> ]
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *)
 ---
@@ -9,21 +9,22 @@ allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash 
 Settle **what** the change does and **what it does when things go wrong**. Record every judgment call it makes as
 an answered decision.
 
-This skill produces three files per task and stops — the one exception is a withdrawal §1's measurement forces:
-the backlog row, and the owning findings row's status. It writes no checklist items, no test scenarios, and no
-step IDs.
+This skill produces a spec, a log and only the design artifacts the task needs. It then stops. The one exception
+is a withdrawal §1's measurement forces: the backlog row and the owning findings row's status. It writes no
+checklist items, implementation tests or step IDs.
 
 | File | Reader | Holds |
 |------|--------|-------|
-| `spec.md` | the user, who signs it | Objective, Requirements, Acceptance Scenarios, Decisions |
-| `design.md` | whoever plans and builds | Affected Modules, Proposed Solution — diagrams, data, wire shapes |
+| `spec.md` | the user, who signs it | Scope, behaviour, decisions and the design-artifact index |
+| linked design artifacts | whoever needs that view | A flow, contract, stored shape or algorithm |
 | `design-log.md` | whoever asks *why* | Concerns, repository Findings, Decision Bases |
 
-**The spec is behaviour.** What is promised, what proves it, what the user chose. No table, no endpoint, no class.
+**The spec is the entry point.** It holds what is promised, what proves it, what the user chose and where to look
+for any extra design view. No class belongs there.
 
-**The design is stack-neutral.**
+**Every design artifact is stack-neutral.**
 
-**The log is the train of thought.** Everything binding is in the spec or the design; the log says where each of
+**The log is the train of thought.** Everything binding is in the spec or a linked artifact. The log says where
 those facts came from.
 
 ## 1. Create the Task Directory
@@ -36,8 +37,8 @@ anything is created: report it, set the owning findings row's `Status` to `withd
 the `BT` row from `docs/backlog.md` in the same edit, and take no number.
 
 A task owns a directory under the repository-root `docs/`. Create it as `docs/<number>-<task-name>/` and write
-the three files inside it — `docs/7-create-expense/spec.md`, `design.md`, `design-log.md`. Whatever else the task
-accumulates joins it there. The directory carries the number and the task name; the files do not repeat them.
+`spec.md`, `design-log.md` and any design artifacts indexed by the spec. Whatever else the task accumulates joins
+it there. The directory carries the number and task name; the files do not repeat them.
 
 > **Numbering rule:** `<number>` is one more than the highest already in use, scanning the directory names
 > `<number>-*` in **both** `docs/` and `docs/implemented/`.
@@ -52,13 +53,12 @@ subject, each with its own directory, numbered in dependency order. Every task i
 delivery. The first spec names the sequence in its **Objective**; a later one cites an earlier one's `DN` and `DF`
 by task number, the way it cites an implemented task's.
 
-Split **before** writing, not after the grill: a design that reaches a second `####` section on a subject the
-**Objective** did not name has already crossed the line. The measure is subjects, not lines. `design.sh validate`
-prints the counts on every run.
+Split **before** writing, not after the grill. An artifact about a second subject the **Objective** did not name
+has already crossed the line. The measure is subjects, not lines. `design.sh validate` prints the counts.
 
 The seam between two tasks is a stored table, a flag, or a message shape the earlier one ships. Where the split
-leaves nothing user-visible until the last task lands, every task ships behind the same flag, and the design says
-so.
+leaves nothing user-visible until the last task lands, every task ships behind the same flag, and the relevant
+artifact says so.
 
 ## 2. Read Module Conventions
 
@@ -88,9 +88,9 @@ design fixes the shape, decompiling it from the dependency if the source is not 
 
 ## 4. The Spec
 
-`spec.md` opens with the title, then `**Format:** 2` - the file-format number `design.sh validate` checks
-([`scripts/README.md`](../../scripts/README.md), **Formats**). This skill writes nothing else in the header.
-`plan-task` later adds `**Approved:** <who>, <date>, <hash>` beneath it
+`spec.md` opens with the title, then `**Format:** 2` and `**Affected Modules:**`. The latter names every top-level
+module whose code, configuration or migrations change. `plan-task` later adds
+`**Approved:** <who>, <date>, <hash>` beneath `**Format:**`
 ([`scripts/design/README.md`](../../scripts/design/README.md)). The spec MUST contain these sections, in this
 order.
 
@@ -137,8 +137,9 @@ numbered `AC01`, `AC02`, … in this format:
 
 **The four lines are nested under the scenario, and a blank line separates one scenario from the next.**
 
-**One per branch of the design's flow diagram**, happy path and every failure alike. A branch with no scenario
-is a gap in the scenarios; a scenario with no branch is a gap in the diagram.
+**One per branch of a linked flow artifact**, happy path and every failure alike. A branch with no scenario is a
+gap in the scenarios; a scenario with no branch is a gap in the artifact. A task with no flow artifact applies
+this check directly to its described behaviour.
 
 **`Proves:` names the requirement.** One scenario may prove several; every requirement is proved by at least one.
 
@@ -151,8 +152,7 @@ Numbers are assigned once and never reused.
 figure, its unit, and the load it holds under. Latency, throughput and memory are the measurements. The plan maps
 such a scenario to a performance step where the module's conventions name a tool, and records it as unmeasured
 where they do not. Idempotency, a limit and a page size are ordinary behaviour with an ordinary `Then:`.
-Retention and availability are neither: they are the infrastructure's, and belong to the design's **Details**,
-never to a scenario.
+Retention and availability are neither: they are the infrastructure's and belong in a relevant design artifact.
 
 ### Decisions
 
@@ -201,101 +201,45 @@ never cleared", not "DN02".
 
 The spec is **settled** when no entry carries `Basis: must-decide`.
 
-## 5. The Design
+## 5. Design Artifacts
 
-`design.md` MUST contain these, in this order.
-
-### Affected Modules
-
-A single line at the very top, immediately after the title:
+The spec ends with `## Design Artifacts`. Write `None.` when the spec already communicates the whole change.
+Otherwise list only the views a person needs after reading the spec:
 
 ```
-**Affected Modules:** `module-a`, `module-b`
+## Design Artifacts
+
+- [Checkout sequence](checkout-sequence.md) — how reservation, payment and release meet.
+- [REST API update](rest-api-update.md) — the changed operations, fields and statuses.
 ```
 
-Only the top-level modules whose code, config, or migrations change. One module is still listed.
+Each artifact answers one question that prose in the spec cannot show clearly. Name the file after that question,
+using a lowercase Markdown filename. The framework defines no fixed artifact kinds or filenames.
 
-Where the list holds more than one, the design owes one fact about the boundary between them:
+Prefer a diagram, table, schema or pseudocode. Add only the prose needed to read it. Do not repeat an objective,
+requirement, scenario or decision; cite its `RQ`, `AC` or `DN` clause where the connection would otherwise be
+unclear. Apply [`stack-neutral-design.md`](../../templates/stack-neutral-design.md) to every artifact.
 
-- **Which artifacts are shared** — an API schema, a message schema, anything outside both modules that both read
-  at build time. Name each in the **Proposed Solution** where it is described, along with the modules that read
-  it. No module owns one: a shared artifact is implemented on its own, before either module's work.
+Common reasons to add an artifact include:
 
-A design whose modules wait on each other for anything *else* has not found the boundary — say so, or move the
-seam.
+- a flow whose ordering, branching or concurrency matters;
+- a contract crossing module boundaries;
+- a stored shape and the transitions that change it;
+- an algorithm easier to verify as pseudocode or a state diagram.
 
-### Proposed Solution
+Where **Affected Modules** names several modules, at least one artifact shows every boundary between them and what
+crosses it. Name any schema or other file that several modules read at build time and which modules read it. Such
+an artifact is implemented before the module plans.
 
-What the change adds at the surfaces a person can see: what crosses the module's boundary, what it stores, and
-how it behaves.
+Use the diagram language named by the module conventions. Where they name none, use PlantUML. A diagram box is a
+responsibility, module or system. Never draw classes; implementation placement belongs to the plan.
 
-- A database change includes the migration content in the module's migration format.
-- An API contract change includes the endpoint and schema changes.
-- A message or event carries its shape, field by field.
-
-**Order: the proposal, then the diagrams, then the details.**
-
-- **What the change adds** — the API surface, the stored shape, the shape of a response. Short.
-- **Diagrams** — the section below.
-- **Details** — one `####` per module and concern, holding only what a box cannot: a field, an invariant, a
-  status mapping, the SQL, a wire shape.
-
-Apply [`stack-neutral-design.md`](../../templates/stack-neutral-design.md). `design.sh validate` refuses a source
-file named in the design; the grill's **Stack-neutral** concern catches the rest.
-
-**A fact has one home.** The diagram owns what happens and in what order; a table owns what fits inside a box; a
-paragraph exists only for a reason a reader would otherwise get wrong. State a fact once and link to it.
-
-| Instead of                                                             | Write                                         |
-|------------------------------------------------------------------------|-----------------------------------------------|
-| "the amount is validated before anything is stored"                    | the invariant, in that field's row of a table |
-| "the controller answers 400 when the filter is out of bounds"          | an exception/status/cause table               |
-| "a `NavLink` carrying `aria-current`"                                  | "the control marks itself current"            |
-
-Tables by default. Prose only where a table cannot hold the reason, and then two sentences at most.
-
-#### Diagrams
-
-Include diagrams whenever the change introduces new behaviour or a new flow; a one-line stub change needs none.
-
-**What to write them in comes from the module's conventions**: the diagram language, the fenced block's
-language tag, and any preamble a diagram needs. Where a module names none, use
-PlantUML with the bundled C4-PlantUML standard library: fenced ` ```plantuml ` blocks, and `!include
-<C4/C4_Container>` for a C2. Angle brackets, no `.puml` extension. Where a renderer's PlantUML predates the
-bundled stdlib, fall back to the raw URL for the same file
-(`https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml`).
-See `example-design.md`, beside this file, for working syntax.
-
-A diagram box is a responsibility, a module or a system.
-
-What each diagram must **show**:
-
-- **Flow diagram** — always. The flow from the entry point, through the change's responsibilities, to whatever it
-  calls or stores, showing every alternative branch: a validation failure, a not-found case, an outbound call
-  erroring. Every branch a **Decisions** entry settles appears. A straight-line happy path is a flow with its
-  failure modes missing.
-
-  Name each box for what it does, not for the class that will do it. "Validate the period", not
-  `PeriodValidator`.
-
-  Whether that is a sequence diagram (`alt`/`else`/`end` fragments) or an activity diagram is decided by the
-  repository's own diagram conventions — read them and pick. A flow carrying both several participants and real
-  branching is two diagrams, not one overloaded one.
-- **Container diagram (C4 level 2)** — always, and the only structural diagram. A component diagram drawing
-  classes belongs to the plan.
-
-  Every module in **Affected Modules** as a `Container(...)`, plus what each talks to *for this change* — the
-  caller, the store, the external system. Draw what crosses, and label it with what it carries: the call, the
-  message, the shared table.
-
-  **Where the list holds more than one module, that crossing is the contract between them.** Where it holds one,
-  the diagram still shows what the module reaches outside itself.
-
-  No system-context diagram (C4 level 1).
+`design.sh validate` checks that every indexed artifact exists beside the spec and names no source file. An
+unindexed file is not a task input. See `example-flow.md` and `example-api-update.md` beside this skill.
 
 ## 6. The Design Log
 
-`design-log.md`, in this order. Leave each section as a placeholder while writing the spec and the design; the
+`design-log.md`, in this order. Leave each section as a placeholder while writing the spec and artifacts; the
 grill runs in the next step and the log is written from its report.
 
 ### Concerns
@@ -326,8 +270,8 @@ Every question the change answered that needs no reader — the `assumed` and th
 - **Evidence is a file** — the class, the migration, the conventions page, the ADR. Never an argument. A row with
   no file to point at is a `must-decide`, not a row.
 - **A `deferred` row's answer says what happens instead**, and its evidence is what would bring it back.
-- **`DF01`, `DF02`, … on the same terms as a `DN`:** assigned once, never renumbered, never reused. The spec and the
-  design cite a row the way they cite an entry, and a row that is answered or withdrawn keeps its number.
+- **`DF01`, `DF02`, … on the same terms as a `DN`:** assigned once, never renumbered, never reused. The spec and an
+  artifact cite a row the way they cite an entry, and a row that is answered or withdrawn keeps its number.
 
 The `DF` sequence is the task's own. A plan log's **Review Findings** numbers its own `RF01` upward, in its own
 file, and the two never meet.
@@ -344,10 +288,11 @@ One line per `DN` in the spec, same number: what the user chose over, why, and t
   cannot express null (`<api-schema-file>`), and `<sibling-usecase-file>` never clears a stored value either.
 ```
 
-`design.sh validate` checks all three files — see [`scripts/design/README.md`](../../scripts/design/README.md)
+`design.sh validate` checks the spec, linked artifacts and log — see
+[`scripts/design/README.md`](../../scripts/design/README.md)
 for the list. `design.sh settled` answers the separate question — whether anything is still open. The script
 ships with these instructions at `scripts/design/design.sh` — under `${CLAUDE_PLUGIN_ROOT}` when installed as a
-plugin, under `.claude/` in a plain checkout. Address a task by its directory or by any of its three files.
+plugin, under `.claude/` in a plain checkout. Address a task by its directory or any Markdown file inside it.
 
 Run `validate` before invoking the grill, and both it and `settled` again before handing over. Refused or absent
 on the first call, tell the user once as [`scripts/README.md`](../../scripts/README.md) says and answer each
@@ -355,7 +300,7 @@ check by reading the files.
 
 ## 7. Invoke the Grill Subagent
 
-Once the spec and the design are written, spawn a grill against the task directory. Use the model the module
+Once the spec and its artifacts are written, spawn a grill against the task directory. Use the model the module
 conventions name for deciding work; where they name none, the default model.
 
 **Which grill depends on what the change touches**, read from each affected module's conventions:
@@ -369,9 +314,9 @@ conventions name for deciding work; where they name none, the default model.
 ([`templates/sub-agents.md`](../../templates/sub-agents.md)). Where both reports raise one thing, it is written
 once.
 
-Never grill the design in this context instead of spawning the agent.
+Never perform the grill in this context instead of spawning the agent.
 
-**A design going past a grill a second time goes back to the same agent**, with `SendMessage` to the `agentId`
+**A task going past a grill a second time goes back to the same agent**, with `SendMessage` to the `agentId`
 its first run answered with, saying what changed since. Spawn a fresh agent only for the first pass, for a grill
 of a different kind, or when the first one is no longer reachable.
 
@@ -383,16 +328,16 @@ exactly one place, and never in two:
 | The finding                                    | Lands as                                                              |
 |------------------------------------------------|-----------------------------------------------------------------------|
 | a concern's verdict                            | that concern's row in the log's **Concerns**, verdict and why         |
-| changes what the design says gets built        | an edit to the design, plus whichever row or entry its basis calls for |
+| changes the agreed behaviour or a design view  | an edit to the spec or artifact, plus the row or entry its basis calls for |
 | the grill marked it `assumed` or `deferred`    | one row in the log's **Findings**                                     |
 | the grill marked it `must-decide`              | a `DN` entry in the spec, which step 8 puts to the user                |
-| a **Stack-neutral** failure                    | an edit to the design, and the row's verdict once it passes           |
+| a **Stack-neutral** failure                    | an edit to the artifact, and the row's verdict once it passes         |
 
 **The basis decides the home, and the grill already assigned it.** This session re-homes a finding only by
 changing its basis — a `must-decide` the repository turns out to answer becomes a row, and an `assumed` whose
 evidence does not hold becomes an entry.
 
-**An answer the design already carries is still a row.**
+**An answer an artifact already carries is still a row.**
 
 Assign the `DN` and `DF` numbers here, each past the highest already in its own sequence. A finding challenging an
 existing entry or row becomes a *new* one citing it; neither is ever rewritten, except to correct a claim a
@@ -412,7 +357,7 @@ Read the spec's **Decisions** section back after the grill has run and act on it
   folded into one question.
 - **Write the answers back**: `Answer:` filled in and `Basis: decided (user, <date>)` in the spec; the
   alternative, the reasoning and the files in the log's **Decision Bases**. Anything the user's answer
-  invalidates elsewhere — a sequence diagram branch, a paragraph of the solution, a concern's verdict — is
+  invalidates elsewhere — a diagram branch, a table row, a concern's verdict — is
   corrected in the same edit.
 
 **An answer that rules something out of scope files it now.** Where the user's answer says a change is real
@@ -421,20 +366,20 @@ and belongs to a later task, append a `BT` row to `docs/backlog.md` in the same 
 ([`backlog.md`](../../templates/backlog.md)).
 
 **An answer that adds a subject sends the task back through step 7 before step 9.** Picking between the options
-offered needs no second grill. An answer the design did not contain — another migration, another table, a second
-concern folded in — goes back to the same grill (step 7).
+offered needs no second grill. An answer the artifacts did not contain — another migration, table or subject —
+goes back to the same grill (step 7).
 
-A widened design also invalidates entries written before it. Re-read the ones the new subject touches.
+A widened task also invalidates entries written before it. Re-read the ones the new subject touches.
 
 ## 9. Hand Over
 
-- Present the spec, and name the design and the log beside it.
+- Present the spec, name its design artifacts and the log beside it.
 - **Report what the grill added and what step 8 answered from the repository** — each `DN` with its clause.
 - **Run `design.sh validate` and `design.sh settled`** and report what they say.
 - List any entry still `must-decide`, and say that the spec is unfinished while any remains.
 - **Stop.** Do not plan, write code, create other files, or run build commands.
 
-**The three files are the whole handoff, and this session ends with them.** Whoever works from the task next
-works from the files alone.
+**The indexed files are the whole handoff, and this session ends with them.** Whoever works from the task next
+works from those files alone.
 
-Say so when handing over, so the user knows the stop is the design's, not an unfinished job.
+Say so when handing over, so the user knows the stop is deliberate, not an unfinished job.

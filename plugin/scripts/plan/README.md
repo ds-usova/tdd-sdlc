@@ -64,7 +64,7 @@ Exit codes: **0** done, **1** no such item, `validate` found problems, or `task`
 ```
 
 `--file <plan>` does the same thing and is accepted anywhere the bare path is. Neither is required: without one,
-the single plan in flight under `docs/` is used — a task owns a directory holding the spec, the design and its
+the single plan in flight under `docs/` is used — a task owns a directory holding the spec, its artifacts and
 log, and one plan per module, `plan.md` for a single-module task and `<module>/plan.md` for each module of a
 multi-module one. An archived plan under `docs/implemented/` has to be named explicitly.
 

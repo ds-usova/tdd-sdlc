@@ -17,7 +17,7 @@ rectangle "design-task" as DT
 rectangle "plan-task" as PT
 rectangle "implement-plan" as IP
 file "conventions.md\n(repo + module)" as CV
-file "spec.md \ndesign.md\ndesign-log.md" as D
+file "spec.md\noptional design artifacts\ndesign-log.md" as D
 file "plan.md\nplan-log.md\nper module" as P
 file "code, tests,\nreport.md, findings.md,\ncost.md, activity.html" as C
 

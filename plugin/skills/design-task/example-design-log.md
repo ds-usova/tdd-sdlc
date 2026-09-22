@@ -1,7 +1,7 @@
 # Example Design Log — Worked Example
 
-The log beside [`example-spec.md`](example-spec.md) and [`example-design.md`](example-design.md) — in a real repo
-`docs/1-add-widget/design-log.md`. It is the train of thought behind the two: what the grill examined and how each
+The log beside [`example-spec.md`](example-spec.md) and its linked artifacts — in a real repo
+`docs/1-add-widget/design-log.md`. It is the train of thought behind them: what the grill examined and how each
 concern came out, every question the repository answered, and what each decision rested on. Nobody needs it to
 build the feature. Anyone asking *why* opens it.
 
@@ -43,7 +43,7 @@ Grilled (2026-07-30): grill-design.
 | Observability       | the id, parent and name at INFO; refusals at WARN | `module-a/docs/conventions.md` (DF05)                                                        |
 | Limits              | no paging on the widget list                      | one person's tree, bounded by hand (DF09)                                                    |
 | Business invariants | one name per parent                               | DN01, the only rule the user stated                                                          |
-| Stack-neutral       | pass                                              | Proposed Solution names a table, a path, four statuses and no file                         |
+| Stack-neutral       | pass                                              | artifacts name no source files                                             |
 
 ## Findings
 

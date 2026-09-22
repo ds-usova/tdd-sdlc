@@ -17,7 +17,7 @@ skinparam actor {
 left to right direction
 
 actor "you" as U
-file "spec\n(design + plan)" as S
+file "spec + plan" as S
 rectangle "you approve" as A #FFF4CC
 
 rectangle "implement — one agent per module" as I {

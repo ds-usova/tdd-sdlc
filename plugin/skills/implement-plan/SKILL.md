@@ -33,7 +33,7 @@ applies to counts and inventories drawn from the tree: read them, never recall t
 
 ## Input Resolution
 
-A task owns a directory: `docs/<n>-<task-name>/`, holding `spec.md`, `design.md`, `design-log.md`, one plan per
+A task owns a directory: `docs/<n>-<task-name>/`, holding `spec.md`, its linked design artifacts, `design-log.md`, one plan per
 module with its `plan-log.md` beside it, and — where anything crosses between them — a `shared/plan.md`. Phase 3
 adds a `review/` folder to it: the report of what was done, and beside it which test stands behind each
 acceptance scenario, what the task left open, what it cost, and the evidence that everything else was measured.
@@ -63,9 +63,9 @@ then has the same fallback: read the file and answer the question by hand.
 **Gate 1 — every plan is ready.** A plan is ready only when the user has closed the loops the planning phase
 opened. Check every plan in the task directory, `shared/plan.md` included:
 
-- **The spec** beside the design the plan's `**Design:**` header links. `design.sh settled <design>` exits 0:
-  no decision is still `must-decide`. `design.sh approved <design>` exits 0: the spec carries an `Approved`
-  line whose hash matches the spec as it stands. Run both once for the design the plans share, not once per
+- **The spec** the plan's `**Spec:**` header links. `design.sh settled <spec>` exits 0: no decision is still
+  `must-decide`. `design.sh approved <spec>` exits 0: the spec carries an `Approved` line whose hash matches the
+  spec as it stands. Run both once for the spec the plans share, not once per
   plan. Where `approved` fails, the line is missing or the spec changed after it was written. Either way: stop,
   and say to run `plan-task` on the task again. The script ships with the `design-task` skill at
   `scripts/design/design.sh`.
@@ -198,7 +198,7 @@ When every pipeline has returned:
    row** as [`findings.md`](../../templates/findings.md) says. Update the backlog as
    [`backlog.md`](../../templates/backlog.md) says.
 5. **Archive**, on exit 0 from `plan.sh task` and on nothing else: move the **whole task directory** — every
-   `plan.md` and its `plan-log.md`, the `design.md` they link, the `spec.md` and `design-log.md` beside it,
+   `plan.md` and its `plan-log.md`, the `spec.md` they link, its design artifacts and `design-log.md`,
    `review/`, and anything else the task accumulated — into `docs/implemented/`. Move the directory, not the
    files.
 6. **Commit** per the commit policy. This is where its **squash-before-archiving** setting applies.

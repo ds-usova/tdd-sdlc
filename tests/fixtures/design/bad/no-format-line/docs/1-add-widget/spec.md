@@ -1,5 +1,7 @@
 # Spec: Add Widget Creation
 
+**Affected Modules:** `module-a`
+
 
 ## Objective
 
@@ -35,3 +37,7 @@ Allow API clients to create widgets.
   - Basis: decided (user, 2026-07-30)
 
 Two entries. The gaps are Findings rows.
+
+## Design Artifacts
+
+- [API update](api-update.md) — the operation and its duplicate response.

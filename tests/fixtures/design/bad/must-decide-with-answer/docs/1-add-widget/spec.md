@@ -1,6 +1,7 @@
 # Spec: Add Widget Creation
 
 **Format:** 2
+**Affected Modules:** `module-a`
 
 ## Objective
 
@@ -40,3 +41,7 @@ Two entries. The gaps are Findings rows.
 - **DN07:** Who may create a widget under a given parent?
   - Answer: Anyone.
   - Basis: must-decide - the module has no ownership model
+
+## Design Artifacts
+
+- [API update](api-update.md) — the operation and its duplicate response.

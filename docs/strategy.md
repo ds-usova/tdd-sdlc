@@ -56,7 +56,7 @@ A run stops when either is missing. It continues on the documented default for e
 
 Each step writes its artifact and stops. The next step reads the artifact instead of the conversation.
 
-- A feature uses `spec.md`, `design.md`, `design-log.md`, `plan.md` and `plan-log.md`.
+- A feature uses `spec.md`, optional design artifacts, `design-log.md`, `plan.md` and `plan-log.md`.
 - A rework uses `rework.md` and `rework-log.md`.
 - An upgrade uses `upgrade.md` and `upgrade-log.md`.
 - A bug fix uses `bug.md`, then `fix.md`, each with its log.
@@ -66,8 +66,8 @@ continue from the files alone.
 
 ### Mechanical completion
 
-A cold session exposes missing information. If it cannot plan from a design or implement from a plan, that file
-is underspecified.
+A cold session exposes missing information. If it cannot plan from the task's indexed inputs or implement from a
+plan, those files are underspecified.
 
 Each artifact therefore has a deterministic completion check, such as `design.sh settled` or
 `plan.sh validate`. The next step gates on that result.
@@ -96,19 +96,22 @@ This separation lets a cheaper model execute a bounded step without being truste
 
 ### Two readers
 
-**Design:** tells a person what changes, where responsibility belongs and how failure behaves. It contains no
-class inventory.
+**Spec:** tells a person what changes and links only the extra design views this task needs.
+
+**Design artifacts:** show a flow, contract, stored shape or algorithm that prose cannot communicate clearly.
+They are optional and named after their question rather than a framework-defined type.
 
 **Plan:** tells a model how to build the approved change. It names classes, signatures and test scenarios.
 
-The settled spec and design form the handoff between them.
+The settled spec and its linked artifacts form the handoff between them.
 
 ### Evidence and implementation details
 
 A repository fact that answers a design question is evidence in `design-log.md`. A class or file that changes is
 a plan fact. Research files leave no record unless they support a decision.
 
-This keeps the design technology-neutral and gives each fact one home.
+This keeps design views technology-neutral and gives each fact one home. It also avoids a mandatory second
+narrative that repeats a long specification.
 
 ### Architecture diagrams
 
@@ -135,8 +138,8 @@ Bug fixes and upgrades preserve every failed attempt, so a stopped run leaves a 
 A module has one build, one test suite and one set of conventions. Examples include a backend service, a web app
 or a shared library.
 
-A task has one design and one plan per module. A contract shared by several modules gets `shared/plan.md`. That
-plan lands first and alone.
+A task has one spec, optional views and one plan per module. A contract shared by several modules gets
+`shared/plan.md`. That plan lands first and alone.
 
 ### Three levels
 

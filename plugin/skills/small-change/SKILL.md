@@ -40,7 +40,7 @@ code. Its promises are the requirements (`RQ`) and acceptance scenarios (`AC`).
 |                  | No: cosmetic                               | Yes: a promise changes                             |
 |------------------|--------------------------------------------|----------------------------------------------------|
 | Examples         | button colour, position, label, a log line | default value, a result, a validation rule         |
-| Files in `docs/` | not touched                                | the task's `spec.md`, `design.md`, `design-log.md` |
+| Files in `docs/` | not touched                                | the task's `spec.md`, linked artifacts, `design-log.md` |
 | Asks the user    | no                                         | yes, shows the spec change before any code         |
 | Test             | only if there is something to check        | always exactly one new test                        |
 
@@ -86,7 +86,7 @@ one thing you do put back is the deliberate break in Phase 3, step 5, which you 
 2. **Count earlier changes to this task.** Each one is an entry in its `design-log.md`. Two already: stop. Tell
    the user this task has been changed twice already, and the change needs `design-task`.
 3. **Move the task directory from `docs/implemented/` back to `docs/`**, to the same path it had before.
-4. **Edit the spec.** Change the `RQ` and `AC` rows the change affects, and the parts of `design.md` they rely on.
+4. **Edit the spec.** Change the `RQ` and `AC` rows the change affects, and any linked artifact they rely on.
    A new `AC` gets the next free number. Never reuse a number.
 5. **Add one entry to `design-log.md`**: what changed and why.
 6. **Show the user the diff of `spec.md`, and wait.** Do not edit code until they approve. If the diff is in a

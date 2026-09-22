@@ -1,8 +1,7 @@
 # The Design Reader
 
 `design.sh` reads a task's spec and answers the question every stage after it asks: is this settled, or does
-something still need deciding? Its `validate` reads all three of the task's files — the spec, the design, and the
-design log.
+something still need deciding? Its `validate` reads the spec, every indexed design artifact and the design log.
 
 ## Why it exists
 
@@ -50,10 +49,9 @@ Run it with bash, from anywhere inside the project:
 
 Exit codes: **0** done, **1** no such entry, not settled, not approved, or `validate` found problems, **2** bad usage.
 
-A task is addressed by its directory or by any one of its files — `spec.md`, `design.md`, `design-log.md` — and
-the others are found beside it; `--file` is accepted for either. Without one, the single `docs/<n>-<task>/` in
-flight is used. An archived task under `docs/implemented/` has to be named explicitly. `--spec`, `--design` and
-`--log` override one file each.
+A task is addressed by its directory or any Markdown file directly inside it. The spec and log are found beside
+that file; `--file` is accepted for either. Without one, the single `docs/<n>-<task>/` in flight is used. An
+archived task under `docs/implemented/` has to be named explicitly. `--spec` and `--log` override one file each.
 
 ### Decision entries
 
@@ -69,7 +67,7 @@ An entry in the spec is three lines — the question, the answer, and who chose:
 decided one is a **Decision Bases** line in the log, under the same number. The four bases and what each obliges
 are defined in the `design-task` skill this ships with (`skills/design-task/SKILL.md`, **Decisions**); worked examples
 are at
-`skills/design-task/example-spec.md`, `example-design.md` and `example-design-log.md` under the plugin root.
+`skills/design-task/example-spec.md`, its linked examples and `example-design-log.md` under the plugin root.
 
 ### What `validate` checks
 
@@ -85,14 +83,14 @@ The spec:
 | A `must-decide` carrying an answer, or a `decided` carrying none         | an entry whose two halves disagree                           |
 | A `Design Findings` section or a `DF` row outside the log                | the old shape — the log owns those now                       |
 
-The design:
+The spec and its design artifacts:
 
-| Check                                                                  | Catches                                                             |
-|------------------------------------------------------------------------|---------------------------------------------------------------------|
-| No `design.md` beside the spec                                         | a spec with nothing that says how                                   |
-| The `**Affected Modules:**` line and required sections | a design missing structure the plan needs |
-| A source-file token or link in `design.md` | a plan-level fact in a stack-neutral design |
-| An unexpected `##` section | content outside the design's single solution section |
+| Check | Catches |
+|-------|---------|
+| The `**Affected Modules:**` line | a task whose module plans cannot be determined |
+| `Design Artifacts` is neither `None.` nor a list of links | an incomplete artifact index |
+| A linked file is missing or outside the task directory | a task input the next stage cannot read |
+| A source-file token or link in an artifact | a plan-level fact in a stack-neutral design view |
 
 The log:
 

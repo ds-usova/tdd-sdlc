@@ -2,12 +2,12 @@
 
 ## Three levels
 
-- A *task* spans modules and has one design.
+- A *task* spans modules and has one spec with optional design views.
 - A *pipeline* is one plan for one module, run by one agent.
 - A *step* is one class or one test class, run by one agent.
 
-Each level coordinates only the one below. The plan is the input: a settled design, every class and test
-scenario named. Nothing here reads the design — the plan carries everything a step needs.
+Each level coordinates only the one below. The plan is the input: settled behaviour, every class and test
+scenario named. Nothing here reads the task inputs — the plan carries everything a step needs.
 
 ## One pipeline
 

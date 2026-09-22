@@ -14,11 +14,16 @@ P="$(fixture design/good repo)"; repo "$P"
 T="$P/docs/1-add-widget"
 out="$(bash "$D" validate "$T" 2>&1)"
 check_rc "validate: settled task exits 0" 0 bash "$D" validate "$T"
-check_match "validate: prints the size line" "^2 requirements, 2 scenarios, 2 decisions, 1 solution sections, 12 concerns, 2 findings, no problems$" "$out"
-check_ok "validate: addressed by one of its files" bash "$D" validate "$T/design-log.md"
+check_match "validate: prints the size line" "^2 requirements, 2 scenarios, 2 decisions, 1 design artifacts, 12 concerns, 2 findings, no problems$" "$out"
+check_ok "validate: addressed by the log" bash "$D" validate "$T/design-log.md"
+check_ok "validate: addressed by a design artifact" bash "$D" validate "$T/api-update.md"
+P_NONE="$(fixture design/good no-artifacts)"; T_NONE="$P_NONE/docs/1-add-widget"
+sed 's/^- \[API update\].*/None./' "$T_NONE/spec.md" > "$WORK/no-artifacts-spec"
+mv "$WORK/no-artifacts-spec" "$T_NONE/spec.md"; rm "$T_NONE/api-update.md"; repo "$P_NONE"
+check_ok "validate: a task may need no design artifacts" bash "$D" validate "$T_NONE"
 printf '%s\n' "" "## Caveats" "" "- **CV01:** design.sh absent at the grill. Findings checked by hand." >> "$T/design-log.md"
 check_ok "validate: a Caveats section in the design log still validates" bash "$D" validate "$T"
-check_match "validate: and the size line is unchanged" "^2 requirements, 2 scenarios, 2 decisions, 1 solution sections, 12 concerns, 2 findings, no problems$" "$(bash "$D" validate "$T" 2>&1)"
+check_match "validate: and the size line is unchanged" "^2 requirements, 2 scenarios, 2 decisions, 1 design artifacts, 12 concerns, 2 findings, no problems$" "$(bash "$D" validate "$T" 2>&1)"
 check_ok "validate: the single task in flight is found from the repo" in_dir "$P" bash "$D" validate
 check_ok "settled: no must-decide left" bash "$D" settled "$T"
 check "status: counts per basis" "$(printf 'decided\t2\ntotal\t2')" "$(bash "$D" status "$T")"
@@ -87,18 +92,16 @@ check_match "validate: a decided with nothing after it" "^spec: DN01 is 'decided
 check_match "validate: a findings row with an empty cell" "^design log: DF02 leaves a cell empty" "$out"
 check_match "validate: a concern with no why" "^design log: concern 'recovery' has a verdict with no why$" "$out"
 
-# --- validate: the design and the log -------------------------------------------------------------------
+# --- validate: the design artifacts and the log ---------------------------------------------------------
 
 T="$(bad_task design-gaps)"
 out="$(bash "$D" validate "$T" 2>&1)"
-check_match "validate: a source file in the design" 'design: names a source file, `widget.cpp`' "$out"
-check_match "validate: an unexpected design section" \
-  "design: unexpected section '## Implementation Notes'" "$out"
-check_match "validate: no Affected Modules line" "^design: no '\*\*Affected Modules:\*\*' line" "$out"
+check_match "validate: a source file in an artifact" 'design artifact: names a source file, `widget.cpp`' "$out"
 check_match "validate: a grill-design concern with no row" "^design log: grill-design ran but Concerns has no 'concurrency' row$" "$out"
 check_match "validate: a decided entry with no Decision Bases line" "^design log: DN04 is decided but Decision Bases has no entry" "$out"
-rm "$T/design.md"   # an overlay cannot remove a file
-check_match "validate: no design beside the spec" "^no design.md beside the spec$" "$(bash "$D" validate "$T" 2>&1)"
+rm "$T/api-update.md"   # an overlay cannot remove a file
+check_match "validate: linked artifact is missing" \
+  "^spec: design artifact 'api-update.md' does not exist beside the spec$" "$(bash "$D" validate "$T" 2>&1)"
 
 # --- two tasks in flight --------------------------------------------------------------------------------
 

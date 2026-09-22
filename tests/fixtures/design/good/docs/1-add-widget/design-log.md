@@ -17,7 +17,7 @@ Grilled (2026-07-30): grill-design.
 | Observability       | the id and name at INFO    | `module-a/docs/conventions.md`      |
 | Limits              | no paging                  | one person's tree                   |
 | Business invariants | one name per parent        | DN01                                |
-| Stack-neutral       | pass                       | Proposed Solution names no file     |
+| Stack-neutral       | pass                       | the API artifact names no source file |
 
 ## Findings
 

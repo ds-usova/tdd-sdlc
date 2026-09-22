@@ -8,9 +8,8 @@ structure (plan sections, section order, step formats, RED/GREEN choreography) u
 and file formats as recorded in the module's `docs/conventions.md`
 (see `.claude/templates/conventions/`).
 
-What the feature *is* — the requirements, the scenarios and the decisions — lives in
-`.claude/skills/design-task/example-spec.md`; how it is built — the solution, the data, the diagrams — in
-`example-design.md` beside it. This plan is written from both. It links them rather than restating them, shows the
+What the feature *is* lives in `.claude/skills/design-task/example-spec.md`. That spec links the flow and contract
+views the task needs. This plan is written from those inputs. It links them rather than restating them, shows the
 architecture choice a person reviews, then gives the step map. What the review found and what the run recorded is
 [`example-plan-log.md`](example-plan-log.md), the `plan-log.md` that sits beside every plan.
 
@@ -23,11 +22,11 @@ rules, and this for what they look like when written out.
 
 **Format:** 2
 **Affected Modules:** `module-a`
-**Design:** [Add Widget Creation](design.md)
+**Spec:** [Add Widget Creation](spec.md)
 
-The design lists one module, so this task holds one plan at `docs/1-add-widget/plan.md` and the link above is a
+The spec lists one module, so this task holds one plan at `docs/1-add-widget/plan.md` and the link above is a
 bare sibling. Had it listed two, there would be `module-a/plan.md` and `module-b/plan.md` — each linking
-`../design.md` and each run as its own pipeline — plus a `shared/plan.md` holding anything both of them read,
+`../spec.md` and each run as its own pipeline — plus a `shared/plan.md` holding anything both of them read,
 implemented first so that neither waits on the other.
 
 ## Architecture Decisions

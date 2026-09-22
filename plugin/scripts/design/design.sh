@@ -3,10 +3,9 @@
 # Reads a task's spec by decision ID, and answers the one question every stage downstream asks of
 # it: is this settled, or does something still need deciding?
 #
-# A task directory holds three files this script reads: spec.md (requirements, scenarios, the
-# user's decisions), design.md (the solution), design-log.md (the grill's concerns, the
-# findings, what each decision rested on). `settled`, `status` and `show` read the spec; `validate`
-# reads all three. Nothing here stores state beside them, and nothing here edits them.
+# A task directory holds a spec, optional design artifacts linked from it, and design-log.md.
+# `settled`, `status` and `show` read the spec; `validate` reads the spec and the log. It also
+# checks every linked artifact. Nothing here stores state beside them, and nothing here edits them.
 #
 # See the README next to this script.
 
@@ -21,7 +20,6 @@ repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 
 task_dir=""
 spec_file=""
-design_file=""
 log_file=""
 
 usage() {
@@ -32,7 +30,7 @@ Usage:
   <plugin>/scripts/design/design.sh approve  <who> [<task>]
   <plugin>/scripts/design/design.sh status   [<task>]
   <plugin>/scripts/design/design.sh show     <ID>... [<task>]
-  <plugin>/scripts/design/design.sh validate [<task>] [--spec <f>] [--design <f>] [--log <f>]
+  <plugin>/scripts/design/design.sh validate [<task>] [--spec <f>] [--log <f>]
 
 Commands:
   settled   Exit 0 when no decision is still must-decide; exit 1 and list the open ones when any is.
@@ -48,17 +46,17 @@ Commands:
   validate  The spec: missing or out-of-order sections, duplicate IDs, an R no scenario proves, a
             scenario proving no R, an entry outside Decisions, a missing or repeated Answer:/Basis:,
             an unrecognized basis, a basis with nothing after it, an answered must-decide, an
-            unanswered decided, a basis that belongs in the log. The design: the Affected Modules
-            line, its sections, a source file named in Proposed Solution. The log: its sections, no
+            unanswered decided, a basis that belongs in the log, the Affected Modules line and the
+            Design Artifacts index. Each linked artifact must exist beside the spec. The log: its sections, no
             Grilled (...) line, a concern the named grill owns with no row, a row with no verdict or
             why, an F row out of order or with an empty cell, a decided entry with no Decision Bases
             line. A must-decide is not itself a problem here - a spec in flight is expected to have
             them; that is what `settled` is for.
 
-<task> is the task directory, or any one of its files - spec.md, design.md, design-log.md; the
-others are found beside it. --file is accepted for either. Without one, the single docs/<n>-<task>/
-in flight is used. An archived task under docs/implemented/ is addressed explicitly. --spec,
---design and --log override one file each.
+<task> is the task directory, or any Markdown file directly inside it. The spec and log are found
+beside it. --file is accepted for either. Without one, the single docs/<n>-<task>/ in flight is
+used. An archived task under docs/implemented/ is addressed explicitly. --spec and --log override
+one file each.
 
 Exit codes: 0 done - 1 no such entry, not settled, or validate found problems - 2 bad usage.
 EOF
@@ -69,7 +67,7 @@ die() {
     exit "${2:-2}"
 }
 
-# A task is addressed by its directory or by any file in it; the three files are then siblings.
+# A task is addressed by its directory or by any Markdown file directly inside it.
 resolve_task() {
     local candidates=()
     if [ -z "$task_dir" ]; then
@@ -91,12 +89,11 @@ resolve_task() {
     fi
     [ -d "$task_dir" ] || die "no such task directory: $task_dir"
     [ -n "$spec_file" ] || spec_file="$task_dir/spec.md"
-    [ -n "$design_file" ] || design_file="$task_dir/design.md"
     [ -n "$log_file" ] || log_file="$task_dir/design-log.md"
     [ -f "$spec_file" ] || die "no spec file: $spec_file"
 }
 
-# An explicit --spec/--design/--log wins over the positional whichever order they were given in.
+# An explicit --spec/--log wins over the positional whichever order they were given in.
 take_task() {
     [ -z "$task_dir" ] || die "task given twice: $task_dir and $1"
     if [ -d "$1" ]; then task_dir="$1"; return 0; fi
@@ -104,9 +101,7 @@ take_task() {
     task_dir="$(dirname "$1")"
     case "$(basename "$1")" in
         spec.md)       [ -n "$spec_file" ] || spec_file="$1" ;;
-        design.md)     [ -n "$design_file" ] || design_file="$1" ;;
         design-log.md) [ -n "$log_file" ] || log_file="$1" ;;
-        *)             [ -n "$spec_file" ] || spec_file="$1" ;;
     esac
 }
 
@@ -152,6 +147,18 @@ approved_line() {
     sed -n 's/^\*\*Approved:\*\*[[:space:]]*\(.*[^[:space:]]\)[[:space:]]*$/\1/p' "$1" | head -1
 }
 
+artifact_paths() {
+    awk '
+        /^## / { in_artifacts = ($0 == "## Design Artifacts"); next }
+        in_artifacts && /^- \[[^]]+\]\([^)]+\)/ {
+            path = $0
+            sub(/^- \[[^]]+\]\(/, "", path)
+            sub(/\).*/, "", path)
+            print path
+        }
+    ' "$1"
+}
+
 command="${1:-}"
 [ -n "$command" ] || { usage; exit 2; }
 shift
@@ -161,7 +168,6 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --file)    take_task "${2:-}"; shift 2 ;;
         --spec)    spec_file="${2:-}"; shift 2 ;;
-        --design)  design_file="${2:-}"; shift 2 ;;
         --log)     log_file="${2:-}"; shift 2 ;;
         -h|--help) usage; exit 0 ;;
         # A bare path is accepted wherever --file is, on every subcommand - including a directory
@@ -177,14 +183,38 @@ done
 case "$command" in
     validate)
         resolve_task
-        # Only files that exist are passed; the parser reports a missing one from the count.
-        set -- "$spec_file"
-        if [ -f "$design_file" ]; then
-            set -- "$@" "$design_file"
-            [ -f "$log_file" ] && set -- "$@" "$log_file"
-        fi
         rc=0
-        awk -f "$parser" -v mode=validate -v files=$# "$@" || rc=1
+        artifacts=()
+        while IFS= read -r artifact; do
+            [ -n "$artifact" ] || continue
+            case "$artifact" in
+                */*|*\\*|spec.md|design-log.md|*.md.md|.*|*[!a-z0-9.-]*)
+                    echo "spec: design artifact '$artifact' must be a lowercase Markdown filename beside the spec"
+                    rc=1
+                    ;;
+                *.md)
+                    if [ -f "$task_dir/$artifact" ]; then
+                        artifacts+=("$task_dir/$artifact")
+                    else
+                        echo "spec: design artifact '$artifact' does not exist beside the spec"
+                        rc=1
+                    fi
+                    ;;
+                *)
+                    echo "spec: design artifact '$artifact' must be a Markdown file"
+                    rc=1
+                    ;;
+            esac
+        done < <(artifact_paths "$spec_file")
+
+        # The parser receives artifacts between the spec and the log. Only existing files are passed;
+        # the checks above report a missing artifact and the parser reports a missing log.
+        set -- "$spec_file"
+        for artifact in "${artifacts[@]}"; do set -- "$@" "$artifact"; done
+        [ -f "$log_file" ] && set -- "$@" "$log_file"
+        logidx=0
+        [ -f "$log_file" ] && logidx=$#
+        awk -f "$parser" -v mode=validate -v files=$# -v logidx="$logidx" "$@" || rc=1
         check_format "$spec_file" || rc=1
         exit "$rc"
         ;;
