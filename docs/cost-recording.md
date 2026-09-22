@@ -72,15 +72,8 @@ The second says what moved:
 Each table is followed by a list that says what its columns are. Below them come a per-plan split
 (`plan`, `agents`, `$`, `time`) and a task total (`$` and one span from the first framework call to the report).
 
-`review/activity.html` is the interactive view of the same run. Each session and agent has a lane whose
-intervals distinguish model turns, tools, waiting and time the transcript cannot explain. Filters isolate an
-agent type, state, tool or minimum duration. Hover and selection show the bounded command, path or description
-recorded for a tool.
-
-A model interval includes inference, text generation and transport delay. It is labelled `model turn`, never
-thinking. Parallel tool calls remain separate. Their displayed durations can overlap and are not added to claim
-how long the lane worked. Generation and data rules are in the cost script's
-[`README.md`](../plugin/scripts/cost/README.md#activity-page).
+`review/activity.html` is the interactive view of the same run. Its states, focused-time scale, filters and
+navigation follow the cost script's [`Activity page`](../plugin/scripts/cost/README.md#activity-page) contract.
 
 ### Prices
 

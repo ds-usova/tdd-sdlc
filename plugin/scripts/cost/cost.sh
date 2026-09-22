@@ -547,7 +547,7 @@ write_activity() {
     trap 'rm -f "$encoded_file"' EXIT RETURN
     jq -sc --arg task "$task_name" --arg offset "$offset" '
         {
-          schema: 2,
+          schema: 3,
           task: $task,
           offset: $offset,
           lanes: (map(.lane) | sort_by(.started, .id)),

@@ -45,7 +45,11 @@ def clipped($from; $to):
         ended: $message.value.timestamp,
         incomplete: false
       }
-    | clipped($from; $to)]) as $models
+    | clipped($from; $to)
+    | if .seconds > 600 then
+        .state = "paused"
+        | .summary = "Long gap between input and response; model activity was not observed"
+      else . end]) as $models
 | ([$rows[] as $row
     | ($row.value | content_blocks[])
     | select(.type == "tool_use" and (.id? | type) == "string")
@@ -69,7 +73,8 @@ def clipped($from; $to):
         summary: tool_summary($tool),
         call: $tool.id,
         started: $row.value.timestamp,
-        ended: (if $complete then $result.timestamp else $to end),
+        ended: (if $complete then $result.timestamp
+                else (($row.value.timestamp | epoch) + 1 | todateiso8601) end),
         incomplete: ($complete | not)
       }
     | clipped($from; $to)]
@@ -82,7 +87,7 @@ def clipped($from; $to):
     | select($previous != "")
     | {
         lane: $lane,
-        state: "waiting",
+        state: "paused",
         tool: "",
         summary: "waiting for resume",
         started: $previous,

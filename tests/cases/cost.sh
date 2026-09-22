@@ -96,6 +96,14 @@ check_match "a resumed agent records its wall time and its active time" \
   '"seconds":1320,"active":240,' "$(tail -1 "$JSONL")"
 check_match "and its idle window, from its last turn to the resume" \
   '"idle":\[\["2026-09-08T14:12:00.000Z","2026-09-08T14:30:00.000Z"\]\]' "$(tail -1 "$JSONL")"
+check_match "a resume gap is paused rather than delegated waiting" \
+  '"state":"paused".*"summary":"waiting for resume"' "$(tail -1 "$JSONL")"
+
+agent lg
+rec sess-1 lg tdd-unit-red-phase-step
+check_match "a long gap is paused" \
+  '"state":"paused".*"summary":"Long gap between input and response' "$(tail -1 "$JSONL")"
+sed '$d' "$JSONL" > "$JSONL.tmp" && mv "$JSONL.tmp" "$JSONL"
 
 agent gr
 rec sess-1 gr grill-design
@@ -110,6 +118,8 @@ activity_calls="$(printf '%s' "$activity_line" | jq -r '.activity[] | .call // e
 check "activity keeps parallel calls from one assistant message" "ac-bash ac-open ac-read " "$activity_calls"
 check_match "activity keeps a bounded shell command summary" 'npm test -- --runInBand' "$activity_line"
 check_match "an unmatched tool call is unknown" '"state":"unknown".*"call":"ac-open"' "$activity_line"
+check_match "an unmatched tool call is a marker rather than the rest of the lane" \
+  '"call":"ac-open".*"seconds":1' "$activity_line"
 check_no_match "activity does not keep tool output" 'test output is not retained' "$activity_line"
 check_match "the assignment records the workflow and item ids" \
   '"assignment":\{"workflow":"implement-plan".*"items":\["RU01","RU02"\]' "$activity_line"
@@ -160,7 +170,7 @@ check_golden "the report matches the golden rendering" "$FX/cost.golden.md" "$WO
 check "the report writes the interactive activity page" yes "$([ -f "$HTML" ] && echo yes || echo no)"
 activity_b64="$(awk '/id="activity-data"/{getline; print; exit}' "$HTML")"
 activity_json="$(printf '%s' "$activity_b64" | jq -Rr '@base64d')"
-check "the activity page carries schema 2" 2 "$(printf '%s' "$activity_json" | jq -r '.schema')"
+check "the activity page carries schema 3" 3 "$(printf '%s' "$activity_json" | jq -r '.schema')"
 check_match "the activity page includes a recorded tool interval" \
   '"state":"tool".*"tool":"Bash"' "$(printf '%s' "$activity_json" | jq -c '.events')"
 check_match "the activity page has an agent lane" \
@@ -169,6 +179,15 @@ check_match "the activity page links an assignment to its agent lane" \
   '"assignment":\{"workflow":"implement-plan".*"items":\["RU01","RU02"\]' \
   "$(printf '%s' "$activity_json" | jq -c '.lanes')"
 check_match "the activity page renders the assignment table" 'id="assignment-body"' "$(cat "$HTML")"
+check_match "the activity page starts in focused time" \
+  '<option value="focused">Focused time</option>' "$(cat "$HTML")"
+check_match "the activity page suppresses tiny intervals by default" \
+  'id="duration-filter" type="number" min="0" step="1" value="30"' "$(cat "$HTML")"
+check_match "the activity page lists the longest visible intervals" \
+  'id="activity-body"' "$(cat "$HTML")"
+check_match "unknown and paused activity start hidden" \
+  'checkbox.checked = state !== "unknown" && state !== "paused"' "$(cat "$HTML")"
+check_golden "the activity page matches the visual golden" "$FX/activity.golden.html" "$HTML"
 hash1="$(git hash-object "$HTML")"
 report_offline > /dev/null
 hash2="$(git hash-object "$HTML")"

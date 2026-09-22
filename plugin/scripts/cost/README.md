@@ -30,17 +30,29 @@ Run it with bash, from anywhere inside the project:
 
 ## Activity page
 
-`activity.html` is self-contained. Open it directly from disk. It has one lane per session and agent, filters
-for lanes, states, tools, workflow, assigned item and minimum duration, and zoom controls. Hover or select an
-interval to read its tool, bounded input summary, timestamps and duration.
+`activity.html` is self-contained. Open it directly from disk. It has one lane per session and agent. Filter by
+lane, state, tool, workflow, assigned item or minimum duration. The page starts at 30 seconds to suppress tiny
+intervals. The 30-second, one-minute and five-minute buttons set the duration directly. Every filter refits the
+visible time range.
+
+The default **Focused time** view compresses gaps longer than five minutes to 45 seconds and labels each break.
+**Wall clock** restores the continuous scale. Right-click an interval, or open its details and choose **Exclude
+interval**, to add another break without changing the embedded data. Restore an excluded interval from its chip.
+
+**Longest visible activity** lists the 30 longest results of the current filters. Select a row or timeline bar to
+open its details in the fixed side panel. A model row names the preceding and following recorded actions. Hover
+keeps that context to 150 characters.
 
 The assignments table joins a step-carrying implementation agent to the workflow, work file and item IDs that
 the launch hook prepended to its prompt. It shows the assignment basis, plan-brief and prompt characters, peak
 context, turns, active time and cost. **View** opens the exact launch header and at most 1,000 prompt characters.
 
-The page uses four states: `model` for a model turn, `tool` for a paired tool call, `waiting` for a resume gap
-or delegated call, and `unknown` for every uncovered or incomplete interval. It never calls a model interval
-thinking. The transcript cannot separate inference, generation and transport delay.
+The page uses five states. `model` is the interval from an input to its response, up to ten minutes. `tool` is a
+paired tool call. `waiting` is a delegated call. `paused` is a resume gap or an input-to-response gap longer than
+ten minutes, where active model work was not observed. `unknown` is an incomplete tool call or a legacy lane with
+no activity. `paused` and `unknown` are off by default. An incomplete call is a point marker, not the rest of the
+lane. The page never calls a model interval thinking; the transcript cannot separate inference, generation and
+transport delay.
 
 The stop hook stores agent intervals in `cost.jsonl`. The report reads session intervals from the mapped
 session transcript. Tool calls are paired by `tool_use.id` and `tool_result.tool_use_id` before their times are
