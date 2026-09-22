@@ -49,9 +49,9 @@ Where the level above sees an agent return with children in flight, it resumes t
 they finish; the harness's task-notification is the signal, and it arrives at that level. A grandchild's report
 arrives there too, so the level above relays it rather than expecting the middle agent to have seen it.
 
-**Every spawn passes `model`**, from the module conventions — the executing model for step work, the deciding
-model for planning, review and the refactor pass. Only a module whose conventions name no model falls back to
-the default.
+**Every spawn passes `model`**, from the module conventions — the executing model for step work and the plan fact
+check, the deciding model for planning, review and the refactor pass. Only a module whose conventions name no
+model falls back to the default.
 
 **Every spawning level caps how many run at once**, by what the conventions say about the cap. Where they
 state no cap: four step agents at once within a module, and two module-level agents — pipelines, module agents

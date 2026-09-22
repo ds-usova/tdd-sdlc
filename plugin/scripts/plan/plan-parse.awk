@@ -102,7 +102,92 @@ function deps_of(text,   tail, cut) {
     return ids_in(tail)
 }
 
+# The plan's fixed shape, from the plan-task skill's Plan Structure: its sections, the step map's groups,
+# and each group's sections, each list in the order the plan must follow. Post-Implementation Steps has
+# no fixed list: after Performance, its sections come from the conventions.
+function shape_init() {
+    n_top = split("Architecture Decisions|Step-by-Step Implementation Map (To-Do List)|Open Questions", top_name, "|")
+    n_grp = split("Stabilization|Red Phase|Green Phase|Post-Implementation Steps", grp_name, "|")
+    sec_list["Stabilization"] = "API Contract|Database|Interface-First / Build Stabilization|Closing item"
+    sec_list["Red Phase"] = "TDD Unit Red Phase|TDD Integration Red Phase|TDD System Test Red Phase"
+    sec_list["Green Phase"] = "TDD Unit Green Phase|TDD Integration Green Phase|TDD System Test Green Phase"
+    home["RU"] = "TDD Unit Red Phase"; home["RI"] = "TDD Integration Red Phase"
+    home["RS"] = "TDD System Test Red Phase"; home["GU"] = "TDD Unit Green Phase"
+    home["GI"] = "TDD Integration Green Phase"; home["GS"] = "TDD System Test Green Phase"
+}
+
+# The position of name in a "|"-joined list, or 0.
+function pos_in(list, name,    parts, k, np) {
+    np = split(list, parts, "|")
+    for (k = 1; k <= np; k++) {
+        if (parts[k] == name) return k
+    }
+    return 0
+}
+
+function shape_problem(text) {
+    n_shape++
+    shape[n_shape] = text
+}
+
+# One heading of the plan, checked against the fixed shape as it is read.
+function shape_heading(line,    name, p, list, k) {
+    if (line ~ /^## /) {
+        name = substr(line, 4)
+        top_seen_any = 1
+        in_map = (name == top_name[2])
+        shape_group = ""
+        p = 0
+        for (k = 1; k <= n_top; k++) if (top_name[k] == name) p = k
+        # A log section in the plan is reported as a stray already.
+        if (name == "Review Findings" || name == "Run Log" || name ~ /Blockers/) {
+            return
+        }
+        if (p == 0) {
+            shape_problem("'## " name "' (line " FNR ") is not a plan section - the plan has " \
+                top_name[1] ", " top_name[2] " and " top_name[3])
+        } else if (p < last_top) {
+            shape_problem("'## " name "' (line " FNR ") comes after '## " top_name[last_top] "' - keep the order " \
+                top_name[1] ", " top_name[2] ", " top_name[3])
+        } else {
+            top_found[p] = 1
+            last_top = p
+        }
+    } else if (line ~ /^### / && in_map) {
+        name = substr(line, 5)
+        p = 0
+        for (k = 1; k <= n_grp; k++) if (grp_name[k] == name) p = k
+        shape_group = name
+        last_sec = 0
+        if (p == 0) {
+            shape_problem("'### " name "' (line " FNR ") is not a step-map group - use Stabilization, Red Phase, " \
+                "Green Phase, Post-Implementation Steps")
+            shape_group = ""
+        } else if (p < last_grp) {
+            shape_problem("'### " name "' (line " FNR ") comes after '### " grp_name[last_grp] "' - the groups run " \
+                "Stabilization, Red Phase, Green Phase, Post-Implementation Steps")
+        } else {
+            last_grp = p
+        }
+    } else if (line ~ /^#### / && in_map && (shape_group in sec_list) && line != "#### Performance") {
+        # A misplaced Performance section has its own report.
+        name = substr(line, 6)
+        list = sec_list[shape_group]
+        p = pos_in(list, name)
+        if (p == 0) {
+            gsub(/\|/, ", ", list)
+            shape_problem("'#### " name "' (line " FNR ") is not a section of " shape_group " - use " list)
+        } else if (p < last_sec) {
+            gsub(/\|/, ", ", list)
+            shape_problem("'#### " name "' (line " FNR ") is out of order under " shape_group " - the order is " list)
+        } else {
+            last_sec = p
+        }
+    }
+}
+
 BEGIN {
+    shape_init()
     if (mode == "") {
         mode = "items"
     }
@@ -126,6 +211,10 @@ FILENAME != prevfile {
 # never closes, an empty label never reads as empty, and the file is parsed as half of itself. Git
 # Bash's awk strips it already; the awks this has to run on elsewhere do not.
 { sub(/\r$/, "") }
+
+# The header lines above the plan's first section.
+fileidx == 1 && !top_seen_any && /^\*\*Affected Modules:\*\*[ ]*[^ ]/ { has_modules = 1 }
+fileidx == 1 && !top_seen_any && /^\*\*Spec:\*\*[ ]*\[[^]]+\]\([^)]+\)/ { has_spec = 1 }
 
 # A plan quotes its own step format in fenced examples; those bullets are illustrations, not work.
 #
@@ -191,6 +280,9 @@ fenced {
     if (fileidx == 1 && $0 ~ /^##+ .*Blockers/) {
         n_stray++
         stray[n_stray] = FILENAME ":" FNR ": a Blockers heading sits in the " base " - the section is '## Open Questions'; blockers go to the log beside it"
+    }
+    if (fileidx == 1) {
+        shape_heading($0)
     }
     if ($0 ~ /^### /) {
         group = substr($0, 5)
@@ -657,7 +749,97 @@ function emit_updates(   i) {
     }
 }
 
-function emit_validate(   i, id, j, d, nd, problems) {
+# A field of a step line, from its "name:" up to the next field, trimmed.
+function field_of(h, name,    seg) {
+    seg = substr(h, index(h, name) + length(name))
+    if (index(seg, "·")) {
+        seg = substr(seg, 1, index(seg, "·") - 1)
+    }
+    gsub(/^[ ]+|[ ]+$/, "", seg)
+    return seg
+}
+
+# Backticked entries separated by commas: what a step line names as code.
+function is_code_list(seg) {
+    return seg ~ /^`[^`]+`([ ]*,[ ]*`[^`]+`)*$/
+}
+
+# The first backticked token of a step line after its ID: the target class, or a system step's test class.
+function first_code(h) {
+    return match(h, /`[^`]+`/) ? substr(h, RSTART + 1, RLENGTH - 2) : ""
+}
+
+function test_of(h) {
+    return match(h, /test:[ ]*`[^`]+`/) ? substr(h, RSTART, RLENGTH) : ""
+}
+
+# The plan's shape: its sections and header lines, where each step sits, the red and green steps pairing one
+# to one, and a green step waiting only on green steps. Returns how many problems it printed.
+function emit_shape(   i, k, id, pre, count, nd, d, j, r_key, g_key, key_of) {
+    count = 0
+    for (i = 1; i <= n_shape; i++) {
+        print shape[i]
+        count++
+    }
+    for (k = 1; k <= n_top; k++) {
+        if (!(k in top_found)) {
+            print "no '## " top_name[k] "' section - the plan has " top_name[1] ", " top_name[2] " and " top_name[3]
+            count++
+        }
+    }
+    if (!has_modules) {
+        print "no **Affected Modules:** line above the first section"
+        count++
+    }
+    if (!has_spec) {
+        print "no **Spec:** line linking the task's spec above the first section - write '**Spec:** [<task>](spec.md)'"
+        count++
+    }
+    for (i = 1; i <= n; i++) {
+        id = order[i]
+        pre = substr(id, 1, 2)
+        if ((pre in home) && section_of[id] != home[pre]) {
+            print id " sits under '" group_of[id] " / " section_of[id] "' - it belongs under " home[pre]
+            count++
+        } else if (pre == "ST" && group_of[id] != "Stabilization") {
+            print id " sits under '" group_of[id] "' - it belongs under Stabilization"
+            count++
+        } else if (pre == "PI" && group_of[id] != "Post-Implementation Steps") {
+            print id " sits under '" group_of[id] "' - it belongs under Post-Implementation Steps"
+            count++
+        }
+        if (pre ~ /^[RG][UIS]$/) {
+            key_of[id] = substr(pre, 2, 1) "|" first_code(header[id]) "|" (pre ~ /S$/ ? "" : test_of(header[id]))
+            if (substr(pre, 1, 1) == "R") r_key[key_of[id]] = id
+            else g_key[key_of[id]] = id
+        }
+        if (pre ~ /^G[UIS]$/) {
+            nd = split(deps[id], d, ",")
+            for (j = 1; j <= nd; j++) {
+                if (d[j] != "" && d[j] !~ /^G[UIS][0-9]+$/) {
+                    print id "'s after: names " d[j] " - a green step waits only on green steps"
+                    count++
+                }
+            }
+        }
+    }
+    for (i = 1; i <= n; i++) {
+        id = order[i]
+        if (!(id in key_of)) {
+            continue
+        }
+        if (substr(id, 1, 1) == "R" && !(key_of[id] in g_key)) {
+            print id " has no green step with the same target and test class"
+            count++
+        } else if (substr(id, 1, 1) == "G" && !(key_of[id] in r_key)) {
+            print id " has no red step with the same target and test class"
+            count++
+        }
+    }
+    return count
+}
+
+function emit_validate(   i, id, j, d, nd, m, problems) {
     problems = 0
     for (i = 1; i <= n_dup; i++) {
         print "duplicate ID: " dup[i]
@@ -726,6 +908,32 @@ function emit_validate(   i, id, j, d, nd, problems) {
         print "circular dependencies:" cycle_found
         problems++
     }
+    # A red step names what it tests as code: each covers: entry a backticked method signature or entry
+    # point, each mocks: entry a backticked name. Prose there hands the step agent a description instead of
+    # a target. PM items are checked below.
+    for (i = 1; i <= n; i++) {
+        id = order[i]
+        if (substr(id, 1, 2) == "PM") {
+            continue
+        }
+        if (header[id] !~ /covers:/) {
+            if (id ~ /^R[UIS][0-9]+$/) {
+                print id " has no 'covers:' - name the method signatures or the entry point it tests"
+                problems++
+            }
+        } else if (!is_code_list(field_of(header[id], "covers:"))) {
+            print id "'s covers: is not a list of backticked entries - write 'covers: `method()`, `other()`' or the entry point in backticks"
+            problems++
+        }
+        if (header[id] ~ /mocks:/) {
+            m = field_of(header[id], "mocks:")
+            if (m != "none" && m != "`none`" && !is_code_list(m)) {
+                print id "'s mocks: is not 'none' or a list of backticked names - write 'mocks: `Collaborator`'"
+                problems++
+            }
+        }
+    }
+    problems += emit_shape()
     # A performance step: PM items only under Post-Implementation Steps / Performance, which comes
     # first in its group; each with a threshold and the spec scenarios it measures.
     for (i = 1; i <= n_perf_bad; i++) {

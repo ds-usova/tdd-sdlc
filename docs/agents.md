@@ -9,7 +9,7 @@ Four kinds of agent, one rank per row.
 | Kind          | Agents                                                                                     | Spawned by                                   | Spawns                         |
 |---------------|--------------------------------------------------------------------------------------------|----------------------------------------------|--------------------------------|
 | Skill         | `init-conventions`, `design-task`, `plan-task`, `implement-plan`, `fix-bug`, `rework`, `upgrade-deps`, `small-change` | the user, in the session   | review, orchestrating and red agents |
-| Review        | `grill-design`, `grill-frontend`, `review-plan`                                            | `design-task`, `plan-task`, `implement-plan` | nothing; they write nothing    |
+| Review        | `grill-design`, `grill-frontend`, `review-plan`, `review-plan-facts`                       | `design-task`, `plan-task`, `implement-plan`; `review-plan-facts` by `review-plan` | `review-plan` spawns `review-plan-facts`; none writes anything |
 | Orchestrating | `implement-plan-module`, `fix-bug-module`, `rework-module`, `upgrade-deps-module`          | the skill of the same name, one per plan or steps file, the shared one first and alone | `implement-plan-module` spawns the step agents; the three module agents spawn nothing |
 | Step          | `stabilization-step`, the three red and three green `tdd-*-phase-step` agents, `tdd-refactor-phase` | `implement-plan-module`; the red agents also by any skill or pipeline with a reproduction brief, and by `small-change` with one scenario; the refactor pass also by `fix-bug` and `rework` | nothing |
 

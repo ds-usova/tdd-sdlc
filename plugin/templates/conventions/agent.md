@@ -33,7 +33,8 @@ modules genuinely commit differently, answers here.
 Which model each kind of delegated work runs on. Naming none means everything runs on the session's own model.
 
 - Deciding work — `<model>`: `<what counts — e.g. planning, plan review, the refactor pass over a finished diff>`
-- Executing work — `<model>`: `<what counts — e.g. stabilization, and every red- and green-phase step agent>`
+- Executing work — `<model>`: `<what counts — e.g. stabilization, the plan fact check, and every red- and
+  green-phase step agent>`
 - Everything else: the session's model.
 
 ## Parallelism

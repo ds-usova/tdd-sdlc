@@ -160,7 +160,7 @@ and each item MUST follow its variant's exact format.
 | The real dependency is                                  | Variant                     |
 |---------------------------------------------------------|-----------------------------|
 | infrastructure — a database, a cache, a store, an API   | **infrastructure steps**    |
-| the application framework itself — routing, binding, serialization, validation | **entry-point steps** |
+| the application framework itself — routing, binding, serialization, validation, rendering | **entry-point steps** |
 
 Which of a module's classes fall into either variant comes from its conventions' test-type mapping.
 
@@ -210,16 +210,26 @@ Tests are expected to **fail at runtime** against the stub. **No implementation 
   - Validation: `<fieldName>` — [list of constraint violations to cover]
 ```
 
-- `<TargetClass>` — the class the framework routes a request to (e.g., `WidgetController`)
+- `<TargetClass>` — the class the framework routes a request to (e.g., `WidgetController`), the component it
+  renders, or the hook it mounts
 - `<TestClass>` — the corresponding test class, per the conventions' mechanism for booting part of the framework
-- `covers:` — the entry point it exposes (e.g., `POST /widgets`)
-- `mocks:` — what it hands the work to, mocked so that only the framework's own behaviour is under test
+- `covers:` — the entry point it exposes, in one of four forms:
+    - `<HTTP_METHOD> <path>` — an HTTP request (e.g., `POST /widgets`)
+    - `<Class>.<method>()` — a trigger the framework fires, such as a message listener
+    - `<Component>` — a component the framework renders (e.g., `<WidgetForm>`)
+    - `<hook>()` — a hook the framework mounts (e.g., `useWidgetKeys()`)
+- `mocks:` — what it hands the work to, mocked so that only the framework's own behaviour is under test: backticked
+  names, comma-separated, or `none`. A callback a component is given counts as what it hands the work to.
 - Sub-bullets — one scenario per group (Happy Path, Error Mapping, Validation); how groups are realized in test
   code and their names follow the module's conventions file
 
 Each entry-point step boots only as much of the framework as that entry point needs, mocks what the class
-delegates to, and enters **through the protocol** — an HTTP request, a published message, a fired schedule — never
-by calling the class's method directly. No real infrastructure past the framework.
+delegates to, and enters **through the protocol** — an HTTP request, a published message, a fired schedule, a
+render — never by calling the class's method directly. No real infrastructure past the framework.
+
+**A component or hook step renders or mounts it and acts as the user does**: a click, a key, typed text. It never
+sets the component's state directly. Which part of the component a scenario exercises is in its `when:` and its
+group names, never in `covers:`.
 
 Validation constraints come from the module's schema, not from guesses. This step owns the entry point's
 validation matrix and its status-code contract; they are not repeated at system level. The same RED-phase rules

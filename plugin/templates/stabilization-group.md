@@ -1,7 +1,7 @@
 # A Plan's Stabilization Group
 
 Which items the group holds and in what order. Written by [`plan-task`](../skills/plan-task/SKILL.md), read by
-[`review-plan`](../agents/review-plan.md) and by whoever applies the group.
+[`review-plan-facts`](../agents/review-plan-facts.md) and by whoever applies the group.
 
 How each item is *carried out* — the stub's intent comment, the `TODO` on a changed signature, what a comment may
 never name, how a broken test is disabled — is [`stabilizing.md`](stabilizing.md). An item here says *what* is

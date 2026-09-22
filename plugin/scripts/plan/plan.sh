@@ -51,10 +51,15 @@ Commands:
   tick      Mark the items done. Several IDs are one batch: all are resolved before any is written,
             so a name nothing defines ticks none of them.
   block     Leave the item open and record the reason as the next RL entry of the plan log's Run Log.
-  validate  A missing or older **Format:** line, duplicate IDs, items with no ID, dependencies on IDs nothing defines, cycles, placeholder
-            given/when/then values, update: bullets naming a test method that is nowhere in the tree,
-            a finding or a blockers section left in the plan, a missing plan log, and findings in it
-            missing a Resolution: or an unapplied mechanical Action:.
+  validate  A missing or older **Format:** line, a missing Affected Modules or Spec line, a spec
+            that is missing or not settled, sections, groups and step sections missing, unknown or out
+            of order, an item under another type's section, a red step with no green pair or the
+            reverse, a green after: naming a non-green item, duplicate IDs, items with no ID,
+            dependencies on IDs nothing defines, cycles, placeholder given/when/then values, a red step
+            whose covers: is missing or not backticked, a mocks: that is prose, update: bullets naming
+            a test method that is nowhere in the tree, a finding or a blockers section left in the plan,
+            a missing plan log, and findings in it missing a Resolution: or an unapplied mechanical
+            Action:.
   stub      Record the files stabilization stubbed, as the log's Stubs section. The first call writes
             the section with the marker an intent comment starts with (--marker, default
             "stub-intent:"); later calls append. No path records an empty section. Paths are
@@ -439,6 +444,21 @@ case "$command" in
             problems=1
         fi
         check_format "$plan_file" || problems=1
+
+        # The spec the plan translates must exist and be settled: a plan written against an open decision
+        # implements a guess. A missing Spec line is the parser's report.
+        spec_link="$(sed -n 's/^\*\*Spec:\*\*[[:space:]]*\[[^]]*\](\([^)]*\)).*/\1/p' "$plan_file" | head -n 1)"
+        if [ -n "$spec_link" ]; then
+            spec_path="$(dirname "$plan_file")/$spec_link"
+            if [ ! -f "$spec_path" ]; then
+                echo "**Spec:** links $spec_link, which does not exist beside the plan"
+                problems=1
+            elif ! open="$(bash "$script_dir/../design/design.sh" settled "$spec_path" 2>&1)"; then
+                echo "the spec is not settled - plan only a task whose decisions all have a basis:"
+                printf '%s\n' "$open" | sed -n 's/^  /  /p'
+                problems=1
+            fi
+        fi
 
         # An "update:" bullet names a test that already exists - that is what distinguishes it from a
         # new scenario. One naming nothing in the tree is a plan written against remembered code.

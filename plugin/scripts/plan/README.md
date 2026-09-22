@@ -222,6 +222,12 @@ says. The first is the plan log's **Suite Runs**; the second is a reading, and s
 | A `given:` / `when:` / `then:` / `threshold:` whose value is empty, `—`, `TBD` or `N/A`             | a scenario a step agent cannot implement                     |
 | A `PM` item outside a `Performance` section, or without `covers:`; a writing one without a `threshold:` or a `scenarios:`; a `rerun` carrying a `threshold:` | a measurement with no figure or no spec scenario behind it   |
 | A `Performance` section that is not the first of `Post-Implementation Steps`, or a non-`PM` item in it | a measurement scheduled before the feature exists            |
+| A `##` section the plan does not have, one missing or out of order; no `**Affected Modules:**` or `**Spec:**` line | a plan missing the part a reader or a later stage looks for |
+| A `**Spec:**` link to no file, or a spec with a `must-decide` decision (`design.sh settled`) | a plan written against an open decision |
+| A step-map group or a Stabilization, Red or Green section that is unknown or out of order; an item under another type's section | a step run at the wrong stage or by the wrong agent type |
+| A red step with no green step of the same target and test class, or the reverse | a test nobody makes pass, or code nobody tests first |
+| A green step's `after:` naming a non-green item | a green step waiting on work its stage does not schedule |
+| A red step with no `covers:`; a `covers:` that is not backticked entries; a `mocks:` that is neither `none` nor backticked names | a step agent handed a description instead of a target |
 | An `update:` bullet on an **open** item naming a method found nowhere                              | a plan written against remembered code                       |
 | No `plan-log.md` beside the plan                                                                   | a plan nothing reviewed and no run can record against        |
 | A `Review Findings` or `Run Log` section, an `RF` or `RL` entry, or a `Blockers` heading in the plan | the old shape — the log owns those now                       |

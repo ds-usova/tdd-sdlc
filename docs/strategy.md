@@ -320,6 +320,13 @@ File format numbers and their changes live in
 
 ### Proportional cost
 
+- **Plan review split by who can answer**
+  - **Rule:** `review-plan` spawns `review-plan-facts` on the executing model for every claim the code settles.
+    The reviewer keeps decisions, architecture and coverage completeness, and reads the returned fact sheet.
+  - **Why:** in real runs most of the findings were code facts: missing methods, wrong test types, covered
+    scenarios. Reading the code for them on the deciding model cost $14–16 a run.
+  - **Trade-off:** the two agents run in sequence, and both read the plan.
+
 - **Focused small changes**
   - **Rule:** a small change runs focused tests and commits alone.
   - **Why:** attaching a long suite to a two-minute change makes the workflow too expensive to use.

@@ -35,6 +35,7 @@ package "Review agents (write nothing)" {
   component "grill-design" as GD
   component "grill-frontend" as GF
   component "review-plan" as RP
+  component "review-plan-facts" as RPF
 }
 
 package "Orchestrating agents (one per plan or file)" {
@@ -60,6 +61,7 @@ DT --> GF : user interface
 DT --> GD : API, store, message
 PT --> RP : once, after the plan is written
 IP --> RP : offered re-review\nafter a plan edit
+RP --> RPF : one per review on\nexecuting model
 
 IP --> IPM : one per plan,\nshared/plan.md first
 FB --> FBM : one per fix.md,\nshared/fix.md first

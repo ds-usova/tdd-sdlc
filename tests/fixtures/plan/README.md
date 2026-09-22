@@ -18,6 +18,10 @@ not "must fail": `pm-good` is a valid variant the case file expects to pass.
 | `duplicate-st01`              | a second `ST01` item appended                                        | validate reports the duplicate id      |
 | `after-names-nothing`         | `GI02` says `after: GU99`, which no item defines                     | validate reports the dangling `after:` |
 | `then-placeholder`            | a `then:` in RU01 left as the `—` placeholder                        | validate reports the empty `then:`     |
+| `covers-prose`                | RU02's `covers:` is prose; RS01 has no `covers:`; RI02 covers `<WidgetForm>` and its `mocks:` is prose | validate reports the three; the component form passes |
+| `plan-shape`                  | a `## Components` section, no `**Spec:**` line, RS01 under a second `TDD Unit Red Phase`, GU03 targets another class, GI02 waits on RU03 | validate reports each |
+| `spec-missing`                | the `**Spec:**` line links `nowhere.md`                              | validate reports the dead link         |
+| `spec-open`                   | the spec gains `DN02` with `Basis: must-decide`                      | validate reports the spec unsettled    |
 | `update-names-missing-method` | RU03's `update:` bullet names `whenNothing_thenNothing()`            | validate greps the tree and refuses    |
 | `missing-log`                 | `plan.md` with no `plan-log.md` beside it (used alone, not overlaid) | validate reports the missing log       |
 | `unclosed-fence`              | a code fence opened at the end and never closed                      | status refuses the plan                |

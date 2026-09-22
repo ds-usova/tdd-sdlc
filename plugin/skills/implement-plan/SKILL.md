@@ -81,7 +81,8 @@ opened. Check every plan in the task directory, `shared/plan.md` included:
 - **A plan edited since its review is offered a re-review, never given one.** Where a step, scenario or
   signature changed after the last **Review Findings** entry — an `Action:` applied by hand, an answer that
   reshaped a step — say so once and ask, via `AskUserQuestion`, whether to spawn `review-plan` on it before
-  going on. Declined, the gate proceeds; accepted, its findings join the log and are actioned like the rest.
+  going on. Declined, the gate proceeds. Accepted, spawn it as `plan-task`'s **5. Invoke the Review Subagent**
+  says, `plan.sh validate` first; its findings join the log and are actioned like the rest.
 
 **One unready plan stops the task, with nothing started.** List what is unresolved and ask the user. If they
 resolve it in the conversation, write their answers into the plan or its log, apply the resulting step changes,

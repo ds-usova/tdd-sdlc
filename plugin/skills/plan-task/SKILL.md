@@ -282,13 +282,9 @@ not stretch one sentence over a list of names: write a **premise** bullet — th
 follows for a test that meets it — and let the step agent decide test by test which bodies meet it. The forms
 are in `step-formats.md`'s **Existing-test updates rule**.
 
-`plan.sh validate` checks the result: duplicate IDs, items with no ID, `after:` naming an ID nothing defines,
-dependency cycles, a `given:`/`when:`/`then:` or `threshold:` left as a placeholder, an `update:` bullet naming a
-test method that exists nowhere in the repository, a `PM` item outside a **Performance** section or without its
-`covers:`, `threshold:` or `scenarios:`, a **Performance** section anywhere but first under
-**Post-Implementation Steps**, a missing log or a finding left in the plan, and — once the review has run — a
-finding in the log missing its `Resolution:`, or a `mechanical` one whose `Action:` was never written. Run it
-before handing the plan over, and again after applying findings. The script ships with these instructions at
+`plan.sh validate` checks the result: the plan's shape, its step lines and the log, as
+[`scripts/plan/README.md`](../../scripts/plan/README.md) **What `validate` checks** lists. Run it before handing
+the plan over, and again after applying findings. The script ships with these instructions at
 `scripts/plan/plan.sh` — under `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin, under `.claude/` in a plain
 checkout.
 
@@ -433,8 +429,12 @@ equivalent).
 
 ## 5. Invoke the Review Subagent
 
-Once every section in **4. Plan Structure** is written, spawn the **`review-plan` agent** against the just-created
-plan file, on the model the module conventions name for deciding work; where they name none, the default model.
+Once every section in **4. Plan Structure** is written, run `plan.sh validate` and fix what it reports until it
+exits 0. Never spawn the review on a plan it rejects. Where the script is refused or absent, write the log's
+**Caveats** entry as [`scripts/README.md`](../../scripts/README.md) says, and tell the reviewer so in its prompt.
+
+Then spawn the **`review-plan` agent** against the plan file, on the model the module conventions name for
+deciding work; where they name none, the default model.
 
 Never review the plan in this context instead.
 
