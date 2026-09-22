@@ -249,7 +249,7 @@ fixed order — use only the groups the task actually needs:
 Within each group, its sections appear as `#### <Section>` headings, in the fixed order listed below for that group
 — use only the sections that apply.
 
-**Under a group, items and nothing else.** The one prose a group admits is a coverage note — one line saying
+**Under a group, items and nothing else.** The one prose a group admits is a coverage note — one paragraph saying
 which spec scenario an existing test already holds, so a reader does not go looking for its step
 (`AC05 is held by the existing regression tests in SettingsPage.test.tsx`), or which measurable scenario the
 conventions leave unmeasured (`AC05 is a measurement; the conventions say performance is not measured`). A

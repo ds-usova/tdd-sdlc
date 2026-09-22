@@ -324,20 +324,40 @@ spec_scenarios() {
         }' "$1"
 }
 
-# The file that holds the class: the first whose basename is the class, with or without an
-# extension, else the first whose text names it as a word - a pytest class or a Go test function
-# lives in a file named otherwise. Only files git sees are searched, so build output and
-# dependencies are left to .gitignore; docs/ is left out too, since every plan names the class.
+# The file that holds the class: a test path is matched against the end of the source path first.
+# A bare class uses its basename, with or without an extension. Otherwise use the first file whose
+# text names the bare class - a pytest class or a Go test function may live in a file named otherwise.
+# Only files git sees are searched, so build output and dependencies are left to .gitignore.
 class_file() {
-    local hit
+    local hit class
+    class="${1//\\//}"
+    class="${class#./}"
     hit="$(cd "$repo_root_abs" && git ls-files -co --exclude-standard 2>/dev/null \
-        | grep -v '^docs/' | awk -v c="$1" '{ b = $0; sub(/.*\//, "", b); if (b == c || index(b, c ".") == 1) print }' \
-        | sort | head -1)"
-    if [ -z "$hit" ] && [ -n "$1" ]; then
+        | grep -v '^docs/' | awk -v c="$class" '
+            function without_extension(path) { sub(/\.[^/.]+$/, "", path); return path }
+            BEGIN { stem = without_extension(c); path_named = index(stem, "/") > 0 }
+            {
+                file = $0
+                normalized = without_extension(file)
+                start = length(normalized) - length(stem) + 1
+                suffix = start > 0 && substr(normalized, start) == stem
+                boundary = start == 1 || (start > 1 && substr(normalized, start - 1, 1) == "/")
+                if (path_named && suffix && boundary) print file
+            }' | sort | head -1)"
+    if [ -z "$hit" ] && [[ "$class" != */* ]]; then
+        hit="$(cd "$repo_root_abs" && git ls-files -co --exclude-standard 2>/dev/null \
+            | grep -v '^docs/' | awk -v c="$class" '
+                BEGIN { sub(/.*\//, "", c) }
+                { b = $0; sub(/.*\//, "", b); if (b == c || index(b, c ".") == 1) print }
+            ' | sort | head -1)"
+    fi
+    if [ -z "$hit" ] && [ -n "$1" ] && [[ "$class" != */* ]]; then
+        class="${class##*/}"
+        class="${class%.*}"
         hit="$(cd "$repo_root_abs" && git ls-files -co --exclude-standard 2>/dev/null \
             | grep -v '^docs/' | sort \
             | while IFS= read -r f; do
-                grep -qIw -F -e "$1" "$f" 2>/dev/null && { printf '%s\n' "$f"; break; }
+                grep -qIw -F -e "$class" "$f" 2>/dev/null && { printf '%s\n' "$f"; break; }
             done)"
     fi
     [ -n "$hit" ] && printf '%s\n' "$repo_root_abs/$hit"
@@ -736,23 +756,55 @@ case "$command" in
 
             # A coverage note is the one prose a group admits: which scenario an existing test
             # already holds, or which measurement the conventions leave unmeasured.
-            # Only the note's subjects - the ids before "is held by" / "are held by" - are held by
-            # it; an id the note merely mentions is not.
-            while IFS= read -r line; do
-                for ac in $(printf '%s\n' "$line" | awk '{
-                        match($0, /^(AC[0-9]+(, AC[0-9]+)*( and AC[0-9]+)?) (is|are) (held by|a measurement)/)
-                        subj = substr($0, 1, RLENGTH)
-                        while (match(subj, /AC[0-9]+/)) {
-                            print substr(subj, RSTART, RLENGTH)
-                            subj = substr(subj, RSTART + RLENGTH)
-                        }
-                    }'); do
-                    printf '%s\n' "$scenarios" | grep -qx "$ac" || continue
-                    records="$records$ac$us$rel${us}note$us$line
+            # Only the ids at the start of the coverage sentence are held by it. An id the sentence
+            # merely mentions is not.
+            while IFS="$us" read -r ac note; do
+                [ -n "$ac" ] || continue
+                printf '%s\n' "$scenarios" | grep -qx "$ac" || continue
+                records="$records$ac$us$rel${us}note$us$note
 "
-                done
-            done < <(awk '{ sub(/\r$/, "") } /^[[:space:]]*>?[[:space:]]*AC[0-9]+(, AC[0-9]+)*( and AC[0-9]+)? (is|are) (held by|a measurement)/' "$f" |
-                sed 's/^[[:space:]]*>[[:space:]]*//; s/^[[:space:]]*//')
+            done < <(awk -v us="$us" '
+                function scan(text,    search, piece, candidate, subject, tail, clause, pos, id,
+                    boundary_start, ac_offset, sentence_end, note) {
+                    gsub(/[[:space:]]+/, " ", text)
+                    search = text
+                    while (match(search, /(^|[.!?][[:space:]]+)AC[0-9]+/)) {
+                        boundary_start = RSTART
+                        piece = substr(search, RSTART, RLENGTH)
+                        match(piece, /AC[0-9]+/)
+                        ac_offset = RSTART
+                        candidate = substr(search, boundary_start + ac_offset - 1)
+                        match(candidate, /^AC[0-9]+(, AC[0-9]+)*( and AC[0-9]+)?/)
+                        subject = substr(candidate, 1, RLENGTH)
+                        tail = substr(candidate, RLENGTH + 1)
+                        pos = match(tail, /[.!?][[:space:]]+AC[0-9]+/)
+                        clause = pos ? substr(tail, 1, pos - 1) : tail
+                        sentence_end = match(clause, /[.!?][[:space:]]+([A-Z][a-z]|AC[0-9]+|DN[0-9]+)/)
+                        if (sentence_end) clause = substr(clause, 1, sentence_end - 1)
+                        if (clause ~ /(held by|a measurement)/) {
+                            note = substr(candidate, 1, length(subject) + length(clause))
+                            while (match(subject, /AC[0-9]+/)) {
+                                id = substr(subject, RSTART, RLENGTH)
+                                print id us note
+                                subject = substr(subject, RSTART + RLENGTH)
+                            }
+                        }
+                        search = tail
+                    }
+                }
+                function flush() { if (paragraph != "") scan(paragraph); paragraph = "" }
+                {
+                    sub(/\r$/, "")
+                    if ($0 ~ /^[[:space:]]*```/) { flush(); fence = !fence; next }
+                    if (fence) next
+                    line = $0
+                    sub(/^[[:space:]]*>[[:space:]]?/, "", line)
+                    sub(/^[[:space:]]+/, "", line)
+                    if (line == "") { flush(); next }
+                    paragraph = paragraph (paragraph == "" ? "" : " ") line
+                }
+                END { flush() }
+            ' "$f")
         done
 
         # One row per scenario, held back until every verdict is known: the table's ID and Verdict

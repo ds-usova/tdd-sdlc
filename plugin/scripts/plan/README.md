@@ -191,14 +191,15 @@ The argument is the task directory, a plan in it, or nothing when one task is in
 
 One row per scenario. The steps are the `RU`, `RI`, `RS` and `PM` items of every plan in the task whose header
 carries `scenarios:`. The class is the name after `test:`, or the first backticked name where the header has no
-`test:`. The file is the first git sees, ignored files left out, whose basename is the class with or without an
-extension; where none is, the first whose text names the class as a word, which is how a pytest class or a Go
-test function is found. `docs/` is not searched, since the plan names the class itself.
+`test:`. When that value includes a path, the file is the first git sees whose path ends with it, with
+or without an extension. A bare class uses the first matching basename. Where none exists, the first source file
+whose text names that bare class is used, which is how a pytest class or a Go test function is found. Ignored files
+and `docs/` are not searched.
 
 | Verdict   | Meaning                                                                                  |
 |-----------|------------------------------------------------------------------------------------------|
 | `covered` | every step naming it is ticked, and every such step's class is in the tree               |
-| `held`    | no step names it; a coverage note starts with it (`AC05 is held by …`, `AC05 and AC06 are …`) |
+| `held`    | no step names it; a coverage-note sentence names it as held or as a measurement             |
 | `open`    | a step naming it is not ticked                                                           |
 | `absent`  | a ticked step naming it has no `test:` class, or its class is not in the tree            |
 | `missing` | no step and no coverage note names it                                                    |

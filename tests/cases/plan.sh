@@ -156,12 +156,33 @@ check_match "acceptance: a class in the tree is covered, with its file" \
 check_match "acceptance: a class in a file named otherwise is found by its text" \
   '^\| AC04 +\| covered +\| RI01 `WidgetRepositoryAdapterTest` \(src/test_widget_repository_adapter.py\) \|$' "$out"
 check_match "acceptance: the table carries a header and a separator" '^\| ID +\| Verdict \| Evidence \|$' "$out"
+mkdir -p "$REPO/src/test/java/integration/http"
+echo "class WidgetControllerTest {}" > "$REPO/src/test/java/integration/http/WidgetControllerTest.java"
+sed 's/test: `WidgetControllerTest`/test: `integration\/http\/WidgetControllerTest`/' "$PLAN" > "$WORK/tmp" \
+  && mv "$WORK/tmp" "$PLAN"
+check_match "acceptance: a path-qualified class is found at that path" \
+  'RI02 `integration/http/WidgetControllerTest` \(src/test/java/integration/http/WidgetControllerTest.java\)' \
+  "$(plan acceptance)"
 echo "build/" > "$REPO/.gitignore"; mkdir -p "$REPO/build"; echo "class WidgetRepositoryAdapterTest {}" > "$REPO/build/WidgetRepositoryAdapterTest.java"
 check_match "acceptance: an ignored file is not a hit" 'src/test_widget_repository_adapter.py' "$(plan acceptance)"
 check_rc "acceptance: one missing scenario still exits 1" 1 plan acceptance
-awk '{ print } /^### Red Phase/ { print ""; print "> AC06 is a measurement; the conventions say performance is not measured" }' \
+awk '
+  { print }
+  /^### Red Phase/ {
+    print ""
+    print "An earlier coverage note ends here. AC06 is the existing performance rule, held by"
+    print "`WidgetPerformanceTest`, whose result is recorded outside the suite."
+    print ""
+    print "AC03 is a measurement; the conventions say performance is"
+    print "not measured."
+  }' \
   "$PLAN" > "$WORK/tmp" && mv "$WORK/tmp" "$PLAN"
-check_match "acceptance: a coverage note holds a scenario" '^\| AC06 +\| held +\| AC06 is a measurement' "$(plan acceptance)"
+check_match "acceptance: a wrapped coverage sentence holds a scenario" \
+  '^\| AC06 +\| held +\| AC06 is the existing performance rule, held by `WidgetPerformanceTest`' \
+  "$(plan acceptance)"
+check_match "acceptance: a wrapped measurement note is evidence for its subject" \
+  '^\| AC03 +\| covered +\| .*AC03 is a measurement; the conventions say performance is not measured' \
+  "$(plan acceptance)"
 check_ok "acceptance: every scenario covered or held exits 0" plan acceptance
 check_match "acceptance: successful closing message describes covered or held scenarios" \
   '^every scenario is covered or held$' "$(plan acceptance | tail -1)"
