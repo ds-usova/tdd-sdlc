@@ -27,6 +27,15 @@ for any extra design view. No class belongs there.
 **The log is the train of thought.** Everything binding is in the spec or a linked artifact. The log says where
 those facts came from.
 
+## When Not To Use It
+
+- **A bug** — behaviour the repository already promises and does not deliver. That is `fix-bug`.
+- **Restructuring code that behaves correctly** — `rework`.
+- **Moving library versions** — `upgrade-deps`.
+- **A change one new assertion proves, with no contract moved** — `small-change`.
+- **A spike**: code written to find out whether an approach works. What a spike learned is a Findings row in the
+  design log of the task that follows.
+
 ## 1. Create the Task Directory
 
 **A task started from a backlog entry measures the entry before the directory exists.** Check its *why* against
