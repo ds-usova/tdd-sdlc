@@ -1,7 +1,7 @@
 # A red baseline
 
-What a run does when its baseline suite run has a failing test. A test the skill itself expects red, such as the bug's own
-reproduction, is not covered here.
+What a run does when its baseline suite run has a failing test. A test the skill itself expects red, such as the
+bug's own reproduction, is not covered here.
 
 ## Re-run once
 

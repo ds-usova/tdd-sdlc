@@ -26,7 +26,8 @@ Then, in this order:
 - The module's stylesheet — every token that exists, and which themes declare it.
 - The components the task changes, and the shared ones under the module's UI directory.
 - The module's manifest, for what is already a dependency.
-- `docs/adr/` — a decision recorded there is an answer, not a question.
+- The decision records, wherever the conventions index says they live — a decision recorded there is an answer,
+  not a question.
 
 ## 2. The Interrogation
 

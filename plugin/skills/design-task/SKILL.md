@@ -77,9 +77,9 @@ task does not touch is not asked about.
 
 ## 3. Read What Already Exists
 
-Before writing anything, read the closest existing feature end to end — its domain types, its usecase, its
-adapters, its migration — and the conventions that govern them. Use what it establishes to write the neutral
-behaviour.
+Before writing anything, read the closest existing feature end to end — its entry point, its logic, its storage
+and its errors, under whatever names the module gives them — and the conventions that govern them. Use what it
+establishes to write the neutral behaviour.
 
 The same holds for a contract a **library generates** rather than the code declaring — a tool or endpoint schema
 derived from a signature, a serializer's wire form, a generated client. Read the generator itself before the

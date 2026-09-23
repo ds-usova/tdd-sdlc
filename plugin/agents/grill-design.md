@@ -23,8 +23,9 @@ scope, requirements, scenarios and decisions. The linked files hold only the ext
 Then read, in this order:
 
 - `<module>/docs/conventions.md` for every module in **Affected Modules**, and the repo-root `docs/conventions.md`.
-- The closest existing feature end to end — its usecase, its adapters, its migration and its exception types.
-- `docs/adr/` — a decision already recorded there is an answer, not a question.
+- The closest existing feature end to end — its entry point, its logic, its storage and its errors.
+- The decision records, wherever the conventions index says they live — a decision already recorded there is an
+  answer, not a question.
 
 Never raise a finding against code that already handles the case.
 

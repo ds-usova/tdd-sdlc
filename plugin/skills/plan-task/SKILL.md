@@ -9,8 +9,8 @@ allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/plan/plan.sh *) Bash(bash ${CL
 When the user asks you to plan a task, write a step-by-step implementation plan to a file before starting work.
 
 **This skill decides structure and sequencing. It never decides behaviour.** Which classes exist, which layer each
-sits in, which ports they talk through, which test covers what, and in what order it all gets built — all of that is
-settled here. What the change *does*, including what it does about a failure, a duplicate request or a missing
+sits in, which boundaries they talk through, which test covers what, and in what order it all gets built — all of
+that is settled here. What the change *does*, including what it does about a failure, a duplicate request or a missing
 constraint, was settled by `design-task`. Anything this skill finds unsettled goes back there, never into this plan
 as a new question.
 
