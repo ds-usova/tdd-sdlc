@@ -258,7 +258,7 @@ One `Grilled (<date>): <grill>, <grill>` line, then one table:
 |---------|---------|-----|
 
 **One row per concern the grill owns, every time.** `grill-design` owns failure modes, idempotency & retry,
-concurrency, recovery, data, contract compat, lifecycle, authorization, observability, limits, business
+concurrency, recovery, data, contract compat, lifecycle, authorization, security, observability, limits, business
 invariants and stack-neutral. `grill-frontend` owns empty & extreme, default state, layout stability,
 consistency, colour system, motion, third-party UI, library reach, input & locale, person's state, reachability
 and stack-neutral. A concern that came out clear still gets its row — "no paging" is a verdict, and "one row per

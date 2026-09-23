@@ -90,7 +90,7 @@ BEGIN {
     if (files == "") files = 1
     nspecreq = split("## Objective,## Requirements,## Acceptance Scenarios,## Decisions,## Design Artifacts", specreq, ",")
     nlogreq = split("## Concerns,## Findings,## Decision Bases", logreq, ",")
-    ndc = split("failure modes,idempotency & retry,concurrency,recovery,data,contract compat,lifecycle,authorization,observability,limits,business invariants,stack-neutral", dconcern, ",")
+    ndc = split("failure modes,idempotency & retry,concurrency,recovery,data,contract compat,lifecycle,authorization,security,observability,limits,business invariants,stack-neutral", dconcern, ",")
     nfc = split("empty & extreme,default state,layout stability,consistency,colour system,motion,third-party ui,library reach,input & locale,person's state,reachability,stack-neutral", fconcern, ",")
     nsrc = split("c,cc,cpp,cxx,h,hh,hpp,hxx,ts,tsx,js,jsx,mjs,java,kt,py,go,rs,cs,rb,php,swift," \
                  "scala,dart,lua,ex,exs,erl,hrl,fs,fsx,vb,vue,svelte,astro,css,scss,html,xml," \

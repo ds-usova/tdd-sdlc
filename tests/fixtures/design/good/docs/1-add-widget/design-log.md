@@ -14,6 +14,7 @@ Grilled (2026-07-30): grill-design.
 | Contract compat     | additive                   | one new path                        |
 | Lifecycle           | deleted with its parent    | `ON DELETE CASCADE`                 |
 | Authorization       | any authenticated caller   | no per-resource ownership model     |
+| Security            | input bound, no secret     | bound parameters only               |
 | Observability       | the id and name at INFO    | `module-a/docs/conventions.md`      |
 | Limits              | no paging                  | one person's tree                   |
 | Business invariants | one name per parent        | DN01                                |

@@ -40,6 +40,7 @@ Grilled (2026-07-30): grill-design.
 | Contract compat     | additive                                          | one new path, no existing schema touched                                                   |
 | Lifecycle           | deleted with its parent                           | `ON DELETE CASCADE` (DF07)                                                                   |
 | Authorization       | any authenticated caller                          | DN07 — the module has no per-resource ownership model                                        |
+| Security            | no outside input reaches a query unbound          | the name is a bound parameter in every query; no secret added                                |
 | Observability       | the id, parent and name at INFO; refusals at WARN | `module-a/docs/conventions.md` (DF05)                                                        |
 | Limits              | no paging on the widget list                      | one person's tree, bounded by hand (DF09)                                                    |
 | Business invariants | one name per parent                               | DN01, the only rule the user stated                                                          |
