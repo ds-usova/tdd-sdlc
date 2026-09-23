@@ -13,7 +13,8 @@ repository's documentation conventions. The directory carries the number and the
 **Source:** <one line — the request, or the conventions entry that scheduled this run>
 **Baseline:** <the commit the suite was green at>
 **Surveyed with:** <what listed versions and what listed vulnerabilities, or `manifest + registry` / `none`>
-**Policy:** <the conventions' line on which versions are routine, or `open — chosen in Phase 2`>
+**Policy:** <the conventions' line on which versions are routine, or `open — chosen in Phase 2`> · <the minimum
+release age, or `any`>
 
 ## Survey
 
@@ -49,11 +50,13 @@ reaches Phase 4.
 - **One row per dependency that is behind or vulnerable.** A row per BOM, with the libraries it pins listed
   under it in `Dependency` as `└ name`.
 - **`Target`** is what this run moves to: the newest routine version under the policy, or the newest of all
-  where the policy is open. A row the user leaves unselected keeps its `Target` and its `Status` says why.
+  where the policy is open. Either way it is no younger than the minimum release age. A row the user leaves
+  unselected keeps its `Target` and its `Status` says why.
 - **`Vulnerabilities`** is the identifiers the scanner reported and the version that fixes each, or `—`.
 - **`Guide`** is a link, or `none found`.
 - **`Status`** is one of `proposed`, `deferred`, `not offered` (a major the policy keeps for its own story),
-  `done`, `kept back`, `blocked`. Written `proposed` at Phase 1, settled at Phase 2, finalized at Phase 4.
+  `too new` (no newer release is old enough), `done`, `kept back`, `blocked`. Written `proposed` at Phase 1,
+  settled at Phase 2, finalized at Phase 4.
 
 ### What changes
 

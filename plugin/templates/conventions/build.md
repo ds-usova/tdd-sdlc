@@ -38,6 +38,9 @@ any task only this module has.>`
 - Vulnerabilities (CVE scanner for dependencies): `<the scanner and how it runs — e.g. npm audit, pip-audit,
   ./gradlew dependencyCheckAnalyze (OWASP dependency-check); or "none — no scanner configured">`
 - Routine upgrades: `<which versions move without a decision — e.g. "patch and minor; a major is its own task"; or "any">`
+- Minimum release age: `<how old a release must be before it is proposed — e.g. 7 days; or "any">`
+- Lock-file integrity: `<the command that checks the lock file against its recorded hashes — e.g. npm ci,
+  pip install --require-hashes -r requirements.txt; or "none">`
 - Pinned on purpose: `<versions held back and why, one line each — e.g. kafka-clients 3.9.0, Debezium 3.1.1 needs it; or "none">`
 - Custom flow: `<a script or documented order that upgrades this module's dependencies; or "none">`
 

@@ -7,6 +7,8 @@ What a finished upgrade tells the user, once phase 4 is done.
 - **The survey after the run**: every row's `Status`.
 - **What listed versions and vulnerabilities**, and where the conventions were silent, what the stack could
   offer — a versions plugin, an audit command, a CVE scanner — as an option, not a recommendation made.
+- **Every release skipped as too new**, with its publish date and the minimum age.
+- **The lock-file integrity check**: its verdict, or that the conventions name none.
 - Each step, its kind, the versions it moved between, and the files it touched.
 - **Every kept-back change**, from the logs' Run Log — what the guide asked, what was tried, what would unblock
   it.

@@ -40,16 +40,26 @@ survey to it. **A path to an existing `upgrade.md` resumes it** under
 logs' `## Attempts` and `## Run Log` already settle.
 
 Read the repository-wide conventions and `<module>/docs/conventions.md` for every module named. Beyond the build and
-test commands, the cap on concurrent agents and the commit policy, they answer four questions this skill has no
+test commands, the cap on concurrent agents and the commit policy, they answer six questions this skill has no
 default for. Where they answer, the answer binds; where they are silent, the fallback in the table applies and the
 closing report says so.
 
-| Question                     | The conventions may say                 | Fallback where silent                    |
-|------------------------------|-----------------------------------------|------------------------------------------|
-| How dependencies are updated | a documented flow, script, or order     | the phases below                         |
-| What lists outdated versions | a plugin, script, or command            | the stack's tool, then read the registry |
-| What lists vulnerabilities   | a scanner and its command               | the stack's audit command, or none       |
-| Which versions are routine   | patch and minor; each major is separate | propose every newer version in Phase 2   |
+| Question                       | The conventions may say                 | Fallback where silent                    |
+|--------------------------------|-----------------------------------------|------------------------------------------|
+| How dependencies are updated   | a documented flow, script, or order     | the phases below                         |
+| What lists outdated versions   | a plugin, script, or command            | the stack's tool, then read the registry |
+| What lists vulnerabilities     | a scanner and its command               | the stack's audit command, or none       |
+| Which versions are routine     | patch and minor; each major is separate | propose every newer version in Phase 2   |
+| How old a release must be      | a minimum age, or any                   | ask, as below                            |
+| What checks the lock file      | an integrity command                    | not checked                              |
+
+**The minimum release age, where the conventions are silent, is asked before the survey.** Ask one
+`AskUserQuestion` with two questions:
+
+- the minimum age: 7 days (recommended), 14 days, or any;
+- write the answer into the conventions beside the other dependency facts (recommended), or ask on every run.
+
+Where the user chose to write it, write it before the survey.
 
 **A documented flow outranks everything on this page.** Where the conventions describe how the module updates
 its dependencies, follow that and use this skill for what it leaves unsaid.
@@ -86,6 +96,9 @@ answers for this commit is read, not repeated.
 **Survey.** Every declared dependency, its current version, the newest version its registry offers, and the
 newest the conventions call routine. Every known vulnerability the scanner reports, with its identifier and the
 version that fixes it. A dependency already at its newest gets no row.
+
+**Read each candidate's publish date from its registry.** What the minimum release age does to a row's `Target`
+and `Status` is [`the-files.md`](the-files.md), **Survey**.
 
 **Read the guides.** For every dependency proposed to move, find the release notes or migration guide covering
 the range from the current version to the target — the project's changelog, its `UPGRADING.md`, its
@@ -127,8 +140,8 @@ description. A dependency left unselected keeps its row in `## Survey` with `Sta
 step. A major the conventions call "its own story" is listed and not offered.
 
 Open Questions beyond that are rare: a guide that offers two migration paths, a vulnerability whose fix is only
-in a major. One more where an affected module has performance tests, found the way `plan-task` finds them
-(**Open Questions**): the question offers the module's whole set — rerun all, some, or none once the upgrade is
+in a major or only in a release too new. One more where an affected module has performance tests, found the way
+`plan-task` finds them (**Open Questions**): the question offers the module's whole set — rerun all, some, or none once the upgrade is
 in. Ask them in the same batch and write each answer in as `- A:`.
 
 **An upgrade turned down here** — every dependency deferred, or the user declining the run — gets
@@ -186,6 +199,9 @@ starts at its first unticked step.
 2. **The manifest says what the steps claimed.** Read the diff from `**Baseline:**` scoped to the affected
    modules: every version line it moves is a step's, and every source file it touches is named in a `migrate`
    step's `files:`. A version moved under no step is a defect whatever the suite says.
+   **The lock file moves only under the steps.** Every package its diff moves is a step's dependency or one it
+   pulls in. A package whose version stayed but whose recorded hash changed is a defect. Run the conventions'
+   lock-file integrity command; a failure blocks the archive.
 3. **Re-run the survey** with the same tools as Phase 1. Every row selected in Phase 2 now reads `done`,
    `kept back` or `blocked`, read off the ticks, the `abandoned` headers and the logs' `kept back` entries; the
    vulnerability list is empty of what the steps claimed to fix. Write the result into `## Survey`.
