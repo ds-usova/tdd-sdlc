@@ -90,7 +90,8 @@ the entry claims ([`findings.md`](../../templates/findings.md), **Measured, Not 
 reverted. Record the commit and, per module, the total and skipped counts, plus any machine state a skip depends
 on. **Name the disabled reproduction test beside them.** The closing gate expects the skipped count one lower
 than measured. Green, or red only on the test
-the report already names, is a baseline; anything else red stops the run. A whole-suite run that already answers
+the report already names, is a baseline; anything else red is
+[`red-baseline.md`](../../templates/red-baseline.md). A whole-suite run that already answers
 for this commit is read, not repeated.
 
 ## Phase 1 — Diagnose, and Write the Files

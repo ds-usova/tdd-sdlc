@@ -52,6 +52,8 @@ threshold in code and is red past it; it stays out of the suite the build runs.
   entry point as in production; or "none — the module has no non-HTTP entry points">`
 - Disabling a test: `<the mechanism, and the reason it must carry — e.g. @Disabled("<reason>") on the method;
   or "never — a failing test is fixed or deleted">`
+- Known unstable tests: `<tests that fail now and then and pass on a re-run, one per line with the error seen;
+  or "none">`
 
 ## Naming Conventions
 

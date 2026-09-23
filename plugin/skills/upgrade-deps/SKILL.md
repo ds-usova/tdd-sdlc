@@ -88,7 +88,8 @@ carries are listed under it.
 elsewhere is left alone.
 
 Full build and full suite of every affected module with its own commands. Green: record the commit and, per
-module, the total and skipped counts. Anything red: stop, change nothing, report. A whole-suite run that already
+module, the total and skipped counts. Anything red: [`red-baseline.md`](../../templates/red-baseline.md). A
+whole-suite run that already
 answers for this commit is read, not repeated.
 
 ## Phase 1 — Survey, Read the Guides, Write the Files
@@ -141,8 +142,8 @@ step. A major the conventions call "its own story" is listed and not offered.
 
 Open Questions beyond that are rare: a guide that offers two migration paths, a vulnerability whose fix is only
 in a major or only in a release too new. One more where an affected module has performance tests, found the way
-`plan-task` finds them (**Open Questions**): the question offers the module's whole set — rerun all, some, or none once the upgrade is
-in. Ask them in the same batch and write each answer in as `- A:`.
+`plan-task` finds them (**Open Questions**): the question offers the module's whole set — rerun all, some, or
+none once the upgrade is in. Ask them in the same batch and write each answer in as `- A:`.
 
 **An upgrade turned down here** — every dependency deferred, or the user declining the run — gets
 the header line `**Closed:** <why>` in `upgrade.md`; nothing is written to the log. It is left where it is

@@ -68,7 +68,7 @@ Run the full build and the entire suite of every affected module with its own co
 already answers for this commit is read, not repeated; that holds at every gate in this skill.
 
 - **Green**: record the commit.
-- **Anything red**: stop, change nothing, report the failures. Do not fix them.
+- **Anything red**: [`red-baseline.md`](../../templates/red-baseline.md).
 
 Nothing is written before this passes.
 

@@ -46,12 +46,9 @@ Two facts have no safe default:
 - build commands;
 - the test-type mapping.
 
-A run stops when either is missing. It continues on the documented default for every other absent fact.
-
-Two facts are the team's call, so a missing one is asked once and the answer is offered for the conventions:
-
-- what happens to a closed backlog entry;
-- how old a dependency release must be before `upgrade-deps` proposes it.
+A run stops when either is missing. A few facts are the team's call rather than the framework's, so a missing
+one is asked once and the answer is offered for the conventions. It continues on the documented default for every
+other absent fact.
 
 ---
 

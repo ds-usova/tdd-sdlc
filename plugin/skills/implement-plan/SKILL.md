@@ -92,8 +92,7 @@ and only then proceed.
 of every module the task's plans name. Use the commands from each module's conventions.
 
 - **Everything green**, the expected case: proceed.
-- **Anything already red**: stop immediately, before a file is touched. Report the failures — test name, error,
-  suspected cause — and wait. Do not fix them.
+- **Anything already red**: [`red-baseline.md`](../../templates/red-baseline.md).
 
 Record each module's run: `plan.sh suite record --stage baseline --total <n> --skipped <n> --verdict green
 <module paths> <plan>`, on every plan that module has. Each pipeline is handed its own module's total and

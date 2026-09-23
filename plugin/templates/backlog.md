@@ -34,7 +34,8 @@ from is its origin, and may be gone.
 to take the entry next.
 
 **An entry a run files is measured work.** It comes only from a findings entry that measured what it claims —
-[`findings.md`](findings.md)'s **Measured, Not Noticed** — or from a decision the user made mid-run. An
+[`findings.md`](findings.md)'s **Measured, Not Noticed** — from a baseline test that failed twice
+([`red-baseline.md`](red-baseline.md)), or from a decision the user made mid-run. An
 observation a run merely reported gets no entry.
 
 **An entry the user asks for is filed as the user states it.** Its origin is `user, <date>`. Ask for the kind
@@ -64,7 +65,8 @@ stands now. What does not hold is reported and the entry closed `withdrawn` — 
 - **Module** — the module the entry names; several, comma-separated, where it names several.
 - **Raised by** — `task <n>`, `fix <n>`, `rework <n>`, `upgrade <n>` or `user`, then the date.
 - **Origin** — a relative link from `docs/` to where the entry was written at the archived path: the findings
-  file, a `deferred` `DF` row in a design log, an answered `OQ` in a rework or fix file. None for a user entry.
+  file, a `deferred` `DF` row in a design log, an answered `OQ` in a rework or fix file. None for a user entry
+  or a red baseline test.
 - **The body** — copied from the origin, whole:
 
   | Kind                            | Body                                                              |
@@ -74,6 +76,7 @@ stands now. What does not hold is reported and the entry closed `withdrawn` — 
   | performance                     | `Test`, `Threshold`, `Measured`                                   |
   | a critical entry                | `Measured`, `Grows because`, `Breaks as`, `Test` for a bug, `Fix` |
   | a user entry                    | `What`, and `Why` where the user gave one                         |
+  | a red baseline test, a bug      | `Test`, `Error`, `Runs` — the verdict of the run and the re-run   |
 
 ## `docs/backlog.md`
 
