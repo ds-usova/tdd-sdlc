@@ -18,7 +18,7 @@ The orchestrator decides first, before anything is spawned.
 | a class this run creates or changes                  | this run's own defect     | a missing scenario: recorded in the Run Log, added to the plan  |
 | code this run never touches                          | a pre-existing bug        | reproduced below, then filed                                    |
 
-A run's own defect never becomes a backlog row. Where the run has no plan to add a scenario to, it is a
+A run's own defect never becomes a backlog entry. Where the run has no plan to add a scenario to, it is a
 blocker.
 
 ## The reproduction
@@ -33,7 +33,7 @@ and the method. A test that passes, or fails for another reason, is not a reprod
 nothing.
 
 **The disabled reason is the symptom in words.** Never a backlog id, a task number or a step id. The findings
-block names the test; the backlog row points at the block.
+block and the backlog entry name the test.
 
 ## What the orchestrator records
 
@@ -45,7 +45,7 @@ block names the test; the backlog row points at the block.
 ## What is filed
 
 The reproduced case becomes a **Bug** block in `review/findings.md`, with the test on its `Test` line
-([`findings.md`](findings.md)), and a `BB` row in `docs/backlog.md` ([`backlog.md`](backlog.md)). `fix-bug`
-starts from the row. Its `red` step enables the test.
+([`findings.md`](findings.md)), and a bug entry in the backlog ([`backlog.md`](backlog.md)). `fix-bug`
+starts from the entry. Its `red` step enables the test.
 
 Nothing is fixed by the run that found it. A pre-existing bug that blocks a step is a blocker like any other.

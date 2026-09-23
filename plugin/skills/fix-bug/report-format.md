@@ -12,7 +12,7 @@ What a finished fix tells the user. Point at the files; restate nothing they hol
 - **What a reader would not expect from the files** — a struck or re-classified step, an effect no revert undid,
   a defect found and not fixed, a guardrail that failed, a manual check the suite cannot cover — each pointing at
   the `RL` entry that records it. Nothing here means the line is left out.
-- **What was filed**: each backlog row by id and one clause, as [`backlog.md`](../../templates/backlog.md)'s
+- **What was filed**: each backlog entry by id and one clause, as [`backlog.md`](../../templates/backlog.md)'s
   **a record, not an offer** says.
 - **What the conventions' finished-work list did**, one line per entry.
 

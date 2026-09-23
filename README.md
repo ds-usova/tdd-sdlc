@@ -146,8 +146,9 @@ The name is not a coincidence. Every phase of development gets a skill, and ever
 Every line writes its files and stops for your approval before it touches code, and every line implements with
 one agent per module. `small-change` is the exception on both counts, and says so in its report: it stops only
 where a promise moves, spawns at most one agent, and never runs the full suite. A bug
-found on the way, a refactoring worth doing later, or a behaviour the change should also have had, becomes a
-row in `docs/backlog.md` — the input for the next `fix-bug`, `rework` or `design-task` run.
+found on the way, a refactoring worth doing later, or a behaviour the change should also have had, becomes an
+entry in the backlog — `docs/backlog.md`, your tracker, or nowhere if you turn it off — the input for the next
+`fix-bug`, `rework` or `design-task` run.
 
 <hr>
 

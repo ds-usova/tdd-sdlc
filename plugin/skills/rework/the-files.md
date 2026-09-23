@@ -30,7 +30,7 @@ and not resumed.
 
 **Format:** 2
 **Affected Modules:** `module-a`
-**Source:** <one line, a path not a link — a findings file and the row's number, a file, or the request>
+**Source:** <one line — a backlog entry's id, a file, or the request>
 **Baseline:** <the commit the suite was green at>
 
 ## The fix

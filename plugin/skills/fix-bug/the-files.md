@@ -25,7 +25,7 @@ agent.**
 
 **Format:** 2
 **Affected Modules:** `module-a`, `module-b`
-**Source:** <one line — a findings file and row, a report, an issue, or the request>
+**Source:** <one line — a backlog entry's id, a report, an issue, or the request>
 **Baseline:** <the commit, then per module: total, skipped, and any machine state a skip depends on>
 
 ## What happens

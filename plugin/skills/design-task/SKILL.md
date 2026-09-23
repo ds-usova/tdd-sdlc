@@ -1,6 +1,6 @@
 ---
 description: Settle a change before any plan exists — a spec the user signs, optional stack-neutral design artifacts, and a log of why. Runs the grill subagent, then puts only the genuinely open questions in front of the user.
-argument-hint: [ description of the feature or task to design, or a backlog id BT<nn> ]
+argument-hint: [ description of the feature or task to design, or a backlog entry's id ]
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/design/design.sh *)
 ---
 
@@ -10,7 +10,7 @@ Settle **what** the change does and **what it does when things go wrong**. Recor
 an answered decision.
 
 This skill produces a spec, a log and only the design artifacts the task needs. It then stops. The one exception
-is a withdrawal §1's measurement forces: the backlog row and the owning findings row's status. It writes no
+is a withdrawal §1's measurement forces: the backlog entry's status. It writes no
 checklist items, implementation tests or step IDs.
 
 | File | Reader | Holds |
@@ -29,12 +29,12 @@ those facts came from.
 
 ## 1. Create the Task Directory
 
-**A task started from a backlog `BT` row measures the row before the directory exists.** Read the row's owning
-findings entry and check its *why* against the code it names, in one pass over the whole class the claim
-generalizes over ([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**). What the measurement
-narrows narrows the task, and §4's **Objective** says what was measured. What it contradicts ends the run before
-anything is created: report it, set the owning findings row's `Status` to `withdrawn` with that clause, remove
-the `BT` row from `docs/backlog.md` in the same edit, and take no number.
+**A task started from a backlog entry measures the entry before the directory exists.** Check its *why* against
+the code it names, in one pass over the whole class the claim generalizes over
+([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**). What the measurement narrows narrows
+the task, and §4's **Objective** says what was measured. What it contradicts ends the run before anything is
+created: report it, close the entry `withdrawn` as [`backlog.md`](../../templates/backlog.md) says, and take no
+number.
 
 A task owns a directory under the repository-root `docs/`. Create it as `docs/<number>-<task-name>/` and write
 `spec.md`, `design-log.md` and any design artifacts indexed by the spec. Whatever else the task accumulates joins
@@ -69,12 +69,11 @@ repository facts that constrain the design.
 If a module has no conventions file, record a `must-decide` decision asking the user to run `init-conventions`.
 Never silently guess a module's conventions.
 
-**An open critical row in an affected module is asked about once, here.** Read the **Critical** table of
-`docs/backlog.md`. Keep the rows whose `Module` names an affected module. Where any remain, ask the user in one
-`AskUserQuestion`: take those rows first, or go on with this task. One question, whatever the count. Going on
-is not recorded anywhere. A row in a module this task does not touch is not asked about. A task started from a
-`BC` row is started the way its `Kind` says: `fix-bug` for a bug, `rework` for a refactoring candidate, this
-skill for a deferred change.
+**An open critical entry in an affected module is asked about once, here.** Read the backlog's open entries
+whose `Priority` is `critical` ([`backlog.md`](../../templates/backlog.md)). Keep those whose `Module` names an
+affected module. Where any remain, ask the user in one `AskUserQuestion`: take those entries first, or go on
+with this task. One question, whatever the count. Going on is not recorded anywhere. An entry in a module this
+task does not touch is not asked about.
 
 ## 3. Read What Already Exists
 
@@ -99,10 +98,10 @@ order.
 What needs to be achieved, and why it matters to whoever asked. A short paragraph. What it promises is the next
 section's; this one says why.
 
-**A task started from the backlog names its row.** Where the argument is a `BT<nn>` id, read the row in
-`docs/backlog.md` and the findings row it links; that row's *what* and *why* seed this paragraph **as §1's
-measurement left them**, never as the row wrote them. Its first line is `Closes BT<nn>`, which `implement-plan`
-reads to close the row when the task is archived.
+**A task started from the backlog names its entry.** Where the argument is a backlog entry's id, read the
+entry; its *what* and *why* seed this paragraph **as §1's measurement left them**, never as the entry wrote
+them. Its first line is `Closes <id>`, which `implement-plan` reads to close the entry when the task is
+archived.
 
 ### Requirements
 
@@ -361,9 +360,8 @@ Read the spec's **Decisions** section back after the grill has run and act on it
   corrected in the same edit.
 
 **An answer that rules something out of scope files it now.** Where the user's answer says a change is real
-and belongs to a later task, append a `BT` row to `docs/backlog.md` in the same edit. Its owner is the
-`deferred` **Findings** row this answer produces, and the `Where` column links to the design log
-([`backlog.md`](../../templates/backlog.md)).
+and belongs to a later task, file a deferred change in the backlog in the same edit. Its origin is the
+`deferred` **Findings** row this answer produces ([`backlog.md`](../../templates/backlog.md)).
 
 **An answer that adds a subject sends the task back through step 7 before step 9.** Picking between the options
 offered needs no second grill. An answer the artifacts did not contain — another migration, table or subject —

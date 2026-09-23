@@ -1,7 +1,7 @@
 ---
 description: Restructure code that already exists without changing what it does. Reads the code, writes a rework file with the edits at code level, stops for approval, then applies them — one agent per module, concurrently — against the suite that is already green.
 argument-hint: >-
-  [ a findings entry, a file or class, a description of what to change, or the path of an existing rework.md ]
+  [ a backlog entry's id, a findings entry, a file or class, a description of what to change, or the path of an existing rework.md ]
 allowed-tools: >-
   Bash(${CLAUDE_PLUGIN_ROOT}/scripts/rework/rework.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/rework/rework.sh *)
   Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *)
@@ -38,9 +38,9 @@ it moved.**
 
 ## Input Resolution
 
-The argument is a row from a task's `review/findings.md`, a file or class name, or a description. Each is a
-starting point; the scope comes from reading the code. **A path to an existing `rework.md` resumes it** under
-[`resuming.md`](../../templates/resuming.md), which replaces Phase 0 and Phase 1.
+The argument is a backlog entry's id, a row from a task's `review/findings.md`, a file or class name, or a
+description. Each is a starting point; the scope comes from reading the code. **A path to an existing
+`rework.md` resumes it** under [`resuming.md`](../../templates/resuming.md), which replaces Phase 0 and Phase 1.
 
 Read the repository-wide conventions and `<module>/docs/conventions.md` for every module the change reaches.
 They answer the build and test commands, the layering rule and what checks it, the diagram language, how a test
@@ -53,15 +53,16 @@ touched. All of it binds a step.
 **The affected modules are clean before anything is measured.** Uncommitted work under one: name the files and
 stop. Uncommitted work elsewhere is left alone.
 
-**A run started from a backlog `BR` row, or from a findings entry directly, measures it before the suite.** Check
+**A run started from a backlog entry, or from a findings entry directly, measures it before the suite.** Check
 the entry's *why* against the code it names, in one pass over the whole class it generalizes over
-([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**).
+([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**). A performance entry is measured by
+rerunning its test.
 
 - **It holds** — proceed; the measurement is the first line of `rework.md`'s context.
 - **It holds for fewer cases than it claims** — the scope is what the measurement found, and the file says so.
-- **It does not hold**, or the change it asks for would break what is already correct: report what was measured,
-  close the owning `RX` row as [`findings.md`](../../templates/findings.md) says, update the backlog as
-  [`backlog.md`](../../templates/backlog.md) says, and stop.
+- **It does not hold**, or the change it asks for would break what is already correct: report what was measured.
+  Close a backlog entry as [`backlog.md`](../../templates/backlog.md) says. Close a findings entry as
+  [`findings.md`](../../templates/findings.md) says. Stop.
 
 Run the full build and the entire suite of every affected module with its own commands. A whole-suite run that
 already answers for this commit is read, not repeated; that holds at every gate in this skill.
@@ -94,8 +95,8 @@ a step's files sit under recommended. The answer is read at the close.
 **Do not touch a source file until the user asks for the steps to be applied.** A step whose kind the user
 disputes is re-classified in the file first.
 
-**A change the user rules out of scope here is filed now.** Append a `BT` row to `docs/backlog.md`. Its owner
-is the answered `OQ` that records the decision ([`backlog.md`](../../templates/backlog.md)).
+**A change the user rules out of scope here is filed now**, as a deferred change in the backlog. Its origin is
+the answered `OQ` that records the decision ([`backlog.md`](../../templates/backlog.md)).
 
 **A rework that settles a decision worth recording asks here whether to record it**, as a numbered Open Question
 like any other. An answered `yes` is what authorizes the archiving pass to write it down. Most reworks settle
@@ -155,19 +156,13 @@ commits anywhere in this skill. Where they do commit, a step is committed after 
    module-first rule. **A rework files no refactoring candidates**; something worth doing later goes in the report,
    and the user decides whether it becomes a rework. **It may file a Deferred change**: a behaviour the code should
    have that this rework could not add. A rework with nothing open still gets the file.
-   Create and update it as [`findings.md`](../../templates/findings.md) says. **Every
-   critical block, bug block, `DX` row and `PX` row it files is appended to
-   `docs/backlog.md`** — a `BC` row per critical block, a `BB` row per bug, a `BT` row per deferred change, a
-   `BP` row per performance figure, each taking the next id in its table, in the shape
-   [`backlog.md`](../../templates/backlog.md) gives, with the link written to the archived path.
+   Create and update it as [`findings.md`](../../templates/findings.md) says. **File its open entries in the
+   backlog** as [`backlog.md`](../../templates/backlog.md) says.
 4. **Run `cost.sh report docs/<n>-<name>/`** and show the person what it printed. Refused or absent: say so and go on.
 5. **Then write `review/report.md`** as [`report.md`](../../templates/report.md) says. **Measured** holds what
-   item 3 ran; **Manual checks** holds every check the change needs a person to make. **A figure under an open
-   `BP` row's threshold closes that row** as [`findings.md`](../../templates/findings.md) says. Update the
-   backlog as [`backlog.md`](../../templates/backlog.md) says.
-6. **Close the row this rework came from.** Where `Source:` names a findings file and an `RX` row, close it as
-   [`findings.md`](../../templates/findings.md) says. Update the backlog as
-   [`backlog.md`](../../templates/backlog.md) says. An entry left open keeps its backlog row. Nothing here blocks.
+   item 3 ran; **Manual checks** holds every check the change needs a person to make.
+6. **Close the entry this rework came from**, where `Source:` names a backlog entry, as
+   [`backlog.md`](../../templates/backlog.md) says. Nothing here blocks.
 7. **Archive** once the closing gate is clean and `rework.sh status` reports every steps file ticked — a manual
    check open in `review/report.md` never blocks: move `docs/<n>-<name>/` into `docs/implemented/`, and commit
    the move where the conventions commit at all.

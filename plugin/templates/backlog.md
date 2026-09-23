@@ -1,103 +1,146 @@
 # The backlog
 
-`docs/backlog.md`, at the repository root of `docs/`: every critical entry, every bug still unfixed, every
-refactoring candidate, every deferred change and every performance figure past its threshold still open, across
-every archived task, fix, rework and upgrade, in five tables. A `fix-bug` starts from a bug row, a `rework` from
-a candidate row, a `design-task` from a deferred-change row. A performance row waits for a run that measures the
-test under its threshold. A critical row starts whichever of the three its kind says.
+Every piece of work still open across the repository: every critical entry, every bug still unfixed, every
+refactoring candidate, every deferred change and every performance figure past its threshold. A `fix-bug`
+starts from a bug entry. A `rework` starts from a refactoring candidate or a performance entry. A
+`design-task` starts from a deferred change.
 
-**A record, not an offer.** A run that files a row says "recorded, not started" and stops. It never proposes
-to take the row next.
+## Where it lives
 
-**Every row is measured work.** A row is appended only from an entry whose findings file measured what it claims
-— [`findings.md`](findings.md)'s **Measured, Not Noticed**. An observation a run merely reported gets no row
-here and no id.
+The repository's conventions name the place. There are three:
 
-**A row is measured once more by whoever starts from it**, before that run writes a file: the same pass, over
-the tree as it stands now. What does not hold is reported, its owner's status set to `withdrawn`, and the row
-removed — never worked.
+| Place                   | Filing                                      | Closing                                                   | Id                    |
+|-------------------------|---------------------------------------------|-----------------------------------------------------------|-----------------------|
+| `docs/backlog.md`       | a block under `## Open`, in the shape below | the block is removed, or kept as the conventions say      | `BB` `BR` `BT` `BP`   |
+| a tracker, such as Jira | an issue carrying the block's fields        | the tracker's closed state, and a comment with the status | the tracker's own key |
+| `none`                  | nothing                                     | nothing                                                   | none                  |
 
-**It holds pointers, never a second copy.** The owner holds the text, the status and the reasoning. The
-backlog carries one clause and a link. A row leaves the backlog when the owner closes it, by `done`,
-`withdrawn` or `wontfix`.
+The default is in [`contract.md`](conventions/contract.md).
 
-**The owner is usually a `review/findings.md`, and not always.** A deferred change decided mid-run is filed
-the moment the user decides it. Its owner is where the decision was written: a `deferred` `DF` row in a
-design log, an answered `OQ` in a rework or fix file, a `DN` entry. The `Where` column links there.
+**A tracker the session cannot reach files nothing.** The run's report lists each entry it could not file, in
+the block shape, and says why.
+
+**With `none`, nothing is filed.** The findings file and the logs are written as usual. The report says the
+backlog is off. A `fix-bug`, `rework` or `design-task` starts from a description only.
+
+**A tracker issue is never deleted.** It is closed with its status.
+
+## Rules
+
+**An entry carries its own text.** Everything a run needs to start from it is in the entry. The file it came
+from is its origin, and may be gone.
+
+**A record, not an offer.** A run that files an entry says "recorded, not started" and stops. It never proposes
+to take the entry next.
+
+**An entry a run files is measured work.** It comes only from a findings entry that measured what it claims —
+[`findings.md`](findings.md)'s **Measured, Not Noticed** — or from a decision the user made mid-run. An
+observation a run merely reported gets no entry.
+
+**An entry the user asks for is filed as the user states it.** Its origin is `user, <date>`. Ask for the kind
+where the user did not give it.
+
+**An entry is measured once more by whoever starts from it**, before that run writes a file, over the tree as it
+stands now. What does not hold is reported and the entry closed `withdrawn` — never worked.
+
+**Closing an entry edits the backlog only.** The file the entry came from is not touched.
 
 **No backlog id is written into the tree.** The rule is [`reproducing.md`](reproducing.md).
 
-**The backlog assigns the id.** A findings file numbers its candidates `RX01` upward, its deferred changes
-`DX01` upward and its performance rows `PX01` upward within itself and gives a bug or a critical entry no number
-at all. The backlog gives every row one id on append —
-`BC<nn>` for a critical entry, `BB<nn>` for a bug, `BR<nn>` for a refactoring candidate, `BT<nn>` for a deferred
-change, `BP<nn>` for a performance figure — each counted from 1 and never reused. That id is what a fix, a
-rework or a design is started from.
+## The fields
 
-Shape:
+- **Kind** — `bug`, `refactoring candidate`, `deferred change` or `performance`. It says which skill takes the
+  entry.
+- **Priority** — `critical`, `high`, `normal` or `low`. A critical findings entry files `critical`. Every other
+  entry files `normal`. The user changes it at any time.
+- **Size** — the filing run's estimate:
+
+  | Size | The work                                     |
+  |------|----------------------------------------------|
+  | `S`  | a few files in one module, no new test class |
+  | `M`  | one module, or a new test class              |
+  | `L`  | several modules, or a contract between them  |
+
+- **Module** — the module the entry names; several, comma-separated, where it names several.
+- **Raised by** — `task <n>`, `fix <n>`, `rework <n>`, `upgrade <n>` or `user`, then the date.
+- **Origin** — a relative link from `docs/` to where the entry was written at the archived path: the findings
+  file, a `deferred` `DF` row in a design log, an answered `OQ` in a rework or fix file. None for a user entry.
+- **The body** — copied from the origin, whole:
+
+  | Kind                            | Body                                                              |
+  |---------------------------------|-------------------------------------------------------------------|
+  | bug                             | `Given`, `When`, `Then`, `Actual`, `Test`, `Fix`                  |
+  | refactoring candidate, deferred | `What`, `Why`                                                     |
+  | performance                     | `Test`, `Threshold`, `Measured`                                   |
+  | a critical entry                | `Measured`, `Grows because`, `Breaks as`, `Test` for a bug, `Fix` |
+  | a user entry                    | `What`, and `Why` where the user gave one                         |
+
+## `docs/backlog.md`
 
 ```
 # Backlog
 
-Work still open: one row per critical entry, one per bug not yet fixed, one per `RX`, `DX` and `PX` row whose
-owner still says `open`. The owner holds the finding; this file only points at it. The `#` column is the id to
-name when starting a fix, a rework or a design — `BC<nn>` critical, `BB<nn>` bug, `BR<nn>` refactoring
-candidate, `BT<nn>` deferred change, `BP<nn>` performance — and it never changes once given.
+**Format:** 2
+**Last ids:** BB03 · BR01 · BT00 · BP00
 
-## Critical
+## Open
 
-| #    | Raised by | Module     | Kind     | What                                   | Where                                                 |
-|------|-----------|------------|----------|----------------------------------------|-------------------------------------------------------|
-| BC01 | task <n>  | `<module>` | <kind>   | <the block's heading, cut to a clause> | [findings](implemented/<n>-<task>/review/findings.md) |
+### BB03 · `<module>` — <the symptom or the what, in one line>
 
-## Bugs
+- **Kind** bug · **Priority** normal · **Size** S
+- **Raised by** task <n>, <date> · [origin](implemented/<n>-<task>/review/findings.md)
+- **Given** <the state the system is in>
+- **When** <what happens>
+- **Then** <what should follow>
+- **Actual** <what follows instead>
+- **Test** `<TestClass#method>`, disabled
+- **Fix** <the proposal> · `<class or file>`
 
-| #  | Raised by | Module     | What                                   | Where                                                 |
-|----|-----------|------------|----------------------------------------|-------------------------------------------------------|
-| BB01 | task <n>  | `<module>` | <the block's heading, cut to a clause> | [findings](implemented/<n>-<task>/review/findings.md) |
+## Closed
 
-## Refactoring candidates
+### BR01 · `<module>` — <the what, in one line>
 
-| #  | Raised by | Module     | What                              | Where                                                 |
-|----|-----------|------------|-----------------------------------|-------------------------------------------------------|
-| BR01 | task <n>  | `<module>` | <the row's what, cut to a clause> | [findings](implemented/<n>-<task>/review/findings.md) |
-
-## Deferred changes
-
-| #  | Raised by | Module     | What                              | Where                                                 |
-|----|-----------|------------|-----------------------------------|-------------------------------------------------------|
-| BT01 | task <n>  | `<module>` | <the row's what, cut to a clause> | [findings](implemented/<n>-<task>/review/findings.md) |
-
-## Performance
-
-| #    | Raised by | Module     | What                                      | Where                                                 |
-|------|-----------|------------|-------------------------------------------|-------------------------------------------------------|
-| BP01 | task <n>  | `<module>` | `<test>` · <threshold> · measured <figure> | [findings](implemented/<n>-<task>/review/findings.md) |
+- **Status** done · rework <n>
+- **Kind** refactoring candidate · **Priority** normal · **Size** M
+- ...
 ```
 
-- **#** — the backlog's own id, `BC<nn>`, `BB<nn>`, `BR<nn>`, `BT<nn>` or `BP<nn>`, one more than the highest in
-  its table.
-- **Raised by** — `task <n>`, `fix <n>`, `rework <n>` or `upgrade <n>`, the directory's number.
-- **Kind** — critical rows only: `bug`, `deferred change` or `refactoring candidate`. It says which skill takes
-  the row.
-- **Module** — the module the finding names; several, comma-separated, where it names several.
-- **What** — one clause: a bug's heading cut to a line, a candidate's or a deferred change's *what* cut to a
-  line, a performance row's test, threshold and figure; the case and the *why* stay with the owner.
-- **Where** — a relative link from `docs/` to the owning `findings.md`.
+**The id** is the kind's prefix — `BB` bug, `BR` refactoring candidate, `BT` deferred change, `BP` performance —
+and one more than that prefix's number on the `Last ids` line. The same edit raises the line. An id never
+changes and is never given twice.
 
-Rows are appended in the order they are filed and never renumbered; a closed row is removed, not struck through.
-A table with no rows keeps its heading and header line.
+**`## Open` is ordered by priority, then by id.** A changed priority moves the block.
 
-Who writes it:
+**A closed block's status** is `done · <run> <n>`, `done · directly`, `withdrawn · <what the measurement found>`
+or `wontfix · <why>`. The run's report names the block with it. What happens to the block, the conventions say:
 
-| Moment                                             | Who                       | Does                                                                                    |
-|----------------------------------------------------|---------------------------|-----------------------------------------------------------------------------------------|
-| a task's `review/findings.md` is written           | `implement-plan`, phase 3 | appends one `BB` row per bug block, one `BR` row per `RX` row, one `BT` row per `DX` row and one `BP` row per `PX` row |
-| a rework's `review/findings.md` is written         | `rework`, phase 3         | appends one `BB` row per bug block, one `BT` row per `DX` row and one `BP` row per `PX` row |
-| a fix's or an upgrade's `review/findings.md` is written | `fix-bug`, `upgrade-deps`, at the close | appends one `BP` row per `PX` row, beside the rows each already files |
-| a run measures a figure under an open `BP` row's threshold | `implement-plan`, `fix-bug`, `rework`, `upgrade-deps`, at the close | removes that `BP` row and sets the owner's status to `done · <run> <n>` |
-| a fix closes the bug it came from                  | `fix-bug`, step 10        | removes that `BB` row                                                                    |
-| a rework closes the row it came from               | `rework`, step 6          | removes that `BR` row; leaves it if the owner's status stays `open`                      |
-| a task closes the row its design came from         | `implement-plan`, phase 3 | removes that `BT` row and sets the owner's status to `done · task <n>`                   |
-| a person closes a row directly (`done · directly`, `wontfix`) | whoever set the status | removes the row                                                                  |
-| a run's opening measurement withdraws its row      | `fix-bug` and `rework`, phase 0; `design-task`, §1 | removes that row and sets the owner's status to `withdrawn` |
+| The conventions say          | The closed block                                                         |
+|------------------------------|--------------------------------------------------------------------------|
+| remove closed entries        | is removed                                                               |
+| keep closed entries          | moves to `## Closed`, newest first, with `Status` as its first line      |
+| nothing                      | waits for the question below                                             |
+
+**The conventions silent, ask before closing**, in one `AskUserQuestion` with two questions:
+
+- remove closed entries (recommended), or keep them under `## Closed`;
+- write the answer into the repository conventions beside the backlog's place (recommended), or ask each time.
+
+Close as answered. Where the user chose to write it, write it in the same edit.
+
+`## Closed` exists only where closed entries are kept.
+
+**A file without the `**Format:** 2` line is format 1.** It is never migrated. The first entry filed into it adds
+the format line, the `Last ids` line and `## Open` below the old tables. `Last ids` starts from the highest
+number each prefix already has in the file. A format-1 row is started from by its id like any other entry. Its
+origin link gives the text. Where that file is gone, say so and ask the user for the description. A format-1 row
+is closed by removing it.
+
+## Filing and closing
+
+**A run files every open entry of its findings file** once that file is written: each open critical block, bug
+block and table row becomes one backlog entry.
+
+**A run started from an entry closes it at its own close**, `done · <run> <n>`. A performance entry closes only
+on a figure under its threshold, measured at that close. Otherwise it stays open.
+
+**The user may file or close an entry at any time.** Close it `done · directly` or `wontfix · <why>`.

@@ -199,15 +199,11 @@ starts at its first unticked step.
    the manifest, the guide or the logs, never off a module agent's closing observation on its own (**Measured,
    Not Noticed**). A bug a module agent hit is reproduced first
    ([`reproducing.md`](../../templates/reproducing.md)). Create and update the file as
-   [`findings.md`](../../templates/findings.md) says. **Every
-   critical block, bug block, `DX` row and `PX` row it files is appended to
-   `docs/backlog.md`** — a `BC`, a `BB`, a `BT` or a `BP` row, the next id in its table,
-   the link written to the archived path ([`backlog.md`](../../templates/backlog.md)). **Run `cost.sh report
+   [`findings.md`](../../templates/findings.md) says. **File its open entries in the backlog**
+   as [`backlog.md`](../../templates/backlog.md) says. **Run `cost.sh report
    docs/<n>-<name>/`** and show the person what it printed. Refused or absent: say so and go on.
 6. **Then write `review/report.md`** as [`report.md`](../../templates/report.md) says. **Measured** holds what
-   item 5 ran; **Manual checks** holds every bump that changes runtime behaviour no test reaches. **A figure
-   under an open `BP` row's threshold closes that row** as [`findings.md`](../../templates/findings.md) says.
-   Update the backlog as [`backlog.md`](../../templates/backlog.md) says.
+   item 5 ran; **Manual checks** holds every bump that changes runtime behaviour no test reaches.
 7. **Archive** once `upgrade.sh status` reports no open step in any steps file: move `docs/<n>-<name>/`, logs
    included, into `docs/implemented/`, and commit the move where the conventions commit at all. A steps file
    with an `abandoned` step or a log with a `kept back` entry still archives; what it left is in

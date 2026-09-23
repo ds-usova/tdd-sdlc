@@ -1,7 +1,7 @@
 ---
 description: Fix a bug that already exists, across one module or several. Reproduces it with a test, diagnoses it, writes a fix file per module, stops for approval, then applies them — one sub-agent per module, concurrently — logging every approach that failed and why. Given an existing bug.md, resumes it without retrying what its log rules out.
 argument-hint: >-
-  [ a bug report, a failing test, a stack trace, a findings row, or the path of an existing bug.md ]
+  [ a bug report, a failing test, a stack trace, a backlog entry's id, or the path of an existing bug.md ]
 allowed-tools: >-
   Bash(${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/fix/fix.sh *)
   Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *) Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cost/cost.sh *)
@@ -72,20 +72,19 @@ elsewhere, and untracked leavings that are nobody's work, are named and left alo
   pair goes into `reproduces:`. The `red` step then runs until it has failed twice, giving up at three times that
   run count. The `green` step runs three times the runs the `red` step took, and passes every time.
 - **It does not reproduce here, and could.** Stop, say what was run and what happened, ask for the missing
-  condition. On a run started from a backlog `BB` row, the paragraph below decides first.
+  condition. On a run started from a backlog entry, the paragraph below decides first.
 - **It cannot reproduce here at all.** Stop, say what environment or data it needs. Whether to fix it blind is
   the user's call.
 
 **Never write a fix for a bug nobody has seen fail.**
 
-**A run started from a backlog `BB` row measures the row, not only the case it quotes** — one pass over the class
-the row claims ([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**).
+**A run started from a backlog entry measures the entry, not only the case it quotes** — one pass over the class
+the entry claims ([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**).
 
 - **It holds** — proceed; the reproduction is the measurement.
 - **It holds for fewer cases than it claims** — the diagnosis says what was measured, and `bug.md` scopes to it.
 - **It does not hold** — the class is mostly fine, or the behaviour it calls wrong is what the repository
-  promises: say what was measured, close the owning block as [`findings.md`](../../templates/findings.md) says,
-  update the backlog as [`backlog.md`](../../templates/backlog.md) says, and stop.
+  promises: say what was measured, close the entry as [`backlog.md`](../../templates/backlog.md) says, and stop.
 
 **Baseline.** Full build and full suite of every affected module, with the reproduction test disabled or
 reverted. Record the commit and, per module, the total and skipped counts, plus any machine state a skip depends
@@ -117,8 +116,8 @@ performance tests. Then one question lists them, found and read the way `plan-ta
 Questions**), the ones whose entry point the fix's path reaches recommended, and asks which to rerun once the
 fix is in. Ask them in one batch via `AskUserQuestion` and write each answer in as `- A:`.
 
-**A change the user rules out of scope here is filed now.** Append a `BT` row to `docs/backlog.md`. Its owner
-is the answered `OQ` that records the decision ([`backlog.md`](../../templates/backlog.md)). Nothing else is
+**A change the user rules out of scope here is filed now**, as a deferred change in the backlog. Its origin is
+the answered `OQ` that records the decision ([`backlog.md`](../../templates/backlog.md)). Nothing else is
 written about it.
 
 **A fix turned down here** gets `**Closed:** <why>` in `bug.md`'s header — who decided and on what, in that one
@@ -197,17 +196,12 @@ for every effect the revert did not undo, and nothing is archived.
    [`findings.md`](../../templates/findings.md) gives. A fix files **Critical**, **Bug** and **Performance** only.
    Every case the module agents reported is reproduced here, as [`reproducing.md`](../../templates/reproducing.md)
    says; a figure past its threshold is a **Performance** row. A fix with nothing open still gets the file.
-   Create and update it as [`findings.md`](../../templates/findings.md) says. **Every
-   critical block, bug block and `PX` row is appended to `docs/backlog.md`** — a `BC`, a
-   `BB` or a `BP` row, the next id in its table, the link written to the archived path.
+   Create and update it as [`findings.md`](../../templates/findings.md) says. **File its open entries in the
+   backlog** as [`backlog.md`](../../templates/backlog.md) says.
 8. **Run `cost.sh report docs/<n>-<name>/`** and show the person what it printed. Refused or absent: say so and go on.
 9. **Then write `review/report.md`** as [`report.md`](../../templates/report.md) says. **Measured** holds what
-   step 7 ran; **Manual checks** holds every check a module agent reported that the suite cannot cover. **A
-   figure under an open `BP` row's threshold closes that row** as
-   [`findings.md`](../../templates/findings.md) says. Update the backlog as
-   [`backlog.md`](../../templates/backlog.md) says.
-10. **Close the row this fix came from**, where `Source:` names a findings file. Close its block as
-   [`findings.md`](../../templates/findings.md) says. Update the backlog as
+   step 7 ran; **Manual checks** holds every check a module agent reported that the suite cannot cover.
+10. **Close the entry this fix came from**, where `Source:` names a backlog entry, as
    [`backlog.md`](../../templates/backlog.md) says.
 11. **Archive**: move `docs/<n>-<name>/` into `docs/implemented/`, and commit the move where the conventions
    commit at all.

@@ -186,11 +186,29 @@ Documentation, release notes and other long-lived artifacts follow the repositor
 
 ### Unfinished work
 
-Unfinished work gets one row in `docs/backlog.md`. This includes a discovered bug, deferred refactoring or
+Unfinished work gets one entry in the backlog. This includes a discovered bug, deferred refactoring or
 behaviour outside the approved design.
 
 The backlog outlives an archived task and feeds a later `fix-bug`, `rework` or `design-task` run. A task directory
 still under `docs/` is itself the record of an unfinished run.
+
+- **A self-contained entry**
+  - **Rule:** an entry carries its own text. Its origin file is a link, not the owner.
+  - **Why:** a user may delete an archived task or never keep it. A pointer would then lead nowhere.
+- **The place is a convention**
+  - **Rule:** the backlog is `docs/backlog.md`, a tracker, or off.
+  - **Why:** a team with a tracker should not keep a second list. A team without one should not be made to.
+- **Removed on close, numbered by a counter**
+  - **Rule:** a closed entry leaves `docs/backlog.md` unless the conventions keep it. A `Last ids` line numbers the
+    next entry. Silent conventions are asked once, and the answer is offered for the conventions.
+  - **Why:** the file should hold only open work. The run's report and git keep what closed. Without the counter,
+    removing the highest id would hand it out again.
+- **A performance entry closes by its own run**
+  - **Rule:** only the run started from it reruns the test and closes it.
+  - **Why:** closing on any run that happened to measure it taxed every close with a scan of all open entries.
+- **No migration**
+  - **Rule:** an old-format file keeps its rows. New entries go below in the new format.
+  - **Why:** rewriting a live backlog by hand is work nobody asked for.
 
 ### Reopening an archive
 
@@ -230,7 +248,7 @@ lands.
 | `WK` | rework step | `rework.md`, `steps.md` | file |
 | `UP` | upgrade step | `upgrade.md`, `steps.md` | file |
 | `RX` `DX` `PX` | refactoring, deferred work, performance | `review/findings.md` | task |
-| `BB` `BR` `BT` `BP` | backlog bug, rework, task, performance | `docs/backlog.md` | repository |
+| `BB` `BR` `BT` `BP` | backlog bug, refactoring, deferred change, performance | `docs/backlog.md` | repository |
 
 The commit-message hook refuses exactly these prefixes. Ordinary prose that only resembles an ID remains valid.
 

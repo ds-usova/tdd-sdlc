@@ -52,7 +52,7 @@ A fourth type has no red or green step:
   throughput, memory — against the threshold the spec states. A post-implementation step writes it and runs it
   once, after the refactor; another kind of step reruns a test that already exists, where you asked for a fresh
   figure. The figure is recorded beside the threshold, never gated on. A missed threshold is a **Performance**
-  row in the findings file and a row in `docs/backlog.md`.
+  row in the findings file and an entry in the backlog.
 
 Your module's testing conventions decide which parts of the code get which type, whether performance is
 measured and with what, and which model runs each step.
@@ -79,7 +79,7 @@ The feature workflow ends here. The run writes `review/report.md` into the task 
 was measured, what it cost, what is open, what a person still has to check, with a link to every file — and
 beside it `review/acceptance.md`: every scenario of the spec, and the test class in the tree that stands behind
 it — and `review/findings.md`: what it found and could not do — bugs, refactoring candidates, deferred changes
-— every row of which is appended to `docs/backlog.md`. The task directory moves to `docs/implemented/`, and
+— every row of which is filed in the backlog. The task directory moves to `docs/implemented/`, and
 whatever your module's conventions list as running after a change is run.
 
 Where this shape comes from and where it is going: [`strategy.md`](strategy.md) — the plugin's direction, not

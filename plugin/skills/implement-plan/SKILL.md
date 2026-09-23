@@ -185,19 +185,12 @@ When every pipeline has returned:
    from the pipelines' reports ([`findings.md`](../../templates/findings.md)). A figure under its threshold is
    not a row. The test itself stays in the tree either way.
 
-   **Every critical block, bug block, `RX`, `DX` and `PX` row it files is appended to `docs/backlog.md`**, one
-   pointer each, in the shape [`backlog.md`](../../templates/backlog.md) gives — a `BC` row per critical
-   block, a `BB` row per bug, a `BR` row per candidate, a `BT` row per deferred change, a `BP` row per
-   performance figure, each taking the next id in its table, with the link written to the archived path. The
-   findings file stays the row's owner.
+   **File its open entries in the backlog** as [`backlog.md`](../../templates/backlog.md) says.
 
-   **Close the row this task came from.** Where the spec's **Objective** names a backlog `BT` row, close the
-   owning `DX` row as [`findings.md`](../../templates/findings.md) says. Update the backlog as
-   [`backlog.md`](../../templates/backlog.md) says.
+   **Close the entry this task came from.** Where the spec's **Objective** opens with `Closes <id>`, close that
+   entry as [`backlog.md`](../../templates/backlog.md) says.
 4. **Write `review/report.md`**, last, as [`report.md`](../../templates/report.md) says. Its **Done** and
-   **Measured** rows come from the pipelines' reports. **A figure under an open `BP` row's threshold closes that
-   row** as [`findings.md`](../../templates/findings.md) says. Update the backlog as
-   [`backlog.md`](../../templates/backlog.md) says.
+   **Measured** rows come from the pipelines' reports.
 5. **Archive**, on exit 0 from `plan.sh task` and on nothing else: move the **whole task directory** — every
    `plan.md` and its `plan-log.md`, the `spec.md` they link, its design artifacts and `design-log.md`,
    `review/`, and anything else the task accumulated — into `docs/implemented/`. Move the directory, not the

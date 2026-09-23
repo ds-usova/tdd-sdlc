@@ -115,11 +115,13 @@ absence. Three outcomes occur in the tables. They differ in when the gap is foun
 
 Rules that bind every module belong to the repository index, `docs/conventions.md`, and a module page links
 there instead of repeating them. Two facts above usually live there: the commit policy, because a repository has
-one history, and the cap across all modules, because one machine runs them all. One fact lives only there:
+one history, and the cap across all modules, because one machine runs them all. Three facts live only there:
 
-| Fact                                         | Who reads it                                            | Absent                                                               |
-|----------------------------------------------|---------------------------------------------------------|----------------------------------------------------------------------|
-| How documents in this repository are written | `init-conventions`, `fix-bug`, `rework`, `upgrade-deps` | labelled lists, one-line bullets, a table for a rule with conditions |
+| Fact                                                                                     | Who reads it                                            | Absent                                                               |
+|------------------------------------------------------------------------------------------|---------------------------------------------------------|----------------------------------------------------------------------|
+| How documents in this repository are written                                             | `init-conventions`, `fix-bug`, `rework`, `upgrade-deps` | labelled lists, one-line bullets, a table for a rule with conditions |
+| **The backlog**: `docs/backlog.md`, a tracker and how an entry is filed there, or `none` | `design-task`, the close of a run                       | `docs/backlog.md`                                                    |
+| Whether `docs/backlog.md` removes or keeps a closed entry                                | the close of a run                                      | asked, as [`backlog.md`](../backlog.md) says                         |
 
 ## The minimum
 

@@ -70,7 +70,7 @@ performance is not measured`, `Nothing open`, `No manual checks`.
   module agent reported that the suite cannot cover; a bump that changes runtime behaviour no test reaches. The
   block is a defect block without `Actual` and without `Fix`. **`Then` states one observable.** A check that
   needs three is three blocks. The tick rides on the heading. A manual check never blocks archiving and never
-  gets a backlog row.
+  gets a backlog entry.
 
 **Write it last, before archiving**, once `findings.md` and `cost.md` exist, so every link and every count is
 read off a file. The links are relative and survive the move to `docs/implemented/`.
