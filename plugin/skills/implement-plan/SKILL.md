@@ -98,6 +98,10 @@ Record each module's run: `plan.sh suite record --stage baseline --total <n> --s
 <module paths> <plan>`, on every plan that module has. Each pipeline is handed its own module's total and
 skipped counts.
 
+**A plan a previous run left part-done** already has a `baseline` entry in its log's `## Suite Runs`. A failing
+test whose red item is ticked and whose green item is not is expected red. It is not a baseline failure. Anything
+else red goes to `red-baseline.md`. Record no new baseline; hand the pipeline the recorded figures.
+
 **No pipeline repeats either gate.**
 
 **A measurement is not repeated over an unchanged tree.** Before a guardrail runs a module's full suite, it
