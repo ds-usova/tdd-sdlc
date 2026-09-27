@@ -16,10 +16,11 @@ Apply one steps file, start to finish, in ID order.
   anything changed — and what `shared/steps.md` already disabled in your module, which sits on top of them;
 - **`rework.md`** — the fix, what the code does now, the structure, and what must stay true.
 
-**Read before the first step**: `applying-a-step.md` and `step-format.md` in the `rework` skill directory, and
-your module's `docs/conventions.md` with the repository-wide conventions it extends. They are the source of truth
-for the build command, the test commands, the layering check, how a test is disabled, what runs before a commit,
-and the commit policy. Never guess a build command.
+**Read before the first step**: `applying-a-step.md` and `step-format.md` in the `rework` skill directory,
+`applying-steps.md` in the `templates` directory beside the skills, and your module's `docs/conventions.md` with
+the repository-wide conventions it extends. They are the source of truth for the build command, the test
+commands, the layering check, how a test is disabled, what runs before a commit, and the commit policy. Never
+guess a build command.
 
 **The baseline was measured above you; do not repeat it.** Every guardrail in a step runs each time it is
 reached.
@@ -37,13 +38,7 @@ as a plugin, under `.claude/` in a plain checkout — README beside it, and is h
 | Leave it open, record why | `rework.sh block WK01 "<reason>" --file <steps>` — the log's next `RL`    |
 | Check the grammar         | `rework.sh validate --file <steps>` — reads the log too                 |
 
-**Name your file on every call.** The log is found beside it; `--log` names another. **Read a step from
-`rework.sh show`**, never by extracting it by hand. **Tick a step only once you have verified it yourself.**
-Where the script is absent or the call is refused — by a hook or by the user at the prompt — edit the file
-directly under the same rules, write the log's **Caveats** entry and put the case as one line in your final
-report, as [`scripts/README.md`](../scripts/README.md) says; never stop for it.
-
-**Run a suite in the foreground and wait for it.** Never background it.
+How you use it is `applying-steps.md`, **The script**. `--log` names another log.
 
 **A resumed run starts at the first unticked step**, from its own beginning, having read the log's Run Log
 first: an `RL` entry with its `Resolved:` filled is a decision already made, and an abandoned step is skipped.
@@ -53,9 +48,7 @@ first: an `RL` entry with its `Resolved:` filled is a decision already made, and
 Steps in ID order. A step whose `needs:` names an unticked step is skipped and returned to once that step is
 ticked; a cycle is reported, not resolved.
 
-**After every step**: whatever the conventions require before a commit, `rework.sh tick <ID>`, and — where the
-conventions commit — commit the steps file with the paths that step named. Follow what the commit policy says
-about scoping and about a concurrent commit. Report a refusal it does not cover rather than retrying.
+**After every step**: as `applying-steps.md` says.
 
 **After the last step**: the module's whole suite is green, and nothing in any `disables:` is still off.
 
@@ -94,8 +87,7 @@ you need.
 - **An invariant in `rework.md`'s What must stay true that a step would break.**
 - **The cause is outside your module.** Name where. Never edit another module, never widen a step to reach one.
 
-**A failure on a code path this rework never touched, or clearly environmental, is reported with enough detail
-to reproduce, not treated as a step failure.** A test this rework broke is never unrelated.
+**A failure that is not the step's** is `applying-steps.md`'s.
 
 ## Out of Scope
 
@@ -104,7 +96,6 @@ to reproduce, not treated as a step failure.** A test this rework broke is never
 - **Any module but the one your file names** — except a `shared/steps.md`, whose modules are all of them.
 - **The refactor round, `review/findings.md` and archiving** — the level above's, over the whole diff.
 - **A page a `docs:` line names.**
-- **A second defect you find along the way.** Report it; never fix it.
 
 ## What To Report
 

@@ -57,8 +57,7 @@ over finished work. Every tier binds a step.
 
 **Given the path of an existing `bug.md`, [`resuming.md`](resuming.md) replaces this phase and Phase 1.**
 
-**The affected modules are clean.** Uncommitted work under one of them: name the files and stop. Uncommitted work
-elsewhere, and untracked leavings that are nobody's work, are named and left alone.
+**The affected modules are clean**, as [`baseline.md`](../../templates/baseline.md) says.
 
 **Reproduce the bug.** Run what the report describes — the test, the request, the command.
 
@@ -78,21 +77,13 @@ elsewhere, and untracked leavings that are nobody's work, are named and left alo
 
 **Never write a fix for a bug nobody has seen fail.**
 
-**A run started from a backlog entry measures the entry, not only the case it quotes** — one pass over the class
-the entry claims ([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**).
+**A run started from a backlog entry measures the entry, not only the case it quotes**, as
+[`backlog.md`](../../templates/backlog.md) says. Where it holds, the reproduction is the measurement.
 
-- **It holds** — proceed; the reproduction is the measurement.
-- **It holds for fewer cases than it claims** — the diagnosis says what was measured, and `bug.md` scopes to it.
-- **It does not hold** — the class is mostly fine, or the behaviour it calls wrong is what the repository
-  promises: say what was measured, close the entry as [`backlog.md`](../../templates/backlog.md) says, and stop.
-
-**Baseline.** Full build and full suite of every affected module, with the reproduction test disabled or
-reverted. Record the commit and, per module, the total and skipped counts, plus any machine state a skip depends
-on. **Name the disabled reproduction test beside them.** The closing gate expects the skipped count one lower
-than measured. Green, or red only on the test
-the report already names, is a baseline; anything else red is
-[`red-baseline.md`](../../templates/red-baseline.md). A whole-suite run that already answers
-for this commit is read, not repeated.
+**Baseline**, as [`baseline.md`](../../templates/baseline.md) says, with the reproduction test disabled or
+reverted. Record beside the figures any machine state a skip depends on. **Name the disabled reproduction test
+beside them.** The closing gate expects the skipped count one lower than measured. Red only on the test the
+report already names is still a baseline.
 
 ## Phase 1 — Diagnose, and Write the Files
 
@@ -113,16 +104,17 @@ Present the files and stop. Nothing touches a source file until the user asks fo
 
 **Open Questions are rare here.** One is written only where the diagnosis needs a call the user must make, or
 where the fix settles a decision worth an ADR under the Follow-Up conventions, or where an affected module has
-performance tests. Then one question lists them, found and read the way `plan-task` finds them (**Open
-Questions**), the ones whose entry point the fix's path reaches recommended, and asks which to rerun once the
-fix is in. Ask them in one batch via `AskUserQuestion` and write each answer in as `- A:`.
+performance tests. That module gets the question `plan-task` asks (**Open Questions**), the tests whose entry
+point the fix's path reaches recommended. Ask them in one batch via `AskUserQuestion` and write each answer in as
+`- A:`.
 
 **A change the user rules out of scope here is filed now**, as a deferred change in the backlog. Its origin is
 the answered `OQ` that records the decision ([`backlog.md`](../../templates/backlog.md)). Nothing else is
 written about it.
 
 **A fix turned down here** gets `**Closed:** <why>` in `bug.md`'s header — who decided and on what, in that one
-line — is left where it is, and is reported as closed. The disabled reproduction test is reverted.
+line — is left where it is, and is reported as closed. The disabled reproduction test is reverted. **A fix called
+off later** takes the same line. An effect nothing reverted is an `RL` entry in `bug-log.md`'s Run Log.
 
 ## Phase 3 — Apply
 
@@ -147,26 +139,15 @@ exhausted budget is a blocked return.
 **An agent that returns blocked changes the plan, not the rules.** It returns for one of: an exhausted budget
 after escalation, a symptom that survives a correct `green` step, a cause in another module, a step whose kind is wrong,
 a test asserting the old behaviour that nobody foresaw, or a refusal from [`applying-a-step.md`](applying-a-step.md).
-The return itself is an `RL` entry in that fix's log — the agent wrote it, or `fix.sh block` does — and the
-question it needs answered is an `OQ` under the fix file's `## Open Questions`. Wait for the module's agent to
-return, amend `bug.md` and the fix files — a new `red`/`green` pair moves whole, a struck step keeps its row and
-its checklist bullet with `abandoned — <why>` on the header, an ID is never reused — say what was amended as a
-`RL` note in the log, re-run `fix.sh validate`, and **stop for approval again as in Phase 2**. Then re-spawn that
-module's agent; it starts at its first unticked step. An abandoned step is closed: `fix.sh task` counts it so.
-
-**A fix the user calls off** is reverted step by step, newest first, in the skill and never in an agent, until
-every module's suite is back at its baseline figures. A revert that conflicts stops and reports. The directory
-stays with its logs intact, `bug.md` takes its `**Closed:**` line, `bug-log.md`'s Run Log takes an `RL` entry
-for every effect the revert did not undo, and nothing is archived.
+The return itself is an `RL` entry in that fix's log — the agent wrote it, or `fix.sh block` does. What follows
+is [`templates/sub-agents.md`](../../templates/sub-agents.md), **A blocked return**; the files it amends include
+`bug.md`, and a new `red`/`green` pair moves whole. An abandoned step is closed: `fix.sh task` counts it so.
 
 ### What Is Never Done
 
-- A test is never deleted or weakened to make a step green. A `stabilize` step may disable one, and a `red` step
-  clears it.
-- A second defect found along the way is never fixed here. It is reported as a case and reproduced at Phase 4
-  ([`reproducing.md`](../../templates/reproducing.md)).
-- Nothing outside the steps is improved because it was nearby.
-- An approach that failed is never dropped in silence.
+[`templates/applying-steps.md`](../../templates/applying-steps.md), **What is never done**, binds this session
+too. A second defect found along the way is reproduced at Phase 4
+([`reproducing.md`](../../templates/reproducing.md)).
 
 ## Phase 4 — Finish
 
@@ -196,9 +177,8 @@ for every effect the revert did not undo, and nothing is archived.
    figure beside its threshold for the report. Then **write `review/findings.md`**, in the shape
    [`findings.md`](../../templates/findings.md) gives. A fix files **Critical**, **Bug** and **Performance** only.
    Every case the module agents reported is reproduced here, as [`reproducing.md`](../../templates/reproducing.md)
-   says; a figure past its threshold is a **Performance** row. A fix with nothing open still gets the file.
-   Create and update it as [`findings.md`](../../templates/findings.md) says. **File its open entries in the
-   backlog** as [`backlog.md`](../../templates/backlog.md) says.
+   says; a figure past its threshold is a **Performance** row. Create and update it as
+   [`findings.md`](../../templates/findings.md) says. **File its open entries in the backlog** as [`backlog.md`](../../templates/backlog.md) says.
 8. **Run `cost.sh report docs/<n>-<name>/`** and show the person what it printed. Refused or absent: say so and go on.
 9. **Then write `review/report.md`** as [`report.md`](../../templates/report.md) says. **Measured** holds what
    step 7 ran; **Manual checks** holds every check a module agent reported that the suite cannot cover.
@@ -211,9 +191,8 @@ for every effect the revert did not undo, and nothing is archived.
 
 ## Version Control
 
-Whether and how this run commits is the conventions' commit policy, at the tier that binds every
-module. Missing or silent means no commits. Several module agents commit into one history at once; follow what
-the rules say about scoping and about a concurrent commit, and report a refusal they do not cover.
+Commit as the conventions' commit policy says; where they state none, as
+[`contract.md`](../../templates/conventions/contract.md) says.
 
 ## Report
 

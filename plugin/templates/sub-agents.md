@@ -89,6 +89,20 @@ reason, six at most. Nothing is tried after that.
 This applies to every step agent and the stabilization agent in a pipeline, and to the module agents of a fix,
 a rework and an upgrade. A module agent's **Attempts** section is the log the escalated agent reads.
 
+## A blocked return
+
+What a fix, a rework or an upgrade does when a module agent returns blocked. Its question is an `OQ` in its
+steps file; the return is an `RL` entry in its log. Wait for the agent to return before touching either file.
+
+- **Something was missed** — a step of the wrong kind, a file or call site no step names, a step missing: amend
+  the files.
+- **The user's call** — a test asserting behaviour no step names, a change the approved files rule out: ask it via
+  `AskUserQuestion`, write the answer as the `OQ`'s `- A:`, then amend the files.
+
+Each amendment is an `RL` note in the log. A struck step keeps its row with `abandoned — <why>` on its header; an
+ID is never reused. Fill the return's `Resolved:`, run the skill's `validate` until it exits 0, and re-spawn the
+agent. It starts at its first unticked step. No second approval is asked.
+
 ## Reporting back
 
 **What you ran and what you noticed are two lists, and the report keeps them apart.** Everything you exercised —

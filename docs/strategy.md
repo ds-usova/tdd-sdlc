@@ -126,7 +126,8 @@ instead of one exhaustive graph to skip.
 ### Other workflows
 
 Rework, bug-fixing and upgrades combine planning and execution in one skill. Each writes its steps, stops for
-approval and then applies them.
+approval and then applies them. A blocked step amends the steps without a second approval: steps are for the
+model, and only a question the user owns goes back to them.
 
 Their starting safety net is a green suite. A bug fix also owes a test that fails on the symptom before the fix.
 Bug fixes and upgrades preserve every failed attempt, so a stopped run leaves a useful record.

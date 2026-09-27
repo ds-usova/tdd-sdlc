@@ -17,10 +17,10 @@ Apply one steps file, start to finish, in ID order.
 - **`upgrade.md`** — the survey, what changes, and the policy.
 
 **Read before the first step**: `applying-a-step.md` and `step-format.md` in the `upgrade-deps` skill directory,
-`attempts.md` in the `templates` directory beside the skills, and your module's `docs/conventions.md` with the repository-wide
-conventions it extends. They are the source of truth for the build command, the test commands, how the lock file
-is regenerated, the architecture check, what runs before a commit, and the commit policy. Never guess a build
-command.
+`applying-steps.md` and `attempts.md` in the `templates` directory beside the skills, and your module's
+`docs/conventions.md` with the repository-wide conventions it extends. They are the source of truth for the build
+command, the test commands, how the lock file is regenerated, the architecture check, what runs before a commit,
+and the commit policy. Never guess a build command.
 
 **The baseline was measured above you; do not repeat it.** Every guardrail in a step runs each time it is
 reached.
@@ -39,22 +39,15 @@ the files:
 | Leave a step blocked    | `upgrade.sh block UP01 "<why>" --file <steps>` |
 | Check both files' shape | `upgrade.sh validate --file <steps>`          |
 
-**Name your file on every call.** The log is found beside it. **Read a step from `upgrade.sh show`**, never by
-extracting it by hand. **Tick a step only once you have verified it yourself.** Run `validate` after every
-attempt or run-log entry you write. Where the script is absent or the call is refused — by a hook or by the
-user at the prompt — edit the files directly under the same rules, write the log's **Caveats** entry and put the
-case as one line in your final report, as [`scripts/README.md`](../scripts/README.md) says; never stop for it.
+How you use it is `applying-steps.md`, **The script**. Run `validate` after every attempt or run-log entry you
+write.
 
 ## The Sequence
 
 Steps in ID order. A step whose `needs:` names an unticked step is skipped and returned to once that step is
 ticked; a cycle is reported, not resolved.
 
-**Run a suite in the foreground and wait for it.** Never background it.
-
-**After every step**: whatever the conventions require before a commit, tick the step, and — where the
-conventions commit — commit the steps file with the paths that step named. Follow what the commit policy says
-about scoping and a concurrent commit. Report a refusal it does not cover rather than retrying.
+**After every step**: as `applying-steps.md` says.
 
 **After the last step**: the module's whole suite is green, at the baseline's total and skipped counts.
 
@@ -97,8 +90,7 @@ revert the step it concerns, then return and say what you need.
 - **A test asserting the old behaviour.** Name the test and the assertion; never edit it.
 - **A step abandoned.**
 
-**A failure on a code path the dependency never reaches, or clearly environmental, is reported with enough
-detail to reproduce, not treated as a step failure.**
+**A failure that is not the step's** is `applying-steps.md`'s.
 
 ## Out of Scope
 
@@ -107,7 +99,6 @@ detail to reproduce, not treated as a step failure.**
 - **Any module but the one your file names** — except a `shared/steps.md`, whose modules are all of them.
 - **Adding, removing or replacing a dependency.**
 - **`review/findings.md`, the closing survey and archiving** — the level above's.
-- **A defect you find along the way.** Report it; never fix it.
 
 ## What To Report
 

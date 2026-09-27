@@ -24,7 +24,6 @@ modules genuinely commit differently, answers here.
   or "<Prefix>: <description>" with the prefixes listed>`
 - Message body: `<e.g. usually none — the subject carries the change and the diff carries the detail; never a file
   list or a test count>`
-- Squash before merging: `<e.g. "no — keep the full history">`
 - Concurrent commits: `<what a commit covers when another module may be mid-flight in the same tree, and what to
   do when one is refused because of it — e.g. "name the module's own paths; retry once if the index is locked">`
 

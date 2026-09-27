@@ -1,8 +1,8 @@
 # Applying one step
 
 What each kind of step edits, what it runs, and when it refuses. Read beside the step itself, which
-`rework.sh show <ID>` prints. The sequence around a step — the validate gate, the commit, what is never done — is
-the skill's.
+`rework.sh show <ID>` prints. The sequence around a step is the `rework-module` agent's. What is never done is
+[`applying-steps.md`](../../templates/applying-steps.md).
 
 | Kind        | Edit                                                                               | Then run                                                                                                  |
 |-------------|------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
@@ -67,24 +67,24 @@ signature, the disabled test — is `stabilizing.md` in the `templates` director
 - **`inline` needing more than a mechanical test edit** is not `inline`.
 - **`extract` whose body cannot move unrewritten** is not `extract`. A connection, a transaction or a lock the
   original held across its statements travels with the body, passed in rather than acquired again, and the step
-  stays an `extract`. Where even that is impossible, stop and put it to the user. Never re-acquire the resource
+  stays an `extract`. Where even that is impossible, stop and return blocked. Never re-acquire the resource
   inside the new class.
 - **`tests` with a scenario it cannot find running again** dropped it, and it is restored before anything else.
 - **`pin` that survives its own mutation** pins nothing. A `pin` that only drops something has no mutation, and
   this does not apply to it.
 
-Each of these reverts the step and puts it back to the user, re-classified or repaired.
+Each of these reverts the step and returns it to the level above, to be re-classified or repaired.
 
 ## Three things look like refusals and are not
 
 - **A step whose run is red for a reason other than its own claim** is waiting on what its `needs:` names. It is
-  not finished, it does not commit, and it is not put back to the user either.
+  not finished, it does not commit, and it is not returned either.
 - **A `stabilize` that finds a call site its `files:` does not name** widens the line in its steps file, writes
   an `RL` entry in the log's Run Log naming the path added, and says so in the report. It never widens into a
   behaviour change: the new site keeps its logic and takes a `TODO`.
 - **A `pin` whose new check reds a file the step does not name** widens the line the same way, with the same
   `RL` entry, and reports it.
 
-Each refusal above, once put to the user, is a blocked return: `rework.sh block <ID> "<why>"` writes its `RL`
+Each refusal above is a blocked return: `rework.sh block <ID> "<why>"` writes its `RL`
 entry, and the question goes under the steps file's `## Open Questions`. A step given up on after that keeps
 its row with `abandoned — <why>` on its header and an `RL` entry saying so.

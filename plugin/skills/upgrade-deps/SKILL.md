@@ -84,13 +84,7 @@ carries are listed under it.
 
 ## Phase 0 — Baseline
 
-**The affected modules are clean.** Uncommitted work under one: name the files and stop. Uncommitted work
-elsewhere is left alone.
-
-Full build and full suite of every affected module with its own commands. Green: record the commit and, per
-module, the total and skipped counts. Anything red: [`red-baseline.md`](../../templates/red-baseline.md). A
-whole-suite run that already
-answers for this commit is read, not repeated.
+A clean tree and a baseline run, as [`baseline.md`](../../templates/baseline.md) says.
 
 ## Phase 1 — Survey, Read the Guides, Write the Files
 
@@ -141,9 +135,9 @@ description. A dependency left unselected keeps its row in `## Survey` with `Sta
 step. A major the conventions call "its own story" is listed and not offered.
 
 Open Questions beyond that are rare: a guide that offers two migration paths, a vulnerability whose fix is only
-in a major or only in a release too new. One more where an affected module has performance tests, found the way
-`plan-task` finds them (**Open Questions**): the question offers the module's whole set — rerun all, some, or
-none once the upgrade is in. Ask them in the same batch and write each answer in as `- A:`.
+in a major or only in a release too new. One more where an affected module has performance tests: the question
+`plan-task` asks (**Open Questions**), every test recommended. Ask them in the same batch and write each answer
+in as `- A:`.
 
 **An upgrade turned down here** — every dependency deferred, or the user declining the run — gets
 the header line `**Closed:** <why>` in `upgrade.md`; nothing is written to the log. It is left where it is
@@ -179,20 +173,17 @@ what was reverted, and the survey row says `Status: blocked`. Every attempt on t
 
 **An agent that returns blocked changes the plan, not the rules**: it returns for a step whose kind is wrong, a
 change the guide asks for that lands in another module, a test asserting the old behaviour that nobody foresaw,
-or a refusal from [`applying-a-step.md`](applying-a-step.md). Its question is an `OQ` in its steps file's
-`## Open Questions`; the return itself is an `RL` entry in its log's `## Run Log`, and whoever settles it fills
-that entry's `Resolved:`. Amend the files — each amendment a step widened, a kind re-classified, a `change:`
-added gets an `RL` note of its own — stop for approval again as in Phase 2, re-spawn that module's agent; it
-starts at its first unticked step.
+or a refusal from [`applying-a-step.md`](applying-a-step.md). What follows is
+[`templates/sub-agents.md`](../../templates/sub-agents.md), **A blocked return**. A test that asserts a behaviour
+the new version changed is the user's: whether the assertion or the version moves.
 
 ### What Is Never Done
 
-- A test is never deleted or weakened to make a step green. A test that asserts a behaviour the new version
-  changed is reported and the step goes back to the user; whether the assertion or the version moves is theirs.
+[`templates/applying-steps.md`](../../templates/applying-steps.md), **What is never done**, binds this session
+too. Beyond it:
+
 - Behaviour is never changed under cover of a `migrate` step. What the guide names is the boundary.
 - A dependency is never added, removed or replaced with another.
-- Nothing outside the steps is improved because it was nearby.
-- A change that could not be applied is never dropped in silence.
 
 ## Phase 4 — Finish
 
@@ -212,7 +203,7 @@ starts at its first unticked step.
    figure beside its threshold for the report. Then **write `review/findings.md`** in the shape
    [`findings.md`](../../templates/findings.md) gives — a deprecation the guide announced that this run did not
    act on, every `kept back` entry lifted from the logs' Run Log with what would unblock it, a figure past its
-   threshold as a **Performance** row. An upgrade with nothing open still gets the file. Each entry is read off
+   threshold as a **Performance** row. Each entry is read off
    the manifest, the guide or the logs, never off a module agent's closing observation on its own (**Measured,
    Not Noticed**). A bug a module agent hit is reproduced first
    ([`reproducing.md`](../../templates/reproducing.md)). Create and update the file as
@@ -230,9 +221,8 @@ starts at its first unticked step.
 
 ## Version Control
 
-Whether and how this run commits is the conventions' commit policy. Missing or silent means no
-commits. Several module agents commit into one history at once; follow what the rules say about scoping and a
-concurrent commit.
+Commit as the conventions' commit policy says; where they state none, as
+[`contract.md`](../../templates/conventions/contract.md) says.
 
 ## Report
 

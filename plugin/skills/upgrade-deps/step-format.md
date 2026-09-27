@@ -51,7 +51,7 @@ plain checkout.
 | `docs:`       | any            | the pages the step invalidates — a configuration page, a conventions rule naming a version   |
 
 **A `bump` carries no `change:` and no `test-files:`.** A bump that turns out to need either is a `migrate` and
-goes back to the user re-classified.
+goes back to the level above to be re-classified.
 
 **A `change:` names one guide item and one place.** Two places are two lines. What a `change:` line says is the
 boundary of what the step may edit for it; a `kept back` entry in the log's `## Run Log` is where a `change:`

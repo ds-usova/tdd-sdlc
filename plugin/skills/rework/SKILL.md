@@ -50,27 +50,17 @@ touched. All of it binds a step.
 
 ## Phase 0 — Baseline
 
-**The affected modules are clean before anything is measured.** Uncommitted work under one: name the files and
-stop. Uncommitted work elsewhere is left alone.
+**The affected modules are clean before anything is measured**, as
+[`baseline.md`](../../templates/baseline.md) says.
 
-**A run started from a backlog entry, or from a findings entry directly, measures it before the suite.** Check
-the entry's *why* against the code it names, in one pass over the whole class it generalizes over
-([`findings.md`](../../templates/findings.md), **Measured, Not Noticed**). A performance entry is measured by
-rerunning its test.
+**A run started from a backlog entry, or from a findings entry directly, measures it before the suite**, as
+[`backlog.md`](../../templates/backlog.md) says. A performance entry is measured by rerunning its test. A change
+that would break what is already correct does not hold either. A findings entry that does not hold is closed as
+[`findings.md`](../../templates/findings.md) says. Where it holds, the measurement is the first line of
+`rework.md`'s context.
 
-- **It holds** — proceed; the measurement is the first line of `rework.md`'s context.
-- **It holds for fewer cases than it claims** — the scope is what the measurement found, and the file says so.
-- **It does not hold**, or the change it asks for would break what is already correct: report what was measured.
-  Close a backlog entry as [`backlog.md`](../../templates/backlog.md) says. Close a findings entry as
-  [`findings.md`](../../templates/findings.md) says. Stop.
-
-Run the full build and the entire suite of every affected module with its own commands. A whole-suite run that
-already answers for this commit is read, not repeated; that holds at every gate in this skill.
-
-- **Green**: record the commit.
-- **Anything red**: [`red-baseline.md`](../../templates/red-baseline.md).
-
-Nothing is written before this passes.
+**Baseline**, as [`baseline.md`](../../templates/baseline.md) says. Its read-not-repeated rule holds at every gate
+in this skill. Nothing is written before this passes.
 
 ## Phase 1 — Write the Files
 
@@ -88,9 +78,8 @@ Run `rework.sh validate <the directory>` until it exits 0 before presenting anyt
 Present the files and stop. Ask every Open Question in one batch via `AskUserQuestion`, and write each answer
 into the file as its `- A:`.
 
-**An affected module with performance tests gets one more question**: which of them to rerun once the rework
-is in, the tests found and read the way `plan-task` finds them (**Open Questions**), the ones whose entry point
-a step's files sit under recommended. The answer is read at the close.
+**An affected module with performance tests gets the question `plan-task` asks** (**Open Questions**), the tests
+whose entry point a step's files sit under recommended. The answer is read at the close.
 
 **Do not touch a source file until the user asks for the steps to be applied.** A step whose kind the user
 disputes is re-classified in the file first.
@@ -118,21 +107,18 @@ after any answer or re-classification written in Phase 2.
    baseline figures, what the shared file disabled in its module, and `rework.md`. It applies its steps in ID
    order and returns finished or blocked. An agent returning on an exhausted budget is escalated once before
    its return counts as blocked ([`templates/sub-agents.md`](../../templates/sub-agents.md), **Budget and
-   escalation**). A blocked agent's question is written into its steps file's
-   `## Open Questions` and the return itself is an `RL` entry in the log's Run Log; answer the question there,
-   fill the entry's `Resolved:`, and spawn the agent again.
+   escalation**). A blocked return is [`templates/sub-agents.md`](../../templates/sub-agents.md), **A blocked
+   return**.
 
 **A step reaches a sub-agent as `rework.sh show <ID> --file <steps>`**, never as a prompt retelling it.
 
-**Whether anything is committed is the conventions' commit policy.** A repository silent on it gets no
-commits anywhere in this skill. Where they do commit, a step is committed after its own green run.
+**Commit as the conventions' commit policy says**; where they state none, as
+[`contract.md`](../../templates/conventions/contract.md) says.
 
 ### What Is Never Done
 
-- A test is never deleted or weakened to make a step green. A `stabilize` step may disable one, under the rule
-  [`applying-a-step.md`](applying-a-step.md) gives for it.
-- A defect found along the way is reported, never fixed. It is a new rework or a new task.
-- Nothing outside the steps is improved because it was nearby. A step never reaches past its own boundary.
+[`templates/applying-steps.md`](../../templates/applying-steps.md), **What is never done**, binds this session
+too. A defect found along the way is a new rework or a new task.
 
 ## Phase 4 — Finish
 
@@ -148,16 +134,14 @@ commits anywhere in this skill. Where they do commit, a step is committed after 
    figure beside its threshold for the report. Then **write `review/findings.md`** into the rework's directory,
    in the shape [`findings.md`](../../templates/findings.md) gives: **Critical**, **Bug** and **Performance** — a
    figure past its threshold; a check the change needs a person to make is the report's, below. **What the
-   module agents reported is measured before it is filed** (**Measured, Not Noticed**): a defect an agent
-   noticed and did not reproduce is reproduced here or left in the log, never turned
-   into a block on its say-so. Reproducing is [`reproducing.md`](../../templates/reproducing.md). **Critical** takes
+   module agents reported is measured before it is filed**, as **Measured, Not Noticed** there says; a defect is
+   reproduced as [`reproducing.md`](../../templates/reproducing.md) says. **Critical** takes
    what the refactor round measured as growing with every task on top, a copied block this rework touched in every
    copy included. Where the rework touched one module, the section's opening line names it instead of the
    module-first rule. **A rework files no refactoring candidates**; something worth doing later goes in the report,
    and the user decides whether it becomes a rework. **It may file a Deferred change**: a behaviour the code should
-   have that this rework could not add. A rework with nothing open still gets the file.
-   Create and update it as [`findings.md`](../../templates/findings.md) says. **File its open entries in the
-   backlog** as [`backlog.md`](../../templates/backlog.md) says.
+   have that this rework could not add. Create and update it as [`findings.md`](../../templates/findings.md)
+   says. **File its open entries in the backlog** as [`backlog.md`](../../templates/backlog.md) says.
 4. **Run `cost.sh report docs/<n>-<name>/`** and show the person what it printed. Refused or absent: say so and go on.
 5. **Then write `review/report.md`** as [`report.md`](../../templates/report.md) says. **Measured** holds what
    item 3 ran; **Manual checks** holds every check the change needs a person to make.

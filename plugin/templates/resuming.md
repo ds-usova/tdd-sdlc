@@ -27,7 +27,7 @@ Uncommitted work anywhere else, and anything red no step accounts for, stops the
 | The files say                              | Do                                                                                                                                    |
 |--------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
 | steps are open and nothing is blocked      | revert what is uncommitted under the first unticked step (the script's `status` names it), continue at the apply phase from that step |
-| a step failed three times, or is abandoned | the plan is what needs work: amend the files, log what was tried, stop for approval as the skill's own stop phase says                |
+| a step failed three times, or is abandoned | the plan is what needs work: as [`sub-agents.md`](sub-agents.md), **A blocked return**, says                                          |
 | an Open Question is unanswered             | ask it now, write the answer in, then continue                                                                                        |
 | every step is ticked                       | continue at the finish phase — its closing gates ran nowhere yet                                                                      |
 

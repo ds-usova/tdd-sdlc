@@ -35,14 +35,19 @@ to take the entry next.
 
 **An entry a run files is measured work.** It comes only from a findings entry that measured what it claims —
 [`findings.md`](findings.md)'s **Measured, Not Noticed** — from a baseline test that failed twice
-([`red-baseline.md`](red-baseline.md)), or from a decision the user made mid-run. An
+([`baseline.md`](baseline.md), **A red baseline**), or from a decision the user made mid-run. An
 observation a run merely reported gets no entry.
 
 **An entry the user asks for is filed as the user states it.** Its origin is `user, <date>`. Ask for the kind
 where the user did not give it.
 
 **An entry is measured once more by whoever starts from it**, before that run writes a file, over the tree as it
-stands now. What does not hold is reported and the entry closed `withdrawn` — never worked.
+stands now. The measurement is one pass over the whole class the entry claims, as
+[`findings.md`](findings.md)'s **Measured, Not Noticed** says.
+
+- **It holds**: the run proceeds.
+- **It holds for fewer cases than it claims**: the run is scoped to what was measured, and its file says so.
+- **It does not hold**: the run reports what was measured, closes the entry `withdrawn`, and stops.
 
 **Closing an entry edits the backlog only.** The file the entry came from is not touched.
 

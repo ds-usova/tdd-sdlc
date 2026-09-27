@@ -123,14 +123,8 @@ and `validate` is never run. Never stop for it.
 ## Version Control
 
 Whether this run commits at all, and how, is the conventions' commit policy. Read it with the other conventions
-in step 2 above, following the conventions index to wherever it lives. Expect it at the repository level. Where a
+in step 2 above; where they state none, as [`contract.md`](../templates/conventions/contract.md) says. Where a
 stage below says "commit per the commit policy," that policy is what it means.
-
-**Missing or silent means no commits.** Never invent a commit policy.
-
-**Another plan may be running beside yours, and its commits land in the same history.** Follow what the policy
-says about commit scope and a concurrent commit mid-flight. Report a refusal it does not cover. Never improvise a
-scope or a retry.
 
 ## No Automatic Re-Review
 

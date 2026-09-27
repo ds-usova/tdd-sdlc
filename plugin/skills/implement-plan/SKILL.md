@@ -92,7 +92,7 @@ and only then proceed.
 of every module the task's plans name. Use the commands from each module's conventions.
 
 - **Everything green**, the expected case: proceed.
-- **Anything already red**: [`red-baseline.md`](../../templates/red-baseline.md).
+- **Anything already red**: [`baseline.md`](../../templates/baseline.md), **A red baseline**.
 
 Record each module's run: `plan.sh suite record --stage baseline --total <n> --skipped <n> --verdict green
 <module paths> <plan>`, on every plan that module has. Each pipeline is handed its own module's total and
@@ -100,7 +100,7 @@ skipped counts.
 
 **A plan a previous run left part-done** already has a `baseline` entry in its log's `## Suite Runs`. A failing
 test whose red item is ticked and whose green item is not is expected red. It is not a baseline failure. Anything
-else red goes to `red-baseline.md`. Record no new baseline; hand the pipeline the recorded figures.
+else red goes to **A red baseline**. Record no new baseline; hand the pipeline the recorded figures.
 
 **No pipeline repeats either gate.**
 
@@ -167,10 +167,8 @@ When every pipeline has returned:
    covered, a gap the design never named, an inconsistency the change left behind. A blocker the run settled
    stays in the log as that plan's history and never appears here; so does a question the plan already answers.
 
-   **A Run Log entry is not a finding yet.** Measure each one — one pass over the class it claims — before it
-   becomes a block or a row, per [`findings.md`](../../templates/findings.md)'s **Measured, Not Noticed**. What
-   the measurement contradicts stays in the log as history; what it narrows is filed narrowed; what one pass
-   cannot settle is reported to the user as unmeasured and filed nowhere.
+   **A Run Log entry is not a finding yet.** Measure each one as [`findings.md`](../../templates/findings.md)'s
+   **Measured, Not Noticed** says.
 
    The shape is [`findings.md`](../../templates/findings.md). A task fills all five of its sections. A
    **Deferred change** is behaviour the design did not ask for and the code should have — never a defect, never
@@ -198,7 +196,7 @@ When every pipeline has returned:
    `plan.md` and its `plan-log.md`, the `spec.md` they link, its design artifacts and `design-log.md`,
    `review/`, and anything else the task accumulated — into `docs/implemented/`. Move the directory, not the
    files.
-6. **Commit** per the commit policy. This is where its **squash-before-archiving** setting applies.
+6. **Commit** per the commit policy.
 7. **What the conventions run over finished work.** Every affected module's conventions say what happens once a
    change is complete — a measurement, a documentation pass. Follow the conventions index to wherever they say
    it, and run that list in its order, passing each entry the archived plan. An entry listed by several affected
@@ -206,13 +204,8 @@ When every pipeline has returned:
 
 ## Version Control
 
-Whether this run commits at all, and how, is the conventions' commit policy. Expect it at the level that binds
-all the modules.
-
-**Missing or silent means no commits.** Never invent a commit policy.
-
-**Several pipelines commit into that one history at once.** Follow whatever the policy says about scoping a
-commit and about a concurrent one, and report a refusal it does not cover rather than improvising a retry.
+Commit as the conventions' commit policy says; where they state none, as
+[`contract.md`](../../templates/conventions/contract.md) says.
 
 ## Response Style
 

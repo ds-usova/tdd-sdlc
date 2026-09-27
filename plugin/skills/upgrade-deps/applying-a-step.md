@@ -1,7 +1,7 @@
 # Applying one step
 
-What each kind of step edits, what it runs, and when it refuses. The sequence around a step — the commit, what
-is never done — is the skill's.
+What each kind of step edits, what it runs, and when it refuses. The sequence around a step is the
+`upgrade-deps-module` agent's. What is never done is [`applying-steps.md`](../../templates/applying-steps.md).
 
 | Kind      | Edit                                                                                                | Then run                                                       |
 |-----------|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------|

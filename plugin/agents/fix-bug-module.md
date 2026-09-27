@@ -20,9 +20,10 @@ this turn. You spawn no agent, and never another `fix-bug-module`.**
 - **`bug.md`** — the symptom, the reproduction, the diagnosis, and what the fix must not break.
 
 **Read before the first step**: `applying-a-step.md` and `step-format.md` in the `fix-bug` skill directory,
-`attempts.md` in the `templates` directory beside the skills, and your module's `docs/conventions.md` with the repository-wide conventions it extends. They are the
-source of truth for the build command, the test commands, the layering check, how a test is disabled, what runs
-before a commit, and the commit policy. Never guess a build command.
+`applying-steps.md` and `attempts.md` in the `templates` directory beside the skills, and your module's
+`docs/conventions.md` with the repository-wide conventions it extends. They are the source of truth for the
+build command, the test commands, the layering check, how a test is disabled, what runs before a commit, and the
+commit policy. Never guess a build command.
 
 **The bug was reproduced and the baseline measured above you; repeat neither.** Every guardrail in your own
 sequence runs each time it is reached.
@@ -42,14 +43,8 @@ log:
 | Return blocked on one   | `fix.sh block FG01 "<why, in a clause>" --file <fix>`        |
 | Check the grammar       | `fix.sh validate --file <fix>`                              |
 
-**Name your file on every call.** The log is found beside it as `fix-log.md`; `--log` names another. **Read a
-step from `fix.sh show`**, never by extracting it by hand. **Tick a step only once you have verified it
-yourself.** Never tick a step early to empty the log's `In flight:` line. Where the script is absent or the call
-is refused — by a hook or by the user at the prompt — edit the files directly under the same rules, write the
-log's **Caveats** entry and put the case as one line in your final report, as
-[`scripts/README.md`](../scripts/README.md) says; never stop for it.
-
-**Run a suite in the foreground and wait for it.** Never background it.
+How you use it is `applying-steps.md`, **The script**. The log is `fix-log.md`; `--log` names another. Never
+tick a step early to empty the log's `In flight:` line.
 
 **A resumed run starts at the first unticked step**, from its own beginning.
 
@@ -63,10 +58,8 @@ log's **Caveats** entry and put the case as one line in your final report, as
 3. **Every `green` step.** After the last one the module's whole suite is green, and nothing in `disables:` is
    still off.
 
-**After every step**: whatever the conventions require before a commit, `fix.sh tick <ID>`, and — where the
-conventions commit — commit the fix file with the paths that step named. **A `red` step's commit carries test
-files and nothing else.** Follow what the commit policy says about scoping and about a concurrent commit.
-Report a refusal it does not cover rather than retrying.
+**After every step**: as `applying-steps.md` says. **A `red` step's commit carries test files and nothing
+else.**
 
 ## What You Write
 
@@ -101,9 +94,7 @@ Questions, then return and say what you need.
 - **The cause is outside your module.** Name where. Never edit another module, never widen a step to reach one.
 - **A test asserting the old behaviour that no `red` step names.**
 
-**A failure on a code path this fix never touched, or clearly environmental, is recorded in the log's Run Log
-with enough detail to reproduce and reported, not treated as a step failure.** A test this fix broke is never
-unrelated.
+**A failure that is not the step's** is `applying-steps.md`'s. Record it in the log's Run Log too.
 
 ## Out of Scope
 
@@ -111,7 +102,6 @@ unrelated.
   `fix-log.md` you never open.
 - **Any module but the one your file names** — except a `shared/fix.md`, whose modules are all of them.
 - **The refactor round and archiving** — the level above's, over the whole diff.
-- **A second defect you find along the way.** Report it; never fix it.
 
 ## What To Report
 
