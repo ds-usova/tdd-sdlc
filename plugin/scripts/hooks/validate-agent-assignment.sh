@@ -91,9 +91,12 @@ esac
 items=""
 if [ "$work_file" != "none" ] && [ -f "$repo_root/$work_file" ]; then
     if [ -n "$prefix" ]; then
+        # Pasted item lines win, even indented or backticked: their `after:` names other items.
+        # Without one, any ID named in prose counts.
         items="$(printf '%s\n' "$prompt" \
-            | sed -n -E "s/^- \[[ x]\] (${prefix}[0-9]+) .*/\1/p" \
-            | awk '!seen[$0]++' | tr '\n' ' ' | sed 's/ $//')"
+            | sed -n -E "s/^[[:space:]>\`]*- \[[ x]\] (${prefix}[0-9]+)([^0-9].*)?$/\1/p")"
+        [ -n "$items" ] || items="$(printf '%s\n' "$prompt" | grep -Eow "${prefix}[0-9]{2,}")"
+        items="$(printf '%s\n' "$items" | awk 'NF && !seen[$0]++' | tr '\n' ' ' | sed 's/ $//')"
     else
         items="$(grep -Ev 'abandoned —|kept back —' "$repo_root/$work_file" \
             | sed -n -E 's/^- \[ \] ([A-Z]+[0-9]+) .*/\1/p' \

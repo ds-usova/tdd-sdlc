@@ -15,7 +15,10 @@ The hook derives the workflow, work file and item IDs from the agent type, promp
 known implementation-agent launch when those values disagree or cannot be resolved. Do not write the header in
 the prompt yourself.
 
-For a plan step agent, pass the assigned items' `plan.sh show` output as the prompt's step context. For a module
+For a plan step agent, pass the assigned items' `plan.sh show` output as the prompt's step context. Paste it
+as it prints, not inside backticks. Outside that output, name no other item of the agent's own kind by its ID.
+The hook assigns such an ID it finds in the prose. Name that item by its class or its test instead. IDs of
+another kind, such as the red steps a stabilization agent must agree with, are fine. For a module
 agent that owns a whole work file, name that file in the prompt. The hook assigns every item still open in it.
 A reproduction brief with no checklist items records `none`.
 

@@ -46,6 +46,25 @@ out="$(agent_hook tdd-unit-red-phase-step 'one test' 'Write docs/4-widget/mod/pl
 check "a plan step without a matching id is denied" deny "$(printf '%s' "$out" | jq -r \
   '.hookSpecificOutput.permissionDecision')"
 
+out="$(agent_hook stabilization-step 'widget stabilization' \
+  'Apply docs/4-widget/mod/plan.md. Your item: ST01, read it with `plan.sh show ST01`.')"
+header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
+check_match "an id named in prose is assigned" '^Assigned items: ST01$' "$header"
+
+out="$(agent_hook stabilization-step 'widget stabilization' \
+  'Apply docs/4-widget/mod/plan.md. Step context: `- [ ] ST01 — stabilize`')"
+header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
+check_match "a backticked item line is assigned" '^Assigned items: ST01$' "$header"
+
+out="$(agent_hook stabilization-step 'widget stabilization' \
+  $'Apply docs/4-widget/mod/plan.md.\n- [ ] ST01 — stabilize · after: ST02')"
+header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
+check_match "an item's after: is not assigned" '^Assigned items: ST01$' "$header"
+
+out="$(agent_hook stabilization-step 'widget stabilization' 'Apply docs/4-widget/mod/plan.md. Your items: ST01 ST99.')"
+check_match "an id the plan lacks is denied" 'ST99 is not an item' "$(printf '%s' "$out" | jq -r \
+  '.hookSpecificOutput.permissionDecisionReason')"
+
 out="$(agent_hook tdd-unit-red-phase-step 'reproduction brief' 'Write one focused regression test.')"
 small_header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
 check_match "an unplanned reproduction records no work file" '^Work file: none$' "$small_header"
