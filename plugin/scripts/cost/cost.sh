@@ -505,6 +505,7 @@ agent_activity_records() {
                 agent_type: (.agent // ""),
                 model: (.model // ""),
                 parent: (.parent // ""),
+                plan: (.plan // ""),
                 started: (.started // ""),
                 ended: (.ended // ""),
                 assignment: (.assignment // null),

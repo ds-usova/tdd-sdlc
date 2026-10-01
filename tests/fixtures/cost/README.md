@@ -6,7 +6,8 @@
 - `pricing.json` — the rates table seeded into the cache, stamped as fetched today, so the golden is priced by it and nothing is fetched.
 - `cost.golden.md` — the report rendered from `good/`, the four records the recorder section files there (`bk`, `ws`, `rs`, `gr`, `ex`), and the four `records/` below, with the span's length and end, the rates date and the written-at timestamp replaced by placeholders. Two things beside them stand, because neither comes from the run: the span's start, which comes from the mapping, and the offset named after the timestamp, which comes from the records. `UPDATE_GOLDEN=1` rewrites it.
 - `activity.golden.html` — the self-contained activity page from the same fixture. Open it in a browser for
-  visual review. `UPDATE_GOLDEN=1` rewrites it.
+  visual review. Its records run under `module-a/plan.md` and `module-b/plan.md`, so it has module tabs.
+  `UPDATE_GOLDEN=1` rewrites it.
 - `fakebin/curl` — put first on `PATH` to render offline; fails the way an unresolved host does, so the rates line names the plugin's table and the curl error. It appends each URL asked for to `$COST_FAKE_CALLS` before failing, so the case can tell a fetch that was tried and failed from one that was held back.
 - `fakebin-ok/curl` — put first on `PATH` to render a successful fetch without the network: it answers the two URLs `cost.sh` fetches from `pages/`, and appends each URL asked for to `$COST_FAKE_CALLS`, so the case can see that a fetch happened once and not twice.
 - `pages/` — verbatim copies of the two pages `cost.sh` fetches, `pricing.md` and `models.md`, saved once with the real curl. They are kept whole: the parser decides which page is which from the tables it finds, so a trimmed page would be a different test. 62 KB together.

@@ -148,6 +148,12 @@
     .top {
       display: grid;
       gap: 10px;
+    }
+
+    .summary {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
       padding-bottom: 28px;
       border-bottom: 1px solid var(--rule);
     }
@@ -187,6 +193,47 @@
     .theme svg {
       width: 14px;
       height: 14px;
+    }
+
+    .scopes {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .scopes::after {
+      content: "";
+      flex: 1;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .scopes[hidden] {
+      display: none;
+    }
+
+    .scope {
+      padding: 7px 12px 8px;
+      color: var(--ink-3);
+      border-bottom: 1px solid var(--rule);
+      font-size: 0.87rem;
+    }
+
+    .scope:hover {
+      color: var(--ink);
+    }
+
+    .scope[aria-selected="true"] {
+      padding-bottom: 7px;
+      color: var(--ink);
+      font-weight: 600;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .scope-meta {
+      margin-left: 7px;
+      color: var(--ink-3);
+      font-weight: 400;
+      font-variant-numeric: tabular-nums;
     }
 
     .facts {
@@ -1122,93 +1169,99 @@
         <h1 id="title">Run timeline</h1>
         <button class="theme" id="theme" type="button"></button>
       </div>
-      <dl class="facts" id="facts"></dl>
-      <div class="worth" id="worth" hidden>
-        <h2><span data-glossary="worth">Worth a look</span></h2>
-        <div class="worth-grid" id="worth-list"></div>
-      </div>
+      <nav class="scopes" id="scopes" role="tablist" aria-label="Modules" hidden></nav>
     </header>
 
-    <section aria-labelledby="timeline-heading">
-      <div class="section-head">
-        <div>
-          <h2 id="timeline-heading">Timeline</h2>
-        </div>
-        <div class="legend">
-          <span data-glossary="wave"><i class="key key-wave"></i>Wave of agents</span>
-          <span data-glossary="orchestrator"><i class="key key-orch"></i>Orchestrator's own work</span>
-          <span data-glossary="running"><i class="key key-span"></i>Agent running</span>
-          <span data-glossary="return"><i class="key key-return"></i>Return</span>
-          <span data-glossary="escalation"><i class="key key-escalate"></i>Escalation</span>
-          <span data-glossary="idleBand"><i class="key key-break"></i>Idle over 5 min</span>
+    <div id="scope-panel">
+      <div class="summary">
+        <dl class="facts" id="facts"></dl>
+        <div class="worth" id="worth" hidden>
+          <h2><span data-glossary="worth">Worth a look</span></h2>
+          <div class="worth-grid" id="worth-list"></div>
         </div>
       </div>
-      <div class="gantt" id="gantt"></div>
-    </section>
 
-    <section id="returns" aria-labelledby="returns-heading" hidden>
-      <div class="section-head">
-        <div>
-          <h2 id="returns-heading">
-            <span data-glossary="returnsByItem">Returns to an earlier phase, by plan item</span>
-          </h2>
+      <section aria-labelledby="timeline-heading">
+        <div class="section-head">
+          <div>
+            <h2 id="timeline-heading">Timeline</h2>
+          </div>
+          <div class="legend">
+            <span data-glossary="wave"><i class="key key-wave"></i>Wave of agents</span>
+            <span data-glossary="orchestrator"><i class="key key-orch"></i>Orchestrator's own work</span>
+            <span data-glossary="running"><i class="key key-span"></i>Agent running</span>
+            <span data-glossary="return"><i class="key key-return"></i>Return</span>
+            <span data-glossary="escalation"><i class="key key-escalate"></i>Escalation</span>
+            <span data-glossary="idleBand"><i class="key key-break"></i>Idle over 5 min</span>
+          </div>
         </div>
-      </div>
-      <div class="gantt" id="returns-gantt"></div>
-    </section>
+        <div class="gantt" id="gantt"></div>
+      </section>
 
-    <section id="escalations" aria-labelledby="escalations-heading" hidden>
-      <div class="section-head">
-        <div>
-          <h2 id="escalations-heading"><span data-glossary="escalation">Escalations to another model</span></h2>
+      <section id="returns" aria-labelledby="returns-heading" hidden>
+        <div class="section-head">
+          <div>
+            <h2 id="returns-heading">
+              <span data-glossary="returnsByItem">Returns to an earlier phase, by plan item</span>
+            </h2>
+          </div>
         </div>
-      </div>
-      <div class="gantt" id="escalations-gantt"></div>
-    </section>
+        <div class="gantt" id="returns-gantt"></div>
+      </section>
 
-    <section aria-labelledby="tools-heading">
-      <div class="section-head">
-        <div>
-          <h2 id="tools-heading"><span data-glossary="toolTime">Tool time</span></h2>
+      <section id="escalations" aria-labelledby="escalations-heading" hidden>
+        <div class="section-head">
+          <div>
+            <h2 id="escalations-heading"><span data-glossary="escalation">Escalations to another model</span></h2>
+          </div>
         </div>
-      </div>
-      <div class="tool-grid">
-        <div>
-          <h3>By tool</h3>
-          <div class="by-tool" id="by-tool"></div>
+        <div class="gantt" id="escalations-gantt"></div>
+      </section>
+
+      <section aria-labelledby="tools-heading">
+        <div class="section-head">
+          <div>
+            <h2 id="tools-heading"><span data-glossary="toolTime">Tool time</span></h2>
+          </div>
         </div>
-        <div>
-          <h3><span data-glossary="repeated">Repeated shell commands</span></h3>
+        <div class="tool-grid">
+          <div>
+            <h3>By tool</h3>
+            <div class="by-tool" id="by-tool"></div>
+          </div>
+          <div>
+            <h3><span data-glossary="repeated">Repeated shell commands</span></h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Command</th>
+                  <th class="n">Runs</th>
+                  <th class="n">Total</th>
+                  <th class="n">Longest</th>
+                  <th>Run by</th>
+                </tr>
+              </thead>
+              <tbody id="repeated-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="longest">
+          <h3>Longest calls</h3>
           <table>
             <thead>
               <tr>
-                <th>Command</th>
-                <th class="n">Runs</th>
-                <th class="n">Total</th>
-                <th class="n">Longest</th>
+                <th class="n">Duration</th>
+                <th>Tool</th>
+                <th>Command or target</th>
                 <th>Run by</th>
+                <th class="n">At</th>
               </tr>
             </thead>
-            <tbody id="repeated-body"></tbody>
+            <tbody id="longest-body"></tbody>
           </table>
         </div>
-      </div>
-      <div class="longest">
-        <h3>Longest calls</h3>
-        <table>
-          <thead>
-            <tr>
-              <th class="n">Duration</th>
-              <th>Tool</th>
-              <th>Command or target</th>
-              <th>Run by</th>
-              <th class="n">At</th>
-            </tr>
-          </thead>
-          <tbody id="longest-body"></tbody>
-        </table>
-      </div>
-    </section>
+      </section>
+    </div>
   </main>
 
   <aside class="panel" id="panel" aria-labelledby="panel-title" hidden></aside>
@@ -1423,6 +1476,9 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         if (info.phase === "refactor") {
           return "Refactor";
         }
+        if (info.phase === "pipeline" && moduleLabel(info)) {
+          return "Pipeline";
+        }
         return String(info.lane.agent_type || info.lane.kind || "agent");
       }
 
@@ -1439,6 +1495,9 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         if (info.phase === "session") {
           return String(info.lane.label || "Main session");
         }
+        if (info.phase === "pipeline" && moduleLabel(info)) {
+          return moduleLabel(info);
+        }
         return itemsLabel(info) || `#${String(info.lane.id || "").slice(0, 8)}`;
       }
 
@@ -1447,7 +1506,8 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
           return "Main session";
         }
         if (info.phase === "pipeline") {
-          return "Orchestrator";
+          return !scope && moduleLabel(info) ? `Orchestrator · ${moduleLabel(info)}`
+            : "Orchestrator";
         }
         const items = itemsLabel(info, 2);
         return items ? `${typeLabel(info)} · ${items}` : typeLabel(info);
@@ -1515,10 +1575,6 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         }
       }
 
-      const mainInfos = infos.filter((info) => !info.returnFrom);
-      const returnInfos = infos.filter((info) => info.returnFrom)
-        .sort((left, right) => left.start - right.start);
-
       // ---------------------------------------------------------------- retries and escalations
 
       function itemsOf(info) {
@@ -1559,9 +1615,77 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         }
       }
 
-      const escalations = infos.filter((info) => info.escalatedFrom)
-        .sort((left, right) => left.start - right.start);
-      const retries = infos.filter((info) => info.retry);
+      // ---------------------------------------------------------------- modules and scope
+
+      // The nearest pipeline agent at or above an agent, up its chain of parents.
+      function pipelineOf(info) {
+        const seen = new Set();
+        for (let at = info; at && !seen.has(at.id); at = infoById.get(at.parent)) {
+          if (at.phase === "pipeline") {
+            return at;
+          }
+          seen.add(at.id);
+        }
+        return null;
+      }
+
+      function planKey(info) {
+        return String(info.lane.plan || info.lane.assignment?.work_file || "");
+      }
+
+      // A module is a pipeline agent's plan. An agent under a pipeline belongs to it. A step agent outside every
+      // pipeline belongs to the module its own plan names, if any.
+      const moduleKeys = new Set(infos.filter((info) => info.phase === "pipeline").map(planKey).filter(Boolean));
+      for (const info of infos) {
+        const pipeline = pipelineOf(info);
+        const own = stepPhases.has(info.phase) && moduleKeys.has(planKey(info)) ? planKey(info) : "";
+        info.module = pipeline ? planKey(pipeline) : own;
+      }
+
+      // A module is named by its plan's directory under the task, or by the plan's path when that is not unique.
+      const modules = [...moduleKeys].map((key) => {
+        const members = infos.filter((info) => info.module === key);
+        const path = key.replace(/^docs\/(?:implemented\/)?[^/]+\//, "");
+        const label = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : path.replace(/\.md$/, "");
+        return { key, path, label, members, start: Math.min(...members.map((info) => info.start)) };
+      }).sort((left, right) => left.start - right.start || left.key.localeCompare(right.key));
+      const sharedLabels = new Set(modules.map((module) => module.label)
+        .filter((label, index, labels) => labels.indexOf(label) !== index));
+      for (const module of modules) {
+        if (sharedLabels.has(module.label)) {
+          module.label = module.path;
+        }
+      }
+      // Modules are named on the page only when the task ran more than one.
+      const moduleByKey = new Map(modules.length > 1 ? modules.map((module) => [module.key, module]) : []);
+
+      function moduleLabel(info) {
+        return moduleByKey.get(info.module)?.label || "";
+      }
+
+      // The scope is a module's plan, or empty for the whole task. Every section draws only the scoped agents.
+      let scope = "";
+      let scoped = infos;
+      let mainInfos = [];
+      let returnInfos = [];
+      let escalations = [];
+      let retries = [];
+      let scopeOccupied = [];
+      let runMs = 1;
+      let idleMs = 0;
+
+      function applyScope(key) {
+        scope = key;
+        scoped = key ? infos.filter((info) => info.module === key) : infos;
+        mainInfos = scoped.filter((info) => !info.returnFrom);
+        returnInfos = scoped.filter((info) => info.returnFrom).sort((left, right) => left.start - right.start);
+        escalations = scoped.filter((info) => info.escalatedFrom).sort((left, right) => left.start - right.start);
+        retries = scoped.filter((info) => info.retry);
+        scopeOccupied = merge(scoped.flatMap((info) => info.active));
+        runMs = Math.max(1, measure(scopeOccupied));
+        idleMs = scopeOccupied.length ? Math.max(0,
+          scopeOccupied[scopeOccupied.length - 1].end - scopeOccupied[0].start - runMs) : 0;
+      }
 
       function modelLabel(model) {
         const match = /^claude-([a-z]+)-(\d{1,2})(?:-(\d{1,2})(?=$|-))?/.exec(String(model || ""));
@@ -1653,7 +1777,7 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
       const widthPct = (start, end) => `${((mapped(end) - mapped(start)) / view.span * 100).toFixed(3)}%`;
       const worked = (intervals) => measure(subtract(intervals, breaks));
       // The part of a window when anything ran, the basis of every share of work.
-      const busy = (start, end) => measure(subtract([{ start, end }], subtract([{ start, end }], occupied)));
+      const busy = (start, end) => measure(subtract([{ start, end }], subtract([{ start, end }], scopeOccupied)));
 
       // The wall-clock instant at a scale position, or the idle stretch that position falls in.
       function instantAt(scale, position) {
@@ -1673,8 +1797,6 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         }
         return { value: Math.min(scale.end, wall + shown) };
       }
-      const runMs = Math.max(1, measure(occupied));
-      const idleMs = Math.max(0, runEnd - runStart - runMs);
 
       // ---------------------------------------------------------------- glossary
 
@@ -1684,11 +1806,12 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         implementation: ["Implementation", "From the first stabilization, red, green or refactor agent to the last.",
           "Only time when something ran counts."],
         idle: ["Idle", "Time between the first and the last activity when nothing ran.",
+          "A module tab counts only that module's agents.",
           "Waiting for your answer or for a resume counts as idle.",
           "A stretch over five minutes also shrinks to 45 seconds on the scale."],
         idleBand: ["Idle over five minutes", "A stretch of more than five minutes where nothing ran.",
           "It shrinks to 45 seconds on the scale."],
-        agents: ["Agents", "Sub-agents launched for this task."],
+        agents: ["Agents", "Sub-agents launched for this task, or for the module in view."],
         wave: ["Wave", "The agents one orchestrator launched in one phase,",
           "with at most 60 seconds between launches."],
         cost: ["Agent cost", "What the sub-agents would cost at API rates. The main session is not included.",
@@ -1717,7 +1840,7 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         running: ["Agent running", "The agent's lifetime. The darker marks inside are its tool calls."],
         ownWork: ["Own work", "The row's own tool calls and model turns.",
           "Time spent waiting for its sub-agents is left out."],
-        share: ["Share of work", "The phase's time as a share of the whole run's work time."],
+        share: ["Share of work", "The phase's time as a share of the work time of the task or the module in view."],
         worth: ["Worth a look", "What fixed rules found in this run: the longest phase and agent,",
           "returns, escalations, a busy orchestrator and a costly repeated command."],
         toolTime: ["Tool time", "Summed over every agent and the orchestrators. Parallel calls each count in full.",
@@ -1926,6 +2049,9 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         row.style.setProperty("--phase", phaseById.get(info.phase).color);
         const wall = worked(info.active);
         const meta = [];
+        if (!scope && moduleLabel(info) && info.phase !== "pipeline") {
+          meta.push(moduleLabel(info), " · ");
+        }
         if (options.first) {
           meta.push(markHint(element("span", "first-note", "first run"), "firstRun"), " · ");
         }
@@ -2286,11 +2412,11 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         const title = data.task ? String(data.task) : "Run timeline";
         $("title").textContent = title;
         document.title = `${title} · run timeline`;
-        if (!infos.length) {
+        if (!scoped.length) {
           $("facts").append(element("div", "", "No activity was recorded for this task."));
           return;
         }
-        const agents = infos.filter((info) => info.phase !== "session");
+        const agents = scoped.filter((info) => info.phase !== "session");
         const steps = mainInfos.filter((info) => stepPhases.has(info.phase));
         const waveCount = [...stepPhases]
           .reduce((total, id) => total + wavesOf(steps.filter((info) => info.phase === id)).length, 0);
@@ -2317,7 +2443,7 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
       }
 
       function implementationWindow() {
-        const steps = infos.filter((info) => stepPhases.has(info.phase));
+        const steps = scoped.filter((info) => stepPhases.has(info.phase));
         if (!steps.length) {
           return null;
         }
@@ -2536,7 +2662,7 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
 
       function renderTimeline() {
         const gantt = $("gantt");
-        if (!infos.length) {
+        if (!scoped.length) {
           gantt.append(element("p", "empty", "Nothing to draw: the records carry no lanes."));
           return;
         }
@@ -2584,7 +2710,7 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
       }
 
       function toolCalls() {
-        return infos.flatMap((info) => info.events)
+        return scoped.flatMap((info) => info.events)
           .filter((event) => event.state === "tool" && event.ms > 0);
       }
 
@@ -2792,6 +2918,7 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
           ["Turns", metrics.turns !== undefined ? count(metrics.turns) : ""],
           ["Peak context", metrics.peak_ctx !== undefined ? count(metrics.peak_ctx) : ""],
           ["Cost", metrics.cost_usd !== undefined ? money(metrics.cost_usd) : ""],
+          ["Module", moduleByKey.get(info.module)?.path || ""],
           ["Items", items],
           ["Workflow", assignment.workflow || ""],
           ["Work file", assignment.work_file || ""],
@@ -2933,10 +3060,84 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         }
       });
 
-      renderHeader();
-      renderTimeline();
-      renderTools();
-      renderWorth();
+      // ---------------------------------------------------------------- scope tabs
+
+      function render() {
+        if (!panel.hidden) {
+          panelReturn = null;
+          closePanel();
+        }
+        hideTip();
+        phaseButtons.clear();
+        for (const id of ["facts", "worth-list", "gantt", "returns-gantt", "escalations-gantt", "by-tool",
+          "repeated-body", "longest-body"]) {
+          $(id).replaceChildren();
+        }
+        for (const id of ["worth", "returns", "escalations"]) {
+          $(id).hidden = true;
+        }
+        renderHeader();
+        renderTimeline();
+        renderTools();
+        renderWorth();
+      }
+
+      // One tab for the whole task and one per module, when the task ran more than one.
+      function renderScopes() {
+        if (modules.length < 2) {
+          return;
+        }
+        const nav = $("scopes");
+        const tabPanel = $("scope-panel");
+        tabPanel.setAttribute("role", "tabpanel");
+        const entries = [{ key: "", label: "Whole task", path: "", members: infos }, ...modules];
+        const tabs = entries.map((entry, index) => {
+          const tab = element("button", "scope");
+          tab.type = "button";
+          tab.id = `scope-${index}`;
+          tab.setAttribute("role", "tab");
+          tab.setAttribute("aria-controls", "scope-panel");
+          tab.append(element("span", "", entry.label), element("span", "scope-meta",
+            plural(entry.members.filter((info) => info.phase !== "session").length, "agent")));
+          if (entry.path) {
+            tab.title = entry.path;
+          }
+          tab.addEventListener("click", () => select(entry.key));
+          nav.append(tab);
+          return tab;
+        });
+        function select(key) {
+          entries.forEach((entry, index) => {
+            tabs[index].setAttribute("aria-selected", String(entry.key === key));
+            tabs[index].tabIndex = entry.key === key ? 0 : -1;
+            if (entry.key === key) {
+              tabPanel.setAttribute("aria-labelledby", tabs[index].id);
+            }
+          });
+          if (key !== scope) {
+            applyScope(key);
+            render();
+          }
+        }
+        nav.addEventListener("keydown", (event) => {
+          const index = entries.findIndex((entry) => entry.key === scope);
+          const next = { ArrowRight: (index + 1) % entries.length,
+            ArrowLeft: (index - 1 + entries.length) % entries.length,
+            Home: 0, End: entries.length - 1 }[event.key];
+          if (next === undefined) {
+            return;
+          }
+          event.preventDefault();
+          select(entries[next].key);
+          tabs[next].focus();
+        });
+        select("");
+        nav.hidden = false;
+      }
+
+      applyScope("");
+      renderScopes();
+      render();
     })();
   </script>
 </body>

@@ -36,6 +36,15 @@ wave counts and the agent cost. Hovering the time axis names the clock time unde
 cycles system, light and dark; the browser keeps the choice where it can. A term with a dotted underline explains
 itself on hover or focus; the template's `glossary` holds every explanation.
 
+**Tabs** appear when the task ran more than one module. A module is the plan of a pipeline agent. The first tab is
+the whole task. Each other tab is one module. It holds each pipeline agent on that plan and every agent below it,
+at any depth. A stabilization, red, green or refactor agent outside every pipeline joins a module only when its own plan
+is that module's. Every other agent belongs to no module; only the whole task shows it. A module is named by its
+plan's directory under the task, `shared` for the seam's plan. Two modules with the same directory name are
+named by their plan paths. A module tab recomputes the header, **Worth a look** and every section from its own
+agents, on the whole run's time axis. On the whole task, an agent row names its module and a pipeline row is
+named by it. The panel names an agent's plan. A task of one module shows no tabs and names no module.
+
 **Worth a look** lists what these fixed rules find. A rule that finds nothing adds no line.
 
 - The longest implementation phase and its longest agent. The ratio to the next agent is named when it is 2× or
