@@ -21,6 +21,15 @@ esac
 prompt="$(printf '%s' "$input" | jq -r '.tool_input.prompt // ""' | tr -d '\r')"
 description="$(printf '%s' "$input" | jq -r '.tool_input.description // ""' | tr -d '\r\n')"
 cwd="$(printf '%s' "$input" | jq -r '.cwd // ""' | tr -d '\r' | tr '\134' '/')"
+# A relaunch names its cause on a `Reason:` first line. It leaves the prompt before anything is derived from it.
+launch_reason=""
+first_line="$(printf '%s\n' "$prompt" | awk 'NF { print; exit }')"
+case "$first_line" in
+    "Reason: "*)
+        launch_reason="${first_line#Reason: }"
+        prompt="$(printf '%s\n' "$prompt" | awk '!moved && NF { moved = 1; next } { print }')" ;;
+esac
+launch_reason="$(printf '%s' "$launch_reason" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
 [ -n "$prompt" ] || reason="Assignment header could not be derived: the Agent prompt is empty."
 
 repo_root="$(cd "${cwd:-.}" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/null)" || repo_root="${cwd:-.}"
@@ -138,6 +147,10 @@ header="Workflow: $workflow
 Work file: $work_file
 Assigned items: $items
 Assignment basis: $description"
+if [ -n "$launch_reason" ]; then
+    header="$header
+Reason: $launch_reason"
+fi
 normalized="$header
 
 $prompt"

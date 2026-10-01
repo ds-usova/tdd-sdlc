@@ -125,6 +125,8 @@ check_match "the assignment records the workflow and item ids" \
   '"assignment":\{"workflow":"implement-plan".*"items":\["RU01","RU02"\]' "$activity_line"
 check_match "the assignment keeps a bounded prompt preview" \
   '"prompt_preview":"Workflow: implement-plan' "$activity_line"
+check_match "the record keeps a relaunch's reason" \
+  '"reason":"the first run left RU02 red. See RL1."' "$activity_line"
 check_match "the assignment measures the selected plan brief" '"brief_chars":[1-9][0-9]*' "$activity_line"
 sed '$d' "$JSONL" > "$JSONL.tmp" && mv "$JSONL.tmp" "$JSONL"
 
@@ -178,15 +180,18 @@ check_match "the activity page has an agent lane" \
 check_match "the activity page links an assignment to its agent lane" \
   '"assignment":\{"workflow":"implement-plan".*"items":\["RU01","RU02"\]' \
   "$(printf '%s' "$activity_json" | jq -c '.lanes')"
-check_match "the activity page renders the assignment table" 'id="assignment-body"' "$(cat "$HTML")"
-check_match "the activity page starts in focused time" \
-  '<option value="focused">Focused time</option>' "$(cat "$HTML")"
-check_match "the activity page suppresses tiny intervals by default" \
-  'id="duration-filter" type="number" min="0" step="1" value="30"' "$(cat "$HTML")"
-check_match "the activity page lists the longest visible intervals" \
-  'id="activity-body"' "$(cat "$HTML")"
-check_match "unknown and paused activity start hidden" \
-  'checkbox.checked = state !== "unknown" && state !== "paused"' "$(cat "$HTML")"
+check_match "the activity page names each assigned plan item" \
+  '"RU01":"Add the first focused unit test"' "$(printf '%s' "$activity_json" | jq -c '.item_titles')"
+check_match "the activity page carries each agent's model" \
+  '"agent_type":"[^"]*","model":"claude-' "$(printf '%s' "$activity_json" | jq -c '.lanes')"
+check_match "the activity page lists escalations to another model" 'id="escalations-gantt"' "$(cat "$HTML")"
+check_match "the activity page names what is worth a look" 'id="worth-list"' "$(cat "$HTML")"
+check_match "the activity page groups the run into phases" 'id="gantt"' "$(cat "$HTML")"
+check_match "the activity page lists returns to an earlier phase" 'id="returns-gantt"' "$(cat "$HTML")"
+check_match "the activity page cuts idle stretches over five minutes" \
+  'const idleGap = 5 \* 60 \* 1000;' "$(cat "$HTML")"
+check_match "the activity page lists repeated shell commands" 'id="repeated-body"' "$(cat "$HTML")"
+check_match "the activity page lists the longest tool calls" 'id="longest-body"' "$(cat "$HTML")"
 check_golden "the activity page matches the visual golden" "$FX/activity.golden.html" "$HTML"
 hash1="$(git hash-object "$HTML")"
 report_offline > /dev/null

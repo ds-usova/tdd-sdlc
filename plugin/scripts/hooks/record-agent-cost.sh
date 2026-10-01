@@ -60,12 +60,13 @@ prompt="$(jq -Rrn '
       elif ($c | type) == "array" then ([$c[] | select(.text?) | .text] | first // "")
       else "" end' < "$transcript" 2>/dev/null | tr -d '\r')"
 
-# A PreToolUse hook prepends these four lines to step-carrying implementation agents. Older
-# transcripts and agents without an assignment keep no assignment object.
+# A PreToolUse hook prepends these four lines, and a relaunch's Reason line, to step-carrying
+# implementation agents. Older transcripts and agents without an assignment keep no assignment object.
 assignment_workflow="$(printf '%s\n' "$prompt" | sed -n 's/^Workflow: //p' | head -1)"
 assignment_file="$(printf '%s\n' "$prompt" | sed -n 's/^Work file: //p' | head -1 | tr '\134' '/')"
 assignment_items_text="$(printf '%s\n' "$prompt" | sed -n 's/^Assigned items: //p' | head -1)"
 assignment_basis="$(printf '%s\n' "$prompt" | sed -n 's/^Assignment basis: //p' | head -1)"
+assignment_reason="$(printf '%s\n' "$prompt" | sed -n '5s/^Reason: //p')"
 prompt_chars="$(printf '%s' "$prompt" | wc -m | tr -d ' \r')"
 prompt_preview="$(printf '%s' "$prompt" | jq -Rs '.[0:1000]' | jq -r . 2>/dev/null | tr -d '\r')"
 
@@ -243,6 +244,7 @@ line="$(jq -nc \
     --arg plan "$plan" --arg offset "$offset" --argjson seconds "${seconds:-0}" \
     --arg workflow "$assignment_workflow" --arg work_file "$assignment_file" \
     --arg items "$assignment_items_text" --arg basis "$assignment_basis" \
+    --arg reason "$assignment_reason" \
     --arg preview "$prompt_preview" --argjson prompt_chars "${prompt_chars:-0}" \
     --argjson brief_chars "${brief_chars:-0}" \
     --argjson active "${active:-0}" --argjson idle "${idle:-[]}" \
@@ -264,7 +266,8 @@ line="$(jq -nc \
          {assignment: {workflow: $workflow, work_file: $work_file,
                        items: (if $items == "none" or $items == "" then [] else ($items | split(" ")) end),
                        basis: $basis, prompt_chars: $prompt_chars, brief_chars: $brief_chars,
-                       prompt_preview: $preview}}
+                       prompt_preview: $preview}
+                      + (if $reason == "" then {} else {reason: ($reason | .[0:300])} end)}
        end)' | tr -d '\r')"
 rm -f "$activity_file"
 

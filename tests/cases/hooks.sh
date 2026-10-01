@@ -35,6 +35,21 @@ check_match "the hook prepends the workflow" '^Workflow: implement-plan$' "$head
 check_match "the hook prepends the work file" '^Work file: docs/4-widget/mod/plan.md$' "$header"
 check_match "the hook records the assigned item" '^Assigned items: ST01$' "$header"
 check_match "the Agent description becomes the basis" '^Assignment basis: widget stabilization$' "$header"
+check_no_match "a first launch has no reason line" '^Reason:' "$(printf '%s' "$out" | jq -r \
+  '.hookSpecificOutput.updatedInput.prompt')"
+
+out="$(agent_hook stabilization-step 'widget stabilization' \
+  $'Reason: ST02 left the stub throwing the wrong error. See RL3.\nApply docs/4-widget/mod/plan.md.\n- [ ] ST01 — stabilize')"
+relaunch="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt')"
+check "a relaunch's reason is the header's fifth line" \
+  'Reason: ST02 left the stub throwing the wrong error. See RL3.' "$(printf '%s\n' "$relaunch" | sed -n 5p)"
+check "the reason line leaves the body" 1 "$(printf '%s\n' "$relaunch" | grep -c '^Reason:')"
+check "an item the reason names is not assigned" 'Assigned items: ST01' "$(printf '%s\n' "$relaunch" | sed -n 3p)"
+
+out="$(agent_hook stabilization-step 'widget stabilization' \
+  $'Apply docs/4-widget/mod/plan.md.\nReason: quoted from a log\n- [ ] ST01 — stabilize')"
+check "a reason line after the first stays out of the header" "" "$(printf '%s' "$out" | jq -r \
+  '.hookSpecificOutput.updatedInput.prompt' | sed -n 5p)"
 
 out="$(agent_hook implement-plan-module 'whole plan' 'Run without naming a work file.')"
 check "a missing work file is denied" deny "$(printf '%s' "$out" | jq -r \

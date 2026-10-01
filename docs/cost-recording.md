@@ -72,8 +72,8 @@ The second says what moved:
 Each table is followed by a list that says what its columns are. Below them come a per-plan split
 (`plan`, `agents`, `$`, `time`) and a task total (`$` and one span from the first framework call to the report).
 
-`review/activity.html` is the interactive view of the same run. Its states, focused-time scale, filters and
-navigation follow the cost script's [`Activity page`](../plugin/scripts/cost/README.md#activity-page) contract.
+`review/activity.html` is the interactive view of the same run. Its phases, returns, escalations, idle cutting
+and tool tables follow the cost script's [`Activity page`](../plugin/scripts/cost/README.md#activity-page) contract.
 
 ### Prices
 
@@ -223,7 +223,7 @@ All three hooks are silent without `jq`, like the other hooks.
 | `activity` | bounded model, tool, waiting and unknown intervals                         | the transcript         |
 | `offset`   | the machine's UTC offset when the hook fired, as `date +%z` prints it       | the hook               |
 | `plan`     | the plan path the agent was spawned with, where its prompt names one        | the transcript         |
-| `assignment` | workflow, work file, item IDs, basis and bounded prompt sizes             | the launch prompt      |
+| `assignment` | workflow, work file, item IDs, basis, a relaunch's reason, prompt sizes  | the launch prompt      |
 
 The transcript holds one line per content block, and every line of one message repeats the whole message's
 usage. The hook groups the assistant lines by `message.id`, keeps the last line of each group, and sums those.
@@ -266,7 +266,7 @@ the format change are skipped`. No column carries a legacy value.
   mapped task. No mapping, no record. A task directory the tree does not hold is never created.
 - **A step without a known parent joins its plan.** This happens when the meta file was missing when the agent
   stopped. Its row still lands under the pipeline for its plan.
-- **A plan run twice gets separate lanes.** Each pipeline remains selectable in `activity.html`.
+- **A plan run twice gets separate lanes.** Each pipeline keeps its own row and waves in `activity.html`.
 
 **Parallel pipelines** serve one task and land in one file, split per plan. **A task resumed in a new session**
 gets a new mapping at that session's first script call; the report shows two sessions of one task. **A stray

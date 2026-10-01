@@ -2,7 +2,7 @@
 
 `tests/cases/cost.sh` runs the two cost hooks and `cost.sh` against these.
 
-- `good/` — copied to `$WORK` and never written to here. `repo/` is made a git repository holding `docs/7-add-widget/` with a `plan.md` and a `review/cost.jsonl` of six records (one in the pre-format shape, which the report skips). `projects/sess-1/` is the session's transcript and the `subagents/` transcripts (`a1`–`a6`) the records came from.
+- `good/` — copied to `$WORK` and never written to here. `repo/` is made a git repository holding `docs/7-add-widget/` with a `plan.md`, `module-a/plan.md`, `module-b/plan.md` (whose item headers the activity page names for the `tiny` record's assignment) and a `review/cost.jsonl` of six records (one in the pre-format shape, which the report skips). `projects/sess-1/` is the session's transcript and the `subagents/` transcripts (`a1`–`a6`) the records came from.
 - `pricing.json` — the rates table seeded into the cache, stamped as fetched today, so the golden is priced by it and nothing is fetched.
 - `cost.golden.md` — the report rendered from `good/`, the four records the recorder section files there (`bk`, `ws`, `rs`, `gr`, `ex`), and the four `records/` below, with the span's length and end, the rates date and the written-at timestamp replaced by placeholders. Two things beside them stand, because neither comes from the run: the span's start, which comes from the mapping, and the offset named after the timestamp, which comes from the records. `UPDATE_GOLDEN=1` rewrites it.
 - `activity.golden.html` — the self-contained activity page from the same fixture. Open it in a browser for

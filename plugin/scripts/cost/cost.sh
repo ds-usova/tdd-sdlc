@@ -503,6 +503,7 @@ agent_activity_records() {
                 label: ((.agent // "agent") + " #" + ((.id // "")[0:8])),
                 kind: "agent",
                 agent_type: (.agent // ""),
+                model: (.model // ""),
                 parent: (.parent // ""),
                 started: (.started // ""),
                 ended: (.ended // ""),
@@ -544,17 +545,46 @@ session_activity_records() {
     done < <(sessions_of)
 }
 
+# The header line of every item in the work files the assignments name, as
+# {"<work file>": {"<ID>": "<header, 120 characters at most>"}}. A work file the tree no longer holds at its
+# recorded path is looked for under the task directory, where an archived task keeps it.
+plan_item_titles() {
+    local wf path
+    current_lines | jq -r '.assignment.work_file // empty' | tr -d '\r' | LC_ALL=C sort -u | while IFS= read -r wf; do
+        path="$repo_root/$wf"
+        if [ ! -f "$path" ] && [[ "$wf" == *"/$task_name/"* ]]; then
+            path="$task_dir/${wf#*/"$task_name"/}"
+        fi
+        [ -f "$path" ] || continue
+        awk -v wf="$wf" '
+            /^[ \t]*- \[[ xX]\] [A-Z]+[0-9]+ · / {
+                line = $0
+                sub(/^[ \t]*- \[[ xX]\] /, "", line)
+                id = line
+                sub(/ .*/, "", id)
+                sub(/^[A-Z]+[0-9]+ · /, "", line)
+                printf "%s\t%s\t%s\n", wf, id, line
+            }' "$path"
+    done | tr -d '\r' | jq -Rn '
+        [inputs | split("\t") | select(length == 3)]
+        | reduce .[] as $r ({}; .[$r[0]][$r[1]] = ($r[2] | .[0:120]))'
+}
+
 write_activity() {
-    local rows="$1" target="$2" offset encoded_file
+    local rows="$1" target="$2" offset encoded_file titles_file
     offset="$(current_lines | jq -sr '
         map(select((.offset // "") != "")) | sort_by(.ended) | last.offset // "+0000"' | tr -d '\r')"
     encoded_file="${rows}.b64"
-    trap 'rm -f "$encoded_file"' EXIT RETURN
-    jq -sc --arg task "$task_name" --arg offset "$offset" '
+    titles_file="${rows}.titles"
+    trap 'rm -f "$encoded_file" "$titles_file"' EXIT RETURN
+    plan_item_titles > "$titles_file"
+    [ -s "$titles_file" ] || printf '{}\n' > "$titles_file"
+    jq -sc --arg task "$task_name" --arg offset "$offset" --slurpfile titles "$titles_file" '
         {
           schema: 3,
           task: $task,
           offset: $offset,
+          item_titles: $titles[0],
           lanes: (map(.lane) | sort_by(.started, .id)),
           events: ([.[].events[]] | sort_by(.started, .ended, .lane, .state, .tool, .call))
         }' < "$rows" | jq -Rr '@base64' | tr -d '\r' > "$encoded_file" || return 1
@@ -564,7 +594,7 @@ write_activity() {
         { print }
         END { if (!found) exit 1 }
     ' "$encoded_file" "$activity_template"
-    rm -f "$encoded_file"
+    rm -f "$encoded_file" "$titles_file"
     trap - EXIT RETURN
 }
 
