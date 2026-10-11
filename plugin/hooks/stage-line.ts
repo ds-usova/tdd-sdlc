@@ -23,15 +23,15 @@ const ROLES: Record<string, Role> = {
   'fix-bug-module': { stage: 'fix', isModule: true, isReadOnly: false },
   'rework-module': { stage: 'rework', isModule: true, isReadOnly: false },
   'upgrade-deps-module': { stage: 'upgrade', isModule: true, isReadOnly: false },
-  'stabilization-step': { stage: 'stabilization', isModule: false, isReadOnly: false },
-  'tdd-refactor-phase': { stage: 'refactor', isModule: false, isReadOnly: false },
+  'stabilize': { stage: 'stabilization', isModule: false, isReadOnly: false },
+  'refactor': { stage: 'refactor', isModule: false, isReadOnly: false },
   'grill-design': { stage: 'grill', isModule: false, isReadOnly: true },
   'grill-frontend': { stage: 'grill', isModule: false, isReadOnly: true },
   'review-plan': { stage: 'review', isModule: false, isReadOnly: true },
   'review-plan-facts': { stage: 'review', isModule: false, isReadOnly: true },
 }
 
-const STEP = /^tdd-(unit|integration|system)-(red|green)-phase-step$/
+const STEP = /^(red|green)-(unit|integration|system)$/
 
 const ICONS: Record<Stage, string> = {
   stabilization: '🧱',
@@ -57,7 +57,7 @@ export const roleOf = (subagentType: string): Role | undefined => {
   const step = STEP.exec(name)
 
   if (step !== null) {
-    return { stage: step[2] as Stage, level: step[1] as Level, isModule: false, isReadOnly: false }
+    return { stage: step[1] as Stage, level: step[2] as Level, isModule: false, isReadOnly: false }
   }
 
   return ROLES[name]

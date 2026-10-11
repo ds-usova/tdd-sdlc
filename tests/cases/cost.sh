@@ -79,19 +79,19 @@ mapping
 # --- the recorder: where an agent's cost is filed
 n0=$(lines)
 agent bk
-rec sess-1 bk tdd-unit-green-phase-step
+rec sess-1 bk green-unit
 check "a prompt citing another task before its own plan files under its own" $((n0 + 1)) "$(lines)"
 check "no directory is created for the cited task" "7-add-widget" "$(ls docs | tr '\n' ' ' | sed 's/ $//')"
 check_match "the record carries the parent from the meta file" '"id":"bk","parent":"a1"' "$(tail -1 "$JSONL")"
 check_match "the record carries the plan" '"plan":"docs/7-add-widget/module-a/plan.md"' "$(tail -1 "$JSONL")"
 
 agent ws
-rec sess-1 ws tdd-unit-green-phase-step
+rec sess-1 ws green-unit
 check_match "a backslash plan path records the plan" \
   '"id":"ws".*"plan":"docs/7-add-widget/module-a/plan.md"' "$(tail -1 "$JSONL")"
 
 agent rs
-rec sess-1 rs tdd-system-red-phase-step
+rec sess-1 rs red-system
 check_match "a resumed agent records its wall time and its active time" \
   '"seconds":1320,"active":240,' "$(tail -1 "$JSONL")"
 check_match "and its idle window, from its last turn to the resume" \
@@ -100,7 +100,7 @@ check_match "a resume gap is paused rather than delegated waiting" \
   '"state":"paused".*"summary":"waiting for resume"' "$(tail -1 "$JSONL")"
 
 agent lg
-rec sess-1 lg tdd-unit-red-phase-step
+rec sess-1 lg red-unit
 check_match "a long gap is paused" \
   '"state":"paused".*"summary":"Long gap between input and response' "$(tail -1 "$JSONL")"
 sed '$d' "$JSONL" > "$JSONL.tmp" && mv "$JSONL.tmp" "$JSONL"
@@ -111,7 +111,7 @@ check_match "a bare task directory files without a plan" '"id":"gr".*"agent":"gr
 check_no_match "a bare task directory record has no plan" '"id":"gr".*"plan":' "$(tail -1 "$JSONL")"
 
 agent ac
-rec sess-1 ac tdd-unit-green-phase-step
+rec sess-1 ac green-unit
 activity_line="$(tail -1 "$JSONL")"
 activity_calls="$(printf '%s' "$activity_line" | jq -r '.activity[] | .call // empty' \
   | tr -d '\r' | sort | tr '\n' ' ')"
@@ -132,24 +132,24 @@ sed '$d' "$JSONL" > "$JSONL.tmp" && mv "$JSONL.tmp" "$JSONL"
 
 n0=$(lines)
 agent np
-rec sess-1 np tdd-unit-red-phase-step
+rec sess-1 np red-unit
 check "a prompt naming a task the tree does not hold records nothing" "$n0" "$(lines)"
 check "and creates no directory" "7-add-widget" "$(ls docs | tr '\n' ' ' | sed 's/ $//')"
 
 mkdir -p docs/3-old-task
 n0=$(lines)
 agent ex
-rec sess-1 ex tdd-unit-red-phase-step
+rec sess-1 ex red-unit
 check "the mapped task wins over another task's plan cited first" $((n0 + 1)) "$(lines)"
 check "the other task gets no review directory" no "$([ -d docs/3-old-task/review ] && echo yes || echo no)"
 agent ot
-rec sess-1 ot tdd-unit-red-phase-step
+rec sess-1 ot red-unit
 check "only another task's plan path files there" written \
   "$([ -f docs/3-old-task/review/cost.jsonl ] && echo written || echo none)"
 rm -rf docs/3-old-task
 n0=$(lines)
 agent es
-rec "" es tdd-unit-red-phase-step
+rec "" es red-unit
 check "an empty session id records nothing" "$n0" "$(lines)"
 
 # --- the report: a golden rendering of a known set of records, priced by the fixture's own rates
@@ -200,7 +200,7 @@ check "identical inputs render byte-identical activity HTML" "$hash1" "$hash2"
 check_no_match "the Markdown report has no timeline section" '^## Timelines$' "$(cat "$MD")"
 check_no_match "a token-free synthetic message is absent from the report" '<synthetic>' "$(cat "$MD")"
 check_match "the type row's time is the running time, an idle window left out" \
-  '^\| tdd-system-red-phase-step \| 2 \| .* \| 5m \| ' "$(cat "$MD")"
+  '^\| red-system \| 2 \| .* \| 5m \| ' "$(cat "$MD")"
 check_match "a 40-second agent is shown in seconds" '`module-b/plan.md` \| 1 \| \$[0-9.]* \| 40s' "$(cat "$MD")"
 check_match "the task total is not starred when every agent is priced" '^\| \$[0-9.]+ \| [0-9]+m \(' "$(cat "$MD")"
 

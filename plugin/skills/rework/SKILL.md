@@ -157,7 +157,7 @@ too. A defect found along the way is a new rework or a new task.
 
 ### The Refactor Round
 
-**One `tdd-refactor-phase` agent per affected module, over that module's diff**, on the model the module's
+**One `refactor` agent per affected module, over that module's diff**, on the model the module's
 conventions name for the refactor pass — the session's model where they name none. Never one pass across two
 modules. Each gets its module's diff from the
 **Baseline:** commit, `rework.md` as the brief a tidier shape must not contradict, the module's conventions

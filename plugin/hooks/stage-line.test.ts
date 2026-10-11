@@ -96,13 +96,13 @@ const header = (workflow: string, file: string, items: string) =>
 
 describe('roleOf', () => {
   test('reads a step agent its stage and level, with or without the plugin prefix', () => {
-    expect(roleOf('tdd-sdlc:tdd-unit-red-phase-step')).toEqual({
+    expect(roleOf('tdd-sdlc:red-unit')).toEqual({
       stage: 'red',
       level: 'unit',
       isModule: false,
       isReadOnly: false,
     })
-    expect(roleOf('tdd-system-green-phase-step')?.stage).toBe('green')
+    expect(roleOf('green-system')?.stage).toBe('green')
     expect(roleOf('tdd-sdlc:implement-plan-module')?.isModule).toBe(true)
     expect(roleOf('tdd-sdlc:review-plan')?.isReadOnly).toBe(true)
   })
@@ -113,8 +113,8 @@ describe('roleOf', () => {
 })
 
 describe('keyOf', () => {
-  const red = role('tdd-unit-red-phase-step')
-  const refactor = role('tdd-refactor-phase')
+  const red = role('red-unit')
+  const refactor = role('refactor')
 
   test('takes the Work file header before the parent and the prompt', () => {
     const prompt = `${header('implement-plan', PLAN, 'RU01')}See docs/9-other/plan.md`
@@ -179,7 +179,7 @@ test('isTick recognises a tick through any script path, quoted or not', () => {
 })
 
 test('lineOf keeps three segments and counts the rest', () => {
-  const red = { role: role('tdd-unit-red-phase-step') }
+  const red = { role: role('red-unit') }
   const segments = ['a', 'b', 'c', 'd', 'e'].map(label => ({ label, running: [red] }))
 
   expect(lineOf(segments)).toBe('a 🔴 red · unit │ b 🔴 red · unit │ c 🔴 red · unit │ +2')
@@ -193,9 +193,9 @@ test('shows each step stage and the plan percent, and clears when the agents fin
   expect(statuses.at(-1)).toBe('module-a 25%')
 
   const step = header('implement-plan', PLAN, 'RU01')
-  await $.agent.spawn(spawnArgs('ru1', 'tdd-sdlc:tdd-unit-red-phase-step', step, 'module'))
-  await $.agent.spawn(spawnArgs('ru2', 'tdd-sdlc:tdd-unit-red-phase-step', step, 'module'))
-  await $.agent.spawn(spawnArgs('ri1', 'tdd-sdlc:tdd-integration-red-phase-step', step, 'module'))
+  await $.agent.spawn(spawnArgs('ru1', 'tdd-sdlc:red-unit', step, 'module'))
+  await $.agent.spawn(spawnArgs('ru2', 'tdd-sdlc:red-unit', step, 'module'))
+  await $.agent.spawn(spawnArgs('ri1', 'tdd-sdlc:red-integration', step, 'module'))
   expect(statuses.at(-1)).toBe('module-a 🔴 red · unit ×2 · integration · 25%')
 
   files[PLAN] = plan(2)
@@ -216,7 +216,7 @@ test('a module that ends its turn on a wave shows again when it resumes', async 
 
   await $.agent.spawn(spawnArgs('module', 'tdd-sdlc:implement-plan-module', `Run ${PLAN}`))
   const step = header('implement-plan', PLAN, 'RU01')
-  await $.agent.spawn(spawnArgs('ru1', 'tdd-sdlc:tdd-unit-red-phase-step', step, 'module'))
+  await $.agent.spawn(spawnArgs('ru1', 'tdd-sdlc:red-unit', step, 'module'))
   await $.turn.complete(complete('module'))
   expect(statuses.at(-1)).toBe('module-a 🔴 red · unit · 0%')
 
@@ -227,7 +227,7 @@ test('a module that ends its turn on a wave shows again when it resumes', async 
   await $.tool.call({ tool: 'Bash', command: `bash plan.sh tick RU01 ${PLAN}`, agentId: 'module' } as never)
   expect(statuses.at(-1)).toBe('module-a 25%')
 
-  await $.agent.spawn(spawnArgs('refactor', 'tdd-sdlc:tdd-refactor-phase', 'Clean up the diff', 'module'))
+  await $.agent.spawn(spawnArgs('refactor', 'tdd-sdlc:refactor', 'Clean up the diff', 'module'))
   expect(statuses.at(-1)).toBe('module-a 🔵 refactor · 25%')
 })
 
@@ -245,7 +245,7 @@ test('rereads the work file at each spawn, so an edit that is no tick shows', as
   await $.agent.spawn(spawnArgs('module', 'tdd-sdlc:implement-plan-module', `Run ${PLAN}`))
   files[PLAN] = plan(3)
   const step = header('implement-plan', PLAN, 'GU01')
-  await $.agent.spawn(spawnArgs('gu1', 'tdd-sdlc:tdd-unit-green-phase-step', step, 'module'))
+  await $.agent.spawn(spawnArgs('gu1', 'tdd-sdlc:green-unit', step, 'module'))
 
   expect(statuses.at(-1)).toBe('module-a 🟢 green · unit · 75%')
 })

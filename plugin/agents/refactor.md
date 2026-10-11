@@ -1,5 +1,5 @@
 ---
-name: tdd-refactor-phase
+name: refactor
 description: 'Spawned by whatever finished a body of work, once, after its last step is complete and the suite is green. Not for direct use — for ad-hoc cleanup use /simplify. Behavior-preserving cleanup of a whole diff: deduplicates logic and test fixtures, aligns idioms across steps written independently, and simplifies minimal-green code — with the full test suite as the safety net; never changes behavior, test assertions, or contract artifacts. Stack-agnostic; the diff, the brief it must not contradict, and the refactoring priorities all come from the caller.'
 ---
 

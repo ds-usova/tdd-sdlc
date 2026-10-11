@@ -1,5 +1,5 @@
 ---
-name: tdd-unit-red-phase-step
+name: red-unit
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
 description: 'Spawned by implement-plan-module, Stage 2, with plan steps; or by any skill or pipeline with a reproduction brief (templates/reproducing.md). Not for direct use — it needs step context only an orchestrator has. TDD Unit Red Phase step agent: writes meaningful, compiling unit tests for one target class (RED phase — tests must compile and fail at runtime). Stack-agnostic; all framework, naming, and run-command detail comes from the module conventions the orchestrator points it at.'
 ---

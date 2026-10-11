@@ -10,7 +10,7 @@ filled its time. Nothing has to be switched on.
 
 - **Task directory**: `docs/<n>-<task>/`, where `<n>` is the task's number. Archiving moves the whole directory
   to `docs/implemented/` ([`README.md`](../README.md)).
-- **Framework agent**: any sub-agent type shipped under `agents/`, such as `tdd-unit-red-phase-step` or
+- **Framework agent**: any sub-agent type shipped under `agents/`, such as `red-unit` or
   `review-plan`. Which skill spawns which is [`agents.md`](agents.md).
 - **Pipeline**: the `implement-plan-module` agent that runs one plan. A task with several modules has one plan
   and one pipeline per module, plus a `shared` plan that runs first ([`implement-plan.md`](implement-plan.md)).
@@ -33,7 +33,7 @@ row per agent type. The first answers "did this cost a lot":
 | grill-design            | 1 | $2.10  | 12% | $0.90  | $0.80   | $0.40 | 7m   | claude-opus-5   |
 | review-plan             | 1 | $1.40  | 8%  | $0.60  | $0.55   | $0.25 | 6m   | claude-opus-5   |
 | implement-plan-module   | 3 | $8.70  | 49% | $6.10  | $1.80   | $0.80 | 29m  | claude-opus-5   |
-| tdd-unit-red-phase-step | 5 | $1.60  | 9%  | $0.70  | $0.60   | $0.30 | 4m   | claude-sonnet-5 |
+| red-unit | 5 | $1.60  | 9%  | $0.70  | $0.60   | $0.30 | 4m   | claude-sonnet-5 |
 ```
 
 - **session (own turns)** is the skill itself: the designer, the planner, the task level of `implement-plan`.
@@ -58,7 +58,7 @@ The second says what moved:
 | grill-design            | 12    | 40    | 6.1k   | 110k        | 1.1M       | 120k     | 12%       |
 | review-plan             | 9     | 35    | 4.0k   | 90k         | 0.7M       | 110k     | 11%       |
 | implement-plan-module   | 167   | 540   | 60.9k  | 555k        | 40.2M      | 310k     | 31%       |
-| tdd-unit-red-phase-step | 60    | 210   | 21.0k  | 190k        | 3.9M       | 90k      | 45%       |
+| red-unit | 60    | 210   | 21.0k  | 190k        | 3.9M       | 90k      | 45%       |
 ```
 
 - **turns** is how many messages the agents of that type sent.

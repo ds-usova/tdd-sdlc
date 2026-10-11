@@ -48,10 +48,10 @@ package "Orchestrating agents (one per plan or file)" {
 rectangle "the close of a\nfix, rework or upgrade" as CLOSE
 
 package "Step agents (one class, one pass)" {
-  component "stabilization-step" as ST
-  component "tdd-*-red-phase-step\n(unit, integration, system)" as RED
-  component "tdd-*-green-phase-step\n(unit, integration, system)" as GREEN
-  component "tdd-refactor-phase" as RF
+  component "stabilize" as ST
+  component "red-*\n(unit, integration, system)" as RED
+  component "green-*\n(unit, integration, system)" as GREEN
+  component "refactor" as RF
 }
 
 component "post-implementation\nsection agent\n(general purpose)" as PI

@@ -162,7 +162,7 @@ too. A second defect found along the way is reproduced at Phase 4
    0's — apart from a machine state the baseline recorded, restored where it can be, and apart from the
    reproductions step 7 adds.
 3. **A refactor round per module whose diff touches more than one production file or created one.** A diff
-   inside one existing class gets none; step 2 read it. One `tdd-refactor-phase` agent per such module, on the
+   inside one existing class gets none; step 2 read it. One `refactor` agent per such module, on the
    model the module's conventions name for the refactor pass, the session's model where they name none. It gets
    the diff from `**Baseline:**`, `bug.md` and every `fix.md` as its brief, the module's conventions by name,
    and the last full suite run's figures with whether the tree has changed since. **It never touches a `red`

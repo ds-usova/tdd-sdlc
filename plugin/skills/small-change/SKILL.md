@@ -100,8 +100,8 @@ possible.
 **Otherwise, write exactly one test**, of one type. Pick the cheapest type that fails because of this change. The
 conventions say which types exist for this part of the module.
 
-**A red agent writes the test.** Spawn one agent of that type — `tdd-unit-red-phase-step`,
-`tdd-integration-red-phase-step` or `tdd-system-red-phase-step` — and wait for it, as
+**A red agent writes the test.** Spawn one agent of that type — `red-unit`,
+`red-integration` or `red-system` — and wait for it, as
 [`templates/sub-agents.md`](../../templates/sub-agents.md) says. Give it:
 
 - the production class the test checks;

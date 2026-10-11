@@ -1,5 +1,5 @@
 ---
-name: stabilization-step
+name: stabilize
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
 description: 'Spawned by implement-plan-module, Stage 1. Not for direct use — it needs step context only that orchestrator has. Stabilization step agent: applies the stabilization item ids it receives — contract artifacts, database changes, interface and signature sync, stubs, configuration, shared test infrastructure. Writes no behaviour and no test. Stack-agnostic; every command, file location and disable mechanism comes from the module conventions the orchestrator points it at.'
 ---

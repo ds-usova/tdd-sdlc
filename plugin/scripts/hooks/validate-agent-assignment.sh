@@ -12,9 +12,9 @@ agent="$(printf '%s' "$input" | jq -r '.tool_input.subagent_type // ""' | tr -d 
 agent="${agent##*:}"
 
 case "$agent" in
-    implement-plan-module|stabilization-step|tdd-unit-red-phase-step|tdd-integration-red-phase-step|\
-    tdd-system-red-phase-step|tdd-unit-green-phase-step|tdd-integration-green-phase-step|\
-    tdd-system-green-phase-step|fix-bug-module|rework-module|upgrade-deps-module) ;;
+    implement-plan-module|stabilize|red-unit|red-integration|\
+    red-system|green-unit|green-integration|\
+    green-system|fix-bug-module|rework-module|upgrade-deps-module) ;;
     *) exit 0 ;;
 esac
 
@@ -48,8 +48,8 @@ pick_path() {
 
 workflow=""
 case "$agent" in
-    implement-plan-module|stabilization-step|tdd-unit-green-phase-step|\
-    tdd-integration-green-phase-step|tdd-system-green-phase-step)
+    implement-plan-module|stabilize|green-unit|\
+    green-integration|green-system)
         workflow="implement-plan"; work_file="$(pick_path '/plan\.md$')" ;;
     fix-bug-module)
         workflow="fix-bug"; work_file="$(pick_path '/(shared/)?fix\.md$')" ;;
@@ -59,7 +59,7 @@ case "$agent" in
     upgrade-deps-module)
         workflow="upgrade-deps"; work_file="$(pick_path '/steps\.md$')"
         [ -n "$work_file" ] || work_file="$(pick_path '/upgrade\.md$')" ;;
-    tdd-unit-red-phase-step|tdd-integration-red-phase-step|tdd-system-red-phase-step)
+    red-unit|red-integration|red-system)
         if work_file="$(pick_path '/plan\.md$')" && [ -n "$work_file" ]; then
             workflow="implement-plan"
         elif work_file="$(pick_path '/(shared/)?fix\.md$')" && [ -n "$work_file" ]; then
@@ -88,13 +88,13 @@ fi
 
 prefix=""
 case "$agent" in
-    stabilization-step) prefix="ST" ;;
-    tdd-unit-red-phase-step) prefix="RU" ;;
-    tdd-integration-red-phase-step) prefix="RI" ;;
-    tdd-system-red-phase-step) prefix="RS" ;;
-    tdd-unit-green-phase-step) prefix="GU" ;;
-    tdd-integration-green-phase-step) prefix="GI" ;;
-    tdd-system-green-phase-step) prefix="GS" ;;
+    stabilize) prefix="ST" ;;
+    red-unit) prefix="RU" ;;
+    red-integration) prefix="RI" ;;
+    red-system) prefix="RS" ;;
+    green-unit) prefix="GU" ;;
+    green-integration) prefix="GI" ;;
+    green-system) prefix="GS" ;;
 esac
 
 items=""
@@ -115,7 +115,7 @@ fi
 
 if [ -z "$reason" ] && [ -z "$items" ]; then
     case "$agent" in
-        tdd-unit-red-phase-step|tdd-integration-red-phase-step|tdd-system-red-phase-step)
+        red-unit|red-integration|red-system)
             if [ "$workflow" = "implement-plan" ]; then
                 reason="Assignment header could not be derived: no assigned item IDs match $agent."
             else

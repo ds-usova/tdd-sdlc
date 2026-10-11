@@ -169,9 +169,9 @@ System Test Red Phase** sections. Red steps have no cross-dependencies:
 - Spawn each bundle on the agent matching its layer, passing every one of its steps' context (target class, test
   class, covered methods, the given/when/then scenarios and the `update:` bullets verbatim) and the conventions
   index paths. Form the bundles from the implementation-bundle policy the conventions name:
-    - unit steps → `tdd-unit-red-phase-step`
-    - integration steps → `tdd-integration-red-phase-step`
-    - system steps → `tdd-system-red-phase-step`
+    - unit steps → `red-unit`
+    - integration steps → `red-integration`
+    - system steps → `red-system`
 - When a report comes back, carry two of its lists into the plan before ticking: every `added:` case becomes a
   scenario sub-bullet under its step, marked `(added)`; every `left:` entry whose reason names a plan defect — a
   premise that fits no test, a consequence that does not follow — goes in the **Run Log**. A `left:` entry that
@@ -208,7 +208,7 @@ depends on everything**: it starts only after every unit and integration green i
    Never spawn a step `next` does not list. Keep both `--section` flags: they keep system green out of this batch.
 
    Each wave runs under `test-waves.md`, as in Stage 2. A blocked step's dependents are never spawned. Unit items
-   run on `tdd-unit-green-phase-step` and integration items on `tdd-integration-green-phase-step`, each passed its
+   run on `green-unit` and integration items on `green-integration`, each passed its
    step context and the conventions index paths.
 2. Wait until every item in the unit + integration batch is ticked or recorded as blocked. Tick items as they
    succeed; run the module's unit and integration suites once the batch is done and confirm both are fully green
@@ -220,7 +220,7 @@ depends on everything**: it starts only after every unit and integration green i
      visible to a spawned agent. Use the command's exit status; do not read or classify a failing log yourself.
    - Exit 0: delete the temporary file and tick the item. Spawn no agent. Its checked red item is the RED evidence
      defined by [`red-exit.md`](../templates/red-exit.md).
-   - Non-zero: spawn `tdd-system-green-phase-step`. Give it the temporary output path, the step context and the
+   - Non-zero: spawn `green-system`. Give it the temporary output path, the step context and the
      production classes earlier system steps modified. Delete the file after its report. Tick the item only when
      its focused class passes.
 
@@ -239,7 +239,7 @@ blocked plan still gets its completed part refactored) and the module's full sui
 
 The diff is **this plan's, so one module's**. Never one pass across two modules.
 
-Spawn **one** `tdd-refactor-phase` sub-agent for the entire plan, never in parallel with anything **in this
+Spawn **one** `refactor` sub-agent for the entire plan, never in parallel with anything **in this
 pipeline**. Pass it:
 
 - the **diff scope**: every production and test file this plan created or modified, compiled from the plan's step

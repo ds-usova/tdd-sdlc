@@ -42,7 +42,7 @@ Each `<name>.jsonl` is one cost record the case appends to `review/cost.jsonl` b
 | `gap.jsonl`   | two agents of one type under `a1`, without `active` or `idle`, eight minutes apart      | "a group of two legacy lines with a gap between them draws the gap and sums the two" |
 | `gr2.jsonl`   | a second `grill-design`, priced, so the row mixes priced and unpriced                  | "a row mixing a priced and an unpriced agent is starred"              |
 | `rp.jsonl`    | a parentless `review-plan` on `module-a/plan.md`                                       | "a parentless review agent on a plan stays in the overview", "and is not adopted into the plan's timeline" |
-| `ad.jsonl`    | a parentless `tdd-unit-green-phase-step` on `module-a/plan.md`                         | "a parentless step agent on a plan joins that plan's timeline", "and leaves the overview" |
+| `ad.jsonl`    | a parentless `green-unit` on `module-a/plan.md`                         | "a parentless step agent on a plan joins that plan's timeline", "and leaves the overview" |
 | `unk.jsonl`   | a `grill-design` on `claude-x`, a model in no rates table                              | "the task total is starred", "the footnote names the unpriced model", "an unknown model is recorded as missing" |
 
 The first five are in the golden; the last four are appended after it is checked.

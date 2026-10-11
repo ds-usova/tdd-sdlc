@@ -1,5 +1,5 @@
 ---
-name: tdd-integration-red-phase-step
+name: red-integration
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
 description: 'Spawned by implement-plan-module, Stage 2, with plan steps; or by any skill or pipeline with a reproduction brief (templates/reproducing.md). Not for direct use — it needs step context only an orchestrator has. TDD Integration Red Phase step agent: writes meaningful, compiling integration tests for one class against the real thing it talks to (RED phase — tests must compile and fail at runtime until the class is implemented). Handles both variants: a class driven directly against real infrastructure, and a class the framework calls with its collaborators mocked. Stack-agnostic; all framework, naming, and run-command detail comes from the module conventions the orchestrator points it at.'
 ---

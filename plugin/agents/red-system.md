@@ -1,5 +1,5 @@
 ---
-name: tdd-system-red-phase-step
+name: red-system
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
 description: 'Spawned by implement-plan-module, Stage 2, with plan steps; or by any skill or pipeline with a reproduction brief (templates/reproducing.md). Not for direct use — it needs step context only an orchestrator has. TDD System Test Red Phase step agent: writes meaningful, compiling end-to-end system tests for one entry point (RED phase — tests must compile and fail at runtime until the full stack is implemented). Stack-agnostic; all framework, naming, and run-command detail comes from the module conventions the orchestrator points it at.'
 ---

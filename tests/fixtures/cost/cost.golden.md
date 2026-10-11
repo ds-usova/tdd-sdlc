@@ -13,11 +13,11 @@ Rates: fetched <date>.
 | grill-design | 1 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 7m | claude-opus-5 |
 | review-plan | 1 | $0.33 | 5% | $0.05 | $0.07 | $0.21 | 6m | claude-sonnet-5 |
 | implement-plan-module | 3 | $4.84 | 71% | $2.89 | $0.57 | $1.38 | 30m | claude-opus-5 |
-| tdd-system-red-phase-step | 2 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 5m | claude-opus-5 |
-| tdd-unit-red-phase-step | 3 | $0.12 | 2% | $0.01 | $0.03 | $0.08 | 4m | claude-haiku-4-5-20251001 |
-| tdd-unit-green-phase-step | 2 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 1m | claude-haiku-4-5-20251001 |
-| tdd-integration-red-phase-step | 2 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 4m | claude-opus-5 |
-| tdd-refactor-phase | 1 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 20s | claude-opus-5 |
+| red-system | 2 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 5m | claude-opus-5 |
+| red-unit | 3 | $0.12 | 2% | $0.01 | $0.03 | $0.08 | 4m | claude-haiku-4-5-20251001 |
+| green-unit | 2 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 1m | claude-haiku-4-5-20251001 |
+| red-integration | 2 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 4m | claude-opus-5 |
+| refactor | 1 | $0.00 | 0% | $0.00 | $0.00 | $0.00 | 20s | claude-opus-5 |
 
 - `$`: what the run would cost at API rates. On a subscription plan it is not a bill.
 - `read $`: cache reads at the read multiplier (a tenth of the input rate, or less on some models),
@@ -35,11 +35,11 @@ Rates: fetched <date>.
 | grill-design | 1 | 100 | 5 | 0 | 0 | 100 | 0% |
 | review-plan | 2 | 200 | 21k | 30k | 224k | 130k | 13% |
 | implement-plan-module | 4 | 510k | 55k | 80k | 680k | 500k | 50% |
-| tdd-system-red-phase-step | 4 | 72 | 30 | 0 | 0 | 42 | 0% |
-| tdd-unit-red-phase-step | 6 | 167 | 15k | 23k | 133k | 34k | 17% |
-| tdd-unit-green-phase-step | 2 | 20 | 20 | 0 | 0 | 10 | 0% |
-| tdd-integration-red-phase-step | 2 | 20 | 0 | 0 | 0 | 10 | 0% |
-| tdd-refactor-phase | 1 | 100 | 0 | 0 | 0 | 100 | 0% |
+| red-system | 4 | 72 | 30 | 0 | 0 | 42 | 0% |
+| red-unit | 6 | 167 | 15k | 23k | 133k | 34k | 17% |
+| green-unit | 2 | 20 | 20 | 0 | 0 | 10 | 0% |
+| red-integration | 2 | 20 | 0 | 0 | 0 | 10 | 0% |
+| refactor | 1 | 100 | 0 | 0 | 0 | 100 | 0% |
 
 - `cache read`: the conversation prefix, re-read from cache on each turn, not new tokens. It grows
   with roughly the square of the turn count.

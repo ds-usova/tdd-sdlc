@@ -16,7 +16,7 @@ Otherwise give the whole group to one agent.
 
 Apply the agent cap and launch the wave as [`sub-agents.md`](sub-agents.md) says.
 
-Pass `whole group` or `stabilization-wave bundle` as the spawned `stabilization-step` agent's execution mode.
+Pass `whole group` or `stabilization-wave bundle` as the spawned `stabilize` agent's execution mode.
 
 After each wave, the orchestrator compiles the module, including test sources. Map each failure to one bundle.
 Handle a newly discovered path as `stabilization-group.md` requires, record the widening in the Run Log, and

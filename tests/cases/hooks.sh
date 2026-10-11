@@ -26,7 +26,7 @@ agent_hook() {
 }
 
 # --- the assignment hook
-out="$(agent_hook stabilization-step 'widget stabilization' \
+out="$(agent_hook stabilize 'widget stabilization' \
   $'Apply docs/4-widget/mod/plan.md.\n- [ ] ST01 — stabilize')"
 check "a framework assignment is allowed" allow "$(printf '%s' "$out" | jq -r \
   '.hookSpecificOutput.permissionDecision')"
@@ -38,7 +38,7 @@ check_match "the Agent description becomes the basis" '^Assignment basis: widget
 check_no_match "a first launch has no reason line" '^Reason:' "$(printf '%s' "$out" | jq -r \
   '.hookSpecificOutput.updatedInput.prompt')"
 
-out="$(agent_hook stabilization-step 'widget stabilization' \
+out="$(agent_hook stabilize 'widget stabilization' \
   $'Reason: ST02 left the stub throwing the wrong error. See RL3.\nApply docs/4-widget/mod/plan.md.\n- [ ] ST01 — stabilize')"
 relaunch="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt')"
 check "a relaunch's reason is the header's fifth line" \
@@ -46,7 +46,7 @@ check "a relaunch's reason is the header's fifth line" \
 check "the reason line leaves the body" 1 "$(printf '%s\n' "$relaunch" | grep -c '^Reason:')"
 check "an item the reason names is not assigned" 'Assigned items: ST01' "$(printf '%s\n' "$relaunch" | sed -n 3p)"
 
-out="$(agent_hook stabilization-step 'widget stabilization' \
+out="$(agent_hook stabilize 'widget stabilization' \
   $'Apply docs/4-widget/mod/plan.md.\nReason: quoted from a log\n- [ ] ST01 — stabilize')"
 check "a reason line after the first stays out of the header" "" "$(printf '%s' "$out" | jq -r \
   '.hookSpecificOutput.updatedInput.prompt' | sed -n 5p)"
@@ -57,30 +57,30 @@ check "a missing work file is denied" deny "$(printf '%s' "$out" | jq -r \
 check_match "the denial tells the model what is missing" 'name the work file' "$(printf '%s' "$out" | jq -r \
   '.hookSpecificOutput.permissionDecisionReason')"
 
-out="$(agent_hook tdd-unit-red-phase-step 'one test' 'Write docs/4-widget/mod/plan.md without an RU item.')"
+out="$(agent_hook red-unit 'one test' 'Write docs/4-widget/mod/plan.md without an RU item.')"
 check "a plan step without a matching id is denied" deny "$(printf '%s' "$out" | jq -r \
   '.hookSpecificOutput.permissionDecision')"
 
-out="$(agent_hook stabilization-step 'widget stabilization' \
+out="$(agent_hook stabilize 'widget stabilization' \
   'Apply docs/4-widget/mod/plan.md. Your item: ST01, read it with `plan.sh show ST01`.')"
 header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
 check_match "an id named in prose is assigned" '^Assigned items: ST01$' "$header"
 
-out="$(agent_hook stabilization-step 'widget stabilization' \
+out="$(agent_hook stabilize 'widget stabilization' \
   'Apply docs/4-widget/mod/plan.md. Step context: `- [ ] ST01 — stabilize`')"
 header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
 check_match "a backticked item line is assigned" '^Assigned items: ST01$' "$header"
 
-out="$(agent_hook stabilization-step 'widget stabilization' \
+out="$(agent_hook stabilize 'widget stabilization' \
   $'Apply docs/4-widget/mod/plan.md.\n- [ ] ST01 — stabilize · after: ST02')"
 header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
 check_match "an item's after: is not assigned" '^Assigned items: ST01$' "$header"
 
-out="$(agent_hook stabilization-step 'widget stabilization' 'Apply docs/4-widget/mod/plan.md. Your items: ST01 ST99.')"
+out="$(agent_hook stabilize 'widget stabilization' 'Apply docs/4-widget/mod/plan.md. Your items: ST01 ST99.')"
 check_match "an id the plan lacks is denied" 'ST99 is not an item' "$(printf '%s' "$out" | jq -r \
   '.hookSpecificOutput.permissionDecisionReason')"
 
-out="$(agent_hook tdd-unit-red-phase-step 'reproduction brief' 'Write one focused regression test.')"
+out="$(agent_hook red-unit 'reproduction brief' 'Write one focused regression test.')"
 small_header="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.prompt' | head -4)"
 check_match "an unplanned reproduction records no work file" '^Work file: none$' "$small_header"
 check_match "an unplanned reproduction records no items" '^Assigned items: none$' "$small_header"
