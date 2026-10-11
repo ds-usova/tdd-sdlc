@@ -4,8 +4,8 @@ What each test type targets, and how a test in this repository is written.
 
 ## Test Types
 
-- **Unit-test targets:** none. An awk file under `plugin/scripts/<name>/` is tested only through the script
-  that runs it.
+- **Unit-test targets:** the stage line, `plugin/hooks/stage-line.ts` and `register.ts`, through
+  `claude plugin test`. An awk file under `plugin/scripts/<name>/` is tested only through the script that runs it.
 - **Integration-test targets, against infrastructure:** every script under `plugin/scripts/<name>/` and every
   hook under `plugin/scripts/hooks/`, each run by its command line against a real git repository built under a
   temporary directory. The real dependency is the file system and `git`; for `cost.sh`, also a `curl` on
@@ -20,7 +20,9 @@ What each test type targets, and how a test in this repository is written.
 
 ## Test Tooling
 
-- Test framework: `tests/run.sh` and `tests/lib.sh`, this repository's own. No external framework.
+- Test framework: `tests/run.sh` and `tests/lib.sh`, this repository's own, for the scripts and hooks. The
+  stage line's `*.test.ts` use `claude-code/testing`: the engine's `$`, with the world beneath stubbed by the
+  test's own `on`.
 - Container-based dependencies: none.
 - HTTP stubbing for outbound calls: a fake `curl` script placed first on `PATH`, as `tests/cases/cost.sh` does.
 - API-level test client: a script is invoked as `bash "$R/scripts/<name>/<name>.sh" <command>`; a hook is fed

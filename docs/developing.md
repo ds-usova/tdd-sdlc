@@ -11,7 +11,7 @@
 
 1. `bash plugin/scripts/cost/cost.sh refresh-pricing`, then commit `plugin/scripts/cost/pricing.json` when it
    changed. It is the rates a report uses offline; a release ships it as it is.
-2. `bash tests/run.sh`, green.
+2. `bash tests/run.sh` and `claude plugin test plugin`, green.
 3. `claude plugin validate plugin`
 4. Bump `version` in `plugin/.claude-plugin/plugin.json` and commit it.
 5. `git push`.

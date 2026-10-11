@@ -7,9 +7,10 @@ What the plugin is built from, and what to read before changing it.
 Versions live in the files that pin them and are not repeated here.
 
 - Language / framework: Bash and POSIX awk for the scripts and hooks; Markdown with YAML frontmatter for the
-  skills, agents and templates; PowerShell for the one repository-only hook under `.claude/scripts/hooks/`.
-- Host: Claude Code's plugin system. `plugin/.claude-plugin/plugin.json` is the manifest; `plugin/hooks/hooks.json`
-  wires the four shipped hooks.
+  skills, agents and templates; TypeScript for the stage line's hooks module under `plugin/hooks/`; PowerShell
+  for the one repository-only hook under `.claude/scripts/hooks/`.
+- Host: Claude Code's plugin system. `plugin/.claude-plugin/plugin.json` is the manifest and declares the
+  `showStage` option; `plugin/hooks/hooks.json` wires the five shipped hooks and the stage line's module.
 - Database: none.
 - Persistence: the files a run writes under a consuming repository's `docs/`, and a per-user rates cache
   `cost.sh` keeps under `$XDG_CACHE_HOME/tdd-sdlc/`.

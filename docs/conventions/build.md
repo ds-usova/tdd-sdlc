@@ -6,9 +6,9 @@ Git Bash on Windows or any POSIX shell elsewhere.
 ## Commands
 
 - Compile / type-check: `bash -n plugin/scripts/<name>/<name>.sh` parses one script; `claude plugin validate
-  plugin` checks the plugin's manifest and structure. There is no compiler.
+  plugin` checks the plugin's manifest, structure and hooks module. There is no compiler.
 - Run a single test class: `bash tests/run.sh <name>`, one case file; several names run several.
-- Run the full test suite: `bash tests/run.sh`.
+- Run the full test suite: `bash tests/run.sh`, then `claude plugin test plugin` for the mods stage line.
 - Run the architecture-enforcement check: none — the dependency rule is reviewed by hand.
 - Format: none — no formatter is configured.
 - Contract codegen: n/a.

@@ -20,7 +20,8 @@ tdd-sdlc
 │   ├── templates/             # files more than one skill reads; conventions/ holds the consumer templates
 │   ├── scripts/<name>/        # one script per file format: <name>.sh, its awk files, README.md
 │   ├── scripts/hooks/         # the shipped hooks
-│   ├── hooks/hooks.json       # wires the hooks to their events
+│   ├── hooks/hooks.json       # wires the hooks to their events, and names the stage line's module
+│   ├── hooks/register.ts      # the stage line's hooks; stage-line.ts holds its logic, stage-line.test.ts tests
 │   └── settings.json          # the allow rules a consumer copies
 ├── tests/
 │   ├── run.sh                 # runs every case file, or the ones named

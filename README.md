@@ -173,11 +173,23 @@ Which facts the agents read, who reads each, and what happens when one is absent
 ## Requirements
 
 - `bash`, `awk`, `sed`, `git`, `find`, `grep` on `PATH`. On Windows that is Git Bash.
-- `jq`, for the four shipped hooks and for `cost.sh` that exit silently without it:
-  - One hook refuses a commit message that names a plan step id (`ST01`, `GU05`, …)
+- `jq`, for the five shipped hooks and for `cost.sh` that exit silently without it:
+  - One hook checks a step agent's assignment and names its work file in the prompt
+  - One refuses a commit message that names a plan step id (`ST01`, `GU05`, …)
   - One refuses to archive a task while a stub it stabilized is still unimplemented
   - Two record what a run costs ([`docs/cost-recording.md`](docs/cost-recording.md))
 - Conventions files. Without them `design-task` and `plan-task` stop and ask for `init-conventions`.
+
+## Stage line
+
+While framework agents run, the status line shows each plan's stage and how many of its items are done:
+
+```
+module-a 🔴 red · unit ×2 · integration · 50% │ module-b 🟢 green · system · 80%
+```
+
+Three plans are shown in full; the rest are counted as `+N`. Turn it off in `/config` with **Show the running
+stage**. It needs a Claude Code that loads function hooks.
 
 ## Permissions
 
@@ -200,7 +212,7 @@ Which facts the agents read, who reads each, and what happens when one is absent
 | `agents/`         | every sub-agent a skill spawns; none is for direct use    |
 | `scripts/<name>/` | the reader for one file format, its parser and its README |
 | `templates/`      | files more than one skill reads; `conventions/` templates |
-| `hooks/`          | the four shipped hooks                                    |
+| `hooks/`          | the hook wiring and the stage line's hooks module         |
 | `docs/`           | diagrams and reference pages                              |
 
 Working on the plugin itself: [`docs/developing.md`](docs/developing.md).
