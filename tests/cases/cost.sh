@@ -193,6 +193,22 @@ check_match "the activity page cuts idle stretches over five minutes" \
 check_match "the activity page lists repeated shell commands" 'id="repeated-body"' "$(cat "$HTML")"
 check_match "the activity page lists the longest tool calls" 'id="longest-body"' "$(cat "$HTML")"
 check_golden "the activity page matches the visual golden" "$FX/activity.golden.html" "$HTML"
+
+# The page sorts agents into phases in the browser, so the golden cannot see it. Run its own phaseOf
+# over every agent the plugin ships, bare and with the plugin prefix, so a renamed agent cannot fall
+# into "Other agents" unnoticed.
+phases="$(awk '/^      function phaseOf\(/,/^      }$/' "$R/scripts/cost/activity-template.html" \
+  | node -e '
+      const src = require("fs").readFileSync(0, "utf8");
+      const phaseOf = new Function(src + "; return phaseOf;")();
+      for (const name of process.argv.slice(1)) {
+        for (const type of [name, "tdd-sdlc:" + name]) {
+          console.log(`${type}=${phaseOf({ kind: "agent", agent_type: type })}`);
+        }
+      }' $(cd "$R/agents" && ls *.md | sed 's/\.md$//') 2>&1)"
+check_no_match "every shipped agent falls into a named phase" '=other$|Error' "$phases"
+check_match "a red step agent falls into red" '^tdd-sdlc:red-unit=red$' "$phases"
+check_match "a green step agent falls into green" '^tdd-sdlc:green-system=green$' "$phases"
 hash1="$(git hash-object "$HTML")"
 report_offline > /dev/null
 hash2="$(git hash-object "$HTML")"

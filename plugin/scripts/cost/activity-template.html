@@ -1430,19 +1430,19 @@ __TDD_SDLC_ACTIVITY_DATA_BASE64__
         if (lane.kind === "session") {
           return "session";
         }
-        if (/^grill-/.test(type) || type === "design-task") {
+        if (/(^|:)(grill-|design-task$)/.test(type)) {
           return "design";
         }
-        if (/^review-plan/.test(type)) {
+        if (/(^|:)review-plan/.test(type)) {
           return "plan";
         }
         if (/stabiliz/.test(type)) {
           return "stabilize";
         }
-        if (/red-phase/.test(type)) {
+        if (/(^|:)red-/.test(type)) {
           return "red";
         }
-        if (/green-phase/.test(type)) {
+        if (/(^|:)green-/.test(type)) {
           return "green";
         }
         if (/refactor/.test(type)) {
