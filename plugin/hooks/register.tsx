@@ -1,9 +1,13 @@
+import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
+import type { StageLine } from '../types'
 import { isTick, keyOf, labelOf, lineOf, progressOf, roleOf } from './stage-line'
 import type { Role, Segment } from './stage-line'
 
 type Agent = { key: string; role: Role }
+
+const stageLine = atom({ plugin: 'tdd-sdlc', key: 'stageLine' } as const, null as StageLine)
 
 // A file's text, or undefined when it cannot be read.
 const readText = ($: EngineInterface, path: string): Promise<string | undefined> =>
@@ -45,8 +49,13 @@ async function refresh($: EngineInterface, percents: Map<string, number | undefi
   }
 }
 
-// The stage line: while framework agents run, the status line shows each work file's running stages and how many
-// of its items are done. `showStage` off registers nothing.
+// Sets the line the band draws; no segment clears it.
+async function show($: EngineInterface, segments: Segment[]) {
+  await update($, stageLine, () => lineOf(segments) ?? null)
+}
+
+// The stage line: while framework agents run, the band above the prompt shows each work file's running stages and
+// how many of its items are done. `showStage` off registers nothing.
 export const register: Register = (on, options) => {
   if (options.showStage === false) {
     return
@@ -97,7 +106,7 @@ export const register: Register = (on, options) => {
     known.set(result.agentId, { key, role })
     active.add(result.agentId)
     await refresh($, percents, [key])
-    $.ui.status(lineOf(segments()))
+    await show($, segments())
 
     return result
   }).catch(($, e, next) => next(e))
@@ -105,14 +114,14 @@ export const register: Register = (on, options) => {
   on('tool.call', async ($, e, next) => {
     if (e.agentId !== undefined && known.has(e.agentId) && !active.has(e.agentId)) {
       active.add(e.agentId)
-      $.ui.status(lineOf(segments()))
+      await show($, segments())
     }
 
     const result = await next(e)
 
     if (active.size > 0 && result.deny === undefined && e.tool === 'Bash' && isTick(e.command)) {
       await refresh($, percents, [...percents.keys()])
-      $.ui.status(lineOf(segments()))
+      await show($, segments())
     }
 
     return result
@@ -120,7 +129,7 @@ export const register: Register = (on, options) => {
 
   on('turn.complete', async ($, e, next) => {
     if (e.agentId !== undefined && active.delete(e.agentId)) {
-      $.ui.status(lineOf(segments()))
+      await show($, segments())
     }
 
     return next(e)
@@ -128,15 +137,31 @@ export const register: Register = (on, options) => {
 
   on('session.start', async ($, e, next) => {
     reset()
-    $.ui.status(undefined)
+    await show($, [])
 
     return next(e)
   })
 
   on('session.end', async ($, e, next) => {
     reset()
-    $.ui.status(undefined)
+    await show($, [])
 
     return next(e)
+  })
+
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+    const line = await read($, stageLine)
+
+    if (e.props.hasSurvey || line === null) {
+      return next(e)
+    }
+
+    const { Text } = $.ui.resolve(e)
+
+    return (
+      <Text dimColor wrap="truncate-end">
+        {line}
+      </Text>
+    )
   })
 }

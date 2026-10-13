@@ -1,7 +1,8 @@
 {
   "name": "tdd-sdlc",
   "description": "A TDD workflow framework: design, plan, red-green-refactor implementation, rework, bug-fixing and dependency upgrades, each as a gated pipeline of skills and sub-agents.",
-  "version": "0.3.0",
+  "version": "0.3.1",
+  "types": "./types/index.d.ts",
   "author": {
     "name": "Daria U."
   },
@@ -9,7 +10,7 @@
     "showStage": {
       "type": "boolean",
       "title": "Show the running stage",
-      "description": "While framework agents run, the status line shows each plan's stage and how many of its items are done.",
+      "description": "While framework agents run, the band above the prompt shows each plan's stage and how many of its items are done.",
       "default": true
     }
   }

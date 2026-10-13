@@ -21,7 +21,8 @@ tdd-sdlc
 │   ├── scripts/<name>/        # one script per file format: <name>.sh, its awk files, README.md
 │   ├── scripts/hooks/         # the shipped hooks
 │   ├── hooks/hooks.json       # wires the hooks to their events, and names the stage line's module
-│   ├── hooks/register.ts      # the stage line's hooks; stage-line.ts holds its logic, stage-line.test.ts tests
+│   ├── hooks/register.tsx     # the stage line's hooks; stage-line.ts holds its logic, stage-line.test.ts tests
+│   ├── types/index.d.ts       # the stage line's state contract
 │   └── settings.json          # the allow rules a consumer copies
 ├── tests/
 │   ├── run.sh                 # runs every case file, or the ones named

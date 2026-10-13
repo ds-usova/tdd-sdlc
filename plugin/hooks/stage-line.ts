@@ -160,7 +160,7 @@ const stagesOf = (running: Running[]): string => {
       return count === 0 ? '' : count === 1 ? level : `${level} ×${count}`
     }).filter(level => level !== '')
     const unlevelled = ofStage.filter(r => r.role.level === undefined).length
-    const head = `${ICONS[stage]} ${stage}${levels.length === 0 && unlevelled > 1 ? ` ×${unlevelled}` : ''}`
+    const head = `${ICONS[stage]}  ${stage}${levels.length === 0 && unlevelled > 1 ? ` ×${unlevelled}` : ''}`
 
     parts.push([head, ...levels].join(' · '))
   }
@@ -177,7 +177,7 @@ const segmentText = (segment: Segment): string => {
     .join(' ')
 }
 
-// The status line: one segment per work key, the first MAX_SEGMENTS in full and the rest as `+N`. Undefined when
+// The stage line: one segment per work key, the first MAX_SEGMENTS in full and the rest as `+N`. Undefined when
 // nothing runs, which clears the line.
 export const lineOf = (segments: Segment[]): string | undefined => {
   if (segments.length === 0) {

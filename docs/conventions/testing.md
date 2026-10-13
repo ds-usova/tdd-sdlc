@@ -4,7 +4,7 @@ What each test type targets, and how a test in this repository is written.
 
 ## Test Types
 
-- **Unit-test targets:** the stage line, `plugin/hooks/stage-line.ts` and `register.ts`, through
+- **Unit-test targets:** the stage line, `plugin/hooks/stage-line.ts` and `register.tsx`, through
   `claude plugin test`. An awk file under `plugin/scripts/<name>/` is tested only through the script that runs it.
 - **Integration-test targets, against infrastructure:** every script under `plugin/scripts/<name>/` and every
   hook under `plugin/scripts/hooks/`, each run by its command line against a real git repository built under a

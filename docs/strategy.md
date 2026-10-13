@@ -330,9 +330,11 @@ File format numbers and their changes live in
   - **Join:** the stop hook attaches the normalized assignment to the real agent ID.
 
 - **Stage line from existing records**
-  - **Rule:** the status line takes each agent's plan from its `Work file:` header and the percent from the work
+  - **Rule:** the stage line takes each agent's plan from its `Work file:` header and the percent from the work
     file's ticks.
   - **Why:** both already exist for other guardrails. A second progress record could drift from the file.
+  - **Where:** the band above the prompt. The terminal draws a plugin's status line as a warning, `⚠` and the
+    plugin's name first.
   - **Trade-off:** it rides the early-access function-hook API, which moves between releases.
 
 - **One stub marker**

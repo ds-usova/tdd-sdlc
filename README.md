@@ -182,10 +182,10 @@ Which facts the agents read, who reads each, and what happens when one is absent
 
 ## Stage line
 
-While framework agents run, the status line shows each plan's stage and how many of its items are done:
+While framework agents run, the band above the prompt shows each plan's stage and how many of its items are done:
 
 ```
-module-a 🔴 red · unit ×2 · integration · 50% │ module-b 🟢 green · system · 80%
+module-a 🔴  red · unit ×2 · integration · 50% │ module-b 🟢  green · system · 80%
 ```
 
 Three plans are shown in full; the rest are counted as `+N`. Turn it off in `/config` with **Show the running
